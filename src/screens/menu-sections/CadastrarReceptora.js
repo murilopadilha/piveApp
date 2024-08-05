@@ -4,9 +4,26 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import style from "../../components/style";
 
 export default ({ navigation }) => {
-    const [newReceiverName, setName] = useState('');
-    const [newReceiverBreed, setBreed] = useState('');
-    const [newReceiverIdentification, setIdentification] = useState('');
+    const [newReceiverName, setName] = useState('')
+    const [newReceiverBreed, setBreed] = useState('')
+    const [newReceiverIdentification, setIdentification] = useState('')
+
+    async function postReceivers(name, breed, registrationNumber) {
+        const receiverData = {
+        "name": name,
+        "breed": breed,
+        "registrationNumber": registrationNumber
+        }
+
+        const response = await fetch('http://172.20.7.184:8080/receiver', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(receiverData)
+        })
+        const receivers = await response.json()
+    }    
 
     return (
         <View style={style.menu}>
@@ -41,7 +58,7 @@ export default ({ navigation }) => {
                     onChangeText={setIdentification}
                 />
                 <View>
-                    <TouchableOpacity style={style.button} onPress={() => {}}>
+                    <TouchableOpacity style={style.button} onPress={() => postReceivers(newReceiverName, newReceiverBreed, newReceiverIdentification)}>
                         <Text style={style.buttonText}>Salvar</Text>
                     </TouchableOpacity>
                 </View>

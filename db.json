@@ -1,5 +1,5 @@
 {
-    "receivers": [
+    "receiver": [
       {
         "id": 1,
         "name": "",

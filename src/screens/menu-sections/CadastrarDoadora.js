@@ -15,10 +15,30 @@ export default ({ navigation }) => {
     const [newDonorIndentification, setNumber] = useState(newDonorIndentification)
     const [newDonorDateOfBirth, setDateOfBirth] = useState('')
 
+    async function postDonors(name, breed, registrationNumber) {
+        const receiverData = {
+        "name": name,
+        "breed": breed,
+        "birth": onChangeDate(),
+        "registrationNumber": registrationNumber
+        }
+
+        const response = await fetch('http://172.20.7.184:8080/donor', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(receiverData)
+        })
+        const receivers = await response.json()
+    }  
+
     const onChangeDate = (event, selectedDate) => {
         const currentDate = selectedDate || new Date()
         const formattedDate = `${("0" + currentDate.getDate()).slice(-2)}/${("0" + (currentDate.getMonth() + 1)).slice(-2)}/${currentDate.getFullYear()}`
         setDateOfBirth(formattedDate)
+
+        return `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`;
     }
 
     const showDatePicker = () => {
@@ -67,7 +87,7 @@ export default ({ navigation }) => {
                     <Text style={style.dateText}>{newDonorDateOfBirth || "Selecione a Data"}</Text>
                 </TouchableOpacity>
                 <View>
-                    <TouchableOpacity style={style.button} onPress={() => alert(`Salvo com sucesso!`)}>
+                    <TouchableOpacity style={style.button} onPress={() => postDonors(newDonorName, newDonorBreed, newDonorIndentification)}>
                         <Text style={style.buttonText}>Salvar</Text>
                     </TouchableOpacity>
                 </View>
