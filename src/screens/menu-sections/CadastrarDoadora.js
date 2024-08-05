@@ -23,7 +23,7 @@ export default ({ navigation }) => {
         "registrationNumber": registrationNumber
         }
 
-        const response = await fetch('http://172.20.7.184:8080/donor', {
+        const response = await fetch('http://192.168.1.183:8080/donor', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
