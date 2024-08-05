@@ -50,9 +50,9 @@ export default function App() {
     <NavigationContainer >
       <Tab.Navigator screenOptions={{
         tabBarInactiveTintColor: '#fff',
-        tabBarActiveTintColor: '#2E4BA8',
-        tabBarActiveBackgroundColor: '#ffc',
-        tabBarInactiveBackgroundColor: '#2E4BA8',
+        tabBarActiveTintColor: '#0000CD',
+        tabBarActiveBackgroundColor: '#fff',
+        tabBarInactiveBackgroundColor: '#0000CD',
         tabBarItemStyle:{
           borderRadius: 10
         },
@@ -61,7 +61,7 @@ export default function App() {
         },
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: '#2E4BA8',
+          backgroundColor: '#0000CD',
           borderTopWidth: 0,
           bottom: 14,
           left: 14,
@@ -76,7 +76,7 @@ export default function App() {
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => {
             if(focused){
-              return  <MaterialCommunityIcons name="cow" size={24} color="#2E4BA8" />
+              return  <MaterialCommunityIcons name="cow" size={24} color="#0000CD" />
             }
 
             return <MaterialCommunityIcons name="cow-off" size={24} color="#fff" /> 
@@ -86,7 +86,7 @@ export default function App() {
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => {
             if(focused){
-              return <FontAwesome5 name="file-invoice" size={24} color="#2E4BA8" />
+              return <FontAwesome5 name="file-invoice" size={24} color="#0000CD" />
             }
 
             return <FontAwesome5 name="file-alt" size={24} color="#fff" />
@@ -96,7 +96,7 @@ export default function App() {
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => {
             if(focused){
-              return <Entypo name="calendar" size={24} color="#2E4BA8" />
+              return <Entypo name="calendar" size={24} color="#0000CD" />
             }
 
             return <AntDesign name="calendar" size={24} color="#fff" />
