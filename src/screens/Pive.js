@@ -16,13 +16,6 @@ export default (props) => {
                 </TouchableOpacity>
                 <Text style={style.titleText}>PiveApper</Text>
             </View>
-            <LinearGradient
-                colors={['#0000CD', '#dcdcdc']} // Cores do degradê
-                start={{ x: 0, y: 1 }} // Início do degradê (esquerda inferior)
-                end={{ x: 1, y: 1 }}   // Fim do degradê (centro inferior)
-                locations={[0.1, 0.9]}
-                style={style.bottomBorder}
-            />
             <View style={{justifyContent: 'center', alignItems: 'center', marginTop: 300}}>
                 <Text>PIVE page</Text>
             </View>

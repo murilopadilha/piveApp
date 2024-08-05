@@ -6,7 +6,9 @@ export default StyleSheet.create({
         padding: 0,
     },
     divTitle:{
-      backgroundColor: "#0000CD",
+      backgroundColor: "#092955",
+      borderBottomLeftRadius: 22,
+      borderBottomRightRadius: 22,
       padding: 25,
       shadowColor: '#000',
       shadowOpacity: 1,
@@ -15,7 +17,6 @@ export default StyleSheet.create({
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      
     },
     titleText:{
       fontSize: 20,
@@ -26,7 +27,7 @@ export default StyleSheet.create({
     input: {
       width: 200,
       height: 40,
-      borderColor: '#0000CD',
+      borderColor: '#092955',
       borderWidth: 3,
       borderRadius: 8,
       marginBottom: 10,
@@ -46,7 +47,7 @@ export default StyleSheet.create({
         width: 85,
         height: 40,
         borderRadius: 50,
-        backgroundColor: '#0000CD',
+        backgroundColor: '#092955',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -89,7 +90,7 @@ export default StyleSheet.create({
     width: 350,
   },
   dateInput: {
-    borderColor: '#0000CD',
+    borderColor: '#092955',
     borderWidth: 3,
     borderRadius: 8, 
     justifyContent: 'center',

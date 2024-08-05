@@ -17,13 +17,6 @@ export default ({ navigation }) => {
                 </TouchableOpacity>
                 <Text style={style.titleText}>PiveApper</Text>
             </View>
-            <LinearGradient
-                colors={['#0000CD', '#d3d3d3']} // Cores do degradê
-                start={{ x: 0, y: 1 }} // Início do degradê (esquerda inferior)
-                end={{ x: 1, y: 1 }}   // Fim do degradê (centro inferior)
-                locations={[0.1, 0.9]}
-                style={style.bottomBorder}
-            />
             <View style={style.menuContent}>
                 <View>
                 <TouchableOpacity style={style.menuContentButton} onPress={() => {
