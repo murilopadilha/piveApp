@@ -42,25 +42,33 @@ export default ({ navigation }) => {
                 <Text style={style.textButtonMenu}>Cadastrar Doadora</Text>
                 </View>
                 <View>
-                <TouchableOpacity style={style.menuContentButton}>
+                <TouchableOpacity style={style.menuContentButton} onPress={() => {
+                    navigation.navigate('CadastrarTouro')
+                }}>
                 <Image source={require('../images/menu/CadastrarTouro.png')} style={style.imgsMenu}/>
                 </TouchableOpacity>
                 <Text style={style.textButtonMenu}>Cadastrar Touro</Text>
                 </View>
                 <View>
-                <TouchableOpacity style={style.menuContentButton}>
+                <TouchableOpacity style={style.menuContentButton} onPress={() => {
+                    navigation.navigate('ReceptorasCadastradas')
+                }}>
                 <Image source={require('../images/menu/ListarReceptoras.png')} style={style.imgsMenu}/>
                 </TouchableOpacity>
                 <Text style={style.textButtonMenu}>Receptoras Cadastradas</Text>
                 </View>
                 <View>
-                <TouchableOpacity style={style.menuContentButton}>
+                <TouchableOpacity style={style.menuContentButton} onPress={() => {
+                    navigation.navigate('DoadorasCadastradas')
+                }}>
                 <Image source={require('../images/menu/ListarDoadoras.png')} style={style.imgsMenu}/>
                 </TouchableOpacity>
                 <Text style={style.textButtonMenu}>Doadoras Cadastradas</Text>
                 </View>
                 <View>
-                <TouchableOpacity style={style.menuContentButton}>
+                <TouchableOpacity style={style.menuContentButton} onPress={() => {
+                    navigation.navigate('TourosCadastrados')
+                }}>
                 <Image source={require('../images/menu/ListarTouros.png')} style={style.imgsMenu}/>
                 </TouchableOpacity>
                 <Text style={style.textButtonMenu}>Touros Cadastrados</Text>

@@ -20,6 +20,10 @@ import Pive from './screens/Pive';
 
 import CadastrarReceptoras from './screens/menu-sections/CadastrarReceptora';
 import CadastrarDoadora from './screens/menu-sections/CadastrarDoadora';
+import CadastrarTouro from './screens/menu-sections/CadastrarTouro';
+import ReceptorasCadastradas from './screens/menu-sections/ReceptorasCadastradas';
+import DoadorasCadastradas from './screens/menu-sections/DoadorasCadastradas';
+import TourosCadastrados from './screens/menu-sections/TourosCadastrados';
 
 const MenuStack = createStackNavigator()
 
@@ -31,6 +35,10 @@ function MenuTabStack() {
       <MenuStack.Screen name='Menu' component={Menu}/>
       <MenuStack.Screen name='CadastrarReceptora' component={CadastrarReceptoras}/>
       <MenuStack.Screen name='CadastrarDoadora' component={CadastrarDoadora} />
+      <MenuStack.Screen name='CadastrarTouro' component={CadastrarTouro} />
+      <MenuStack.Screen name='ReceptorasCadastradas' component={ReceptorasCadastradas} />
+      <MenuStack.Screen name='DoadorasCadastradas' component={DoadorasCadastradas} />
+      <MenuStack.Screen name='TourosCadastrados' component={TourosCadastrados} />
     </MenuStack.Navigator>
   )
 }

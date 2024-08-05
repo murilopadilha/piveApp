@@ -86,6 +86,17 @@ export default StyleSheet.create({
     height: 7, // Espessura da borda inferior
   },
   dateComponent: {
-    width: 350
-  }
+    width: 350,
+  },
+  dateInput: {
+    borderColor: '#2E4BA8',
+    borderWidth: 3,
+    borderRadius: 8, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 40,
+  },
+  dateText: {
+    textAlign: 'center',
+  },
 })
