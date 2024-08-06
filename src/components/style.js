@@ -5,6 +5,9 @@ export default StyleSheet.create({
         margin: 0,
         padding: 0,
     },
+    menu: {
+      backgroundColor: '#F1F2F4',
+    },
     divTitle:{
       backgroundColor: "#092955",
       borderBottomLeftRadius: 22,
@@ -21,7 +24,7 @@ export default StyleSheet.create({
     titleText:{
       fontSize: 20,
       marginRight: 50,
-      color: '#fff',
+      color: '#FFFFFF',
       fontFamily: ''
     },
     input: {
@@ -55,7 +58,7 @@ export default StyleSheet.create({
         marginLeft: 125,
     }, 
     buttonText: {
-        color: '#fff'
+        color: '#FFFFFF'
     },
     menuContent: {
       display: 'flex',
@@ -67,7 +70,7 @@ export default StyleSheet.create({
       height: '100%'
   },
   menuContentButton: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     marginTop: 20,
     margin: 5,
     width: 150,
@@ -101,7 +104,7 @@ export default StyleSheet.create({
     textAlign: 'center',
   },
   listItem: {
-    backgroundColor: '#d3d3d3',
+    backgroundColor: '#FFFFFF',
     padding: 15,
     marginTop: 10,
     borderRadius: 10,
@@ -123,7 +126,7 @@ export default StyleSheet.create({
     marginBottom: 3
   },
   listButtonTextEdit: {
-    color: '#fff',
+    color: '#FFFFFF',
     marginLeft: 2
   },
   listButtonDelete: {
@@ -133,7 +136,7 @@ export default StyleSheet.create({
     borderRadius: 8,
   },
   listButtonTextDelete: {
-    color: '#fff'
+    color: '#FFFFFF'
   },
   listButtons: {
     display: 'flex',
@@ -143,7 +146,7 @@ export default StyleSheet.create({
     marginTop: 2,
   },
   listItemDonor: {
-    backgroundColor: '#d3d3d3',
+    backgroundColor: '#FFFFFF',
     padding: 15,
     marginTop: 10,
     borderRadius: 10,

@@ -80,7 +80,7 @@ function FooterList({ load }) {
 
     return(
         <View>
-            <ActivityIndicator size={25} color="#fff"/>
+            <ActivityIndicator size={25} color="#092955"/>
         </View>
     )
 }

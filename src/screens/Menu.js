@@ -9,7 +9,7 @@ import CadastrarReceptoras from "./menu-sections/CadastrarReceptora";
 
 export default ({ navigation }) => {
     return (
-        <SafeAreaView style={{backgroundColor: '#f8f8ff'}}>  
+        <SafeAreaView style={{backgroundColor: '#F1F2F4'}}>  
             <View style={[style.divTitle]} >
                 <TouchableOpacity>
                     <View style={{marginRight: 50}}>
