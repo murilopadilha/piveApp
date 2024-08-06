@@ -5,17 +5,14 @@ import axios from "axios";
 import style from "../../components/style";
 
 export default ({ navigation }) => {
-    const baseURL = 'https://api.github.com'
-    const perPage = 20
-
+    const baseURL = 'http://172.20.7.184:8080'
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
-    const [page, setPage] = useState(1)
-    const [bullIdentification, setIdentification] = useState('')
+    const [registrationNumber, setRegistrationNumber] = useState('')
 
     useEffect(() => {
         loadApi()
-    }, []);
+    }, [])
 
     async function loadApi(query = '') {
         if (loading) return
@@ -23,16 +20,15 @@ export default ({ navigation }) => {
         setLoading(true)
 
         try {
-            let response
+            let response;
             if (query) {
-                // Busca pelo nome do touro
-                response = await axios.get(`${baseURL}/search/repositories?q=${query} in:name&per_page=${perPage}`);
-                setData(response.data.items)
+                // Busca pelo registrationNumber exato
+                response = await axios.get(`${baseURL}/bull/search?registrationNumber=${query}`)
+                setData(response.data)  // Define data com o resultado da busca
             } else {
-                // Busca genérica
-                response = await axios.get(`${baseURL}/search/repositories?q=react&per_page=${perPage}&page=${page}`);
-                setData([...data, ...response.data.items])
-                setPage(page + 1)
+                // Busca inicial ou genérica
+                response = await axios.get(`${baseURL}/bull`)
+                setData(response.data)  // Define data com todos os itens
             }
         } catch (error) {
             console.error("Erro ao carregar dados:", error)
@@ -42,17 +38,16 @@ export default ({ navigation }) => {
     }
 
     function handleSearch() {
-        if (bullIdentification) {
-            setData([]); // Limpa os dados antes da nova busca
-            loadApi(bullIdentification)
+        if (registrationNumber) {
+            loadApi(registrationNumber)  // Carrega dados baseados no registrationNumber
         }
     }
 
     async function removeItem(id) {
         try {
             // Supondo que você tenha uma rota de API para deletar o item pelo ID
-            await axios.delete(`${baseURL}/repositories/${id}`)
-            // Remover o item da lista localmente após a exclusão bem-sucedida
+            await axios.delete(`${baseURL}/bull/${id}`)
+            // Remove o item da lista localmente após a exclusão bem-sucedida
             setData(data.filter(item => item.id !== id))
         } catch (error) {
             console.error("Erro ao deletar o item:", error)
@@ -72,10 +67,10 @@ export default ({ navigation }) => {
             <View style={style.contentList}>
                 <View style={style.search}>
                     <TextInput
-                        placeholder="Identificação do Touro"
-                        value={bullIdentification}
+                        placeholder="Número de Registro"
+                        value={registrationNumber}
                         style={style.input}
-                        onChangeText={setIdentification}
+                        onChangeText={setRegistrationNumber}
                     />
                     <TouchableOpacity style={style.listButtonEdit} onPress={handleSearch}>
                         <Text style={style.listButtonTextEdit}>Buscar</Text>
@@ -87,8 +82,6 @@ export default ({ navigation }) => {
                     data={data}
                     keyExtractor={item => String(item.id)}
                     renderItem={({ item }) => <ListItem data={item} onRemove={removeItem} />}
-                    onEndReached={() => loadApi()}
-                    onEndReachedThreshold={0.1}
                     ListFooterComponent={<FooterList load={loading} />}
                 />
             </View>
@@ -101,12 +94,12 @@ function ListItem({ data, onRemove }) {
         <View style={style.listItem}>
             <View>
                 <Text style={style.listText}>{`Nome: ${data.name}`}</Text>
-                <Text style={style.listText}>{`Identificação: ${data.id}`}</Text>
+                <Text style={style.listText}>{`Número de Registro: ${data.registrationNumber}`}</Text>
             </View>
             <View style={style.listButtons}>
                 <TouchableOpacity
                     style={style.listButtonDelete}
-                    onPress={() => onRemove(data.id)} // Chama a função de remoção
+                    onPress={() => onRemove(data.id)}
                 >
                     <Text style={style.listButtonTextDelete}>Excluir</Text>
                 </TouchableOpacity>
@@ -116,7 +109,7 @@ function ListItem({ data, onRemove }) {
 }
 
 function FooterList({ load }) {
-    if (!load) return null;
+    if (!load) return null
 
     return (
         <View>

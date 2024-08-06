@@ -23,6 +23,7 @@ export default ({ navigation }) => {
         body: JSON.stringify(receiverData)
         })
         const receivers = await response.json()
+        alert('Receptora cadastrada com sucesso!')
     }    
 
     return (

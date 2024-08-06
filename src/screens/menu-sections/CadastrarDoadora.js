@@ -19,16 +19,16 @@ export default ({ navigation }) => {
         };
 
         try {
-            const response = await fetch('http://192.168.1.183:8080/donor', {
+            const response = await fetch('http://172.20.7.184:8080/donor', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(receiverData)
-            });
-
-            const receivers = await response.json();
+                })
+                const receivers = await response.json()
             console.log(receivers); // Para depuração
+            alert(`Doadora cadastrada com sucesso!`)
         } catch (error) {
             console.error('Erro ao salvar o doador:', error);
         }

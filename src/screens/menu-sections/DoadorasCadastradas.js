@@ -5,12 +5,10 @@ import axios from "axios";
 import style from "../../components/style";
 
 export default ({ navigation }) => {
-    const baseURL = 'https://api.github.com'
-    const perPage = 20
-
+    const baseURL = 'http://172.20.7.184:8080'
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
-    const [donorName, setDonorName] = useState('')
+    const [registrationNumber, setRegistrationNumber] = useState('')
 
     useEffect(() => {
         loadApi()
@@ -24,13 +22,13 @@ export default ({ navigation }) => {
         try {
             let response;
             if (query) {
-                // Busca pelo nome
-                response = await axios.get(`${baseURL}/search/repositories?q=${query} in:name&per_page=${perPage}`)
-                setData(response.data.items);
+                // Busca pelo registrationNumber exato
+                response = await axios.get(`${baseURL}/donor/search?registrationNumber=${query}`)
+                setData(response.data)  // Define data com o resultado da busca
             } else {
-                // Busca genérica
-                response = await axios.get(`${baseURL}/search/repositories?q=react&per_page=${perPage}`)
-                setData(response.data.items);
+                // Busca inicial ou genérica
+                response = await axios.get(`${baseURL}/donor`)
+                setData(response.data)  // Define data com todos os itens
             }
         } catch (error) {
             console.error("Erro ao carregar dados:", error)
@@ -40,28 +38,27 @@ export default ({ navigation }) => {
     }
 
     function handleSearch() {
-        if (donorName) {
-            setData([]) // Limpa os dados antes da nova busca
-            loadApi(donorName)
+        if (registrationNumber) {
+            loadApi(registrationNumber)  // Carrega dados baseados no registrationNumber
         }
     }
 
     async function removeItem(id) {
         try {
-            await axios.delete(`${baseURL}/repositories/${id}`);
-            setData(data.filter(item => item.id !== id));
+            // Supondo que você tenha uma rota de API para deletar o item pelo ID
+            await axios.delete(`${baseURL}/donor/${id}`)
+            // Remove o item da lista localmente após a exclusão bem-sucedida
+            setData(data.filter(item => item.id !== id))
         } catch (error) {
-            console.error("Erro ao deletar o item:", error);
+            console.error("Erro ao deletar o item:", error)
         }
     }
 
     return (
         <View style={style.menu}>
             <View style={style.divTitle}>
-                <TouchableOpacity onPress={() => {
-                    navigation.navigate('Menu')
-                }}>
-                    <View style={{marginRight: 50}}>
+                <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
+                    <View style={{ marginRight: 50 }}>
                         <AntDesign name="arrowleft" size={24} color="#fff" />
                     </View>
                 </TouchableOpacity>
@@ -70,24 +67,22 @@ export default ({ navigation }) => {
             <View style={style.contentList}>
                 <View style={style.search}>
                     <TextInput
-                        placeholder="Nome da Doadora"
-                        value={donorName}
+                        placeholder="Número de Registro"
+                        value={registrationNumber}
                         style={style.input}
-                        onChangeText={setDonorName}
+                        onChangeText={setRegistrationNumber}
                     />
                     <TouchableOpacity style={style.listButtonEdit} onPress={handleSearch}>
                         <Text style={style.listButtonTextEdit}>Buscar</Text>
                     </TouchableOpacity>
                 </View>
-                <FlatList 
-                    style={{marginTop: 5}}
+                <FlatList
+                    style={{ marginTop: 5 }}
                     contentContainerStyle={{ marginHorizontal: 20 }}
                     data={data}
-                    keyExtractor={ item => String(item.id)}
+                    keyExtractor={item => String(item.id)}
                     renderItem={({ item }) => <ListItem data={item} onRemove={removeItem} />}
-                    onEndReached={() => loadApi('')}
-                    onEndReachedThreshold={0.1}
-                    ListFooterComponent={ <FooterList load={loading}/>}
+                    ListFooterComponent={<FooterList load={loading} />}
                 />
             </View>
         </View>
@@ -96,13 +91,15 @@ export default ({ navigation }) => {
 
 function ListItem({ data, onRemove }) {
     return (
-        <View style={style.listItemDonor}>
-            <Text style={style.listText}>{`Nome: ${data.name}`}</Text>
-            <Text style={style.listText}>{`Identificação: ${data.id}  \nNascimento: ${data.created_at}`}</Text>
-            <View style={style.listButtonsDonor}>
-                <TouchableOpacity 
-                    style={style.listButtonDeleteDonor}
-                    onPress={() => onRemove(data.id)} // Chama a função de remoção
+        <View style={style.listItem}>
+            <View>
+                <Text style={style.listText}>{`Nome: ${data.name} (${data.breed})`}</Text>
+                <Text style={style.listText}>{`Número de Registro: ${data.registrationNumber} \nNascimento: ${data.birth}`}</Text>
+            </View>
+            <View style={style.listButtons}>
+                <TouchableOpacity
+                    style={style.listButtonDelete}
+                    onPress={() => onRemove(data.id)}
                 >
                     <Text style={style.listButtonTextDelete}>Excluir</Text>
                 </TouchableOpacity>
@@ -112,11 +109,11 @@ function ListItem({ data, onRemove }) {
 }
 
 function FooterList({ load }) {
-    if(!load) return null
+    if (!load) return null
 
-    return(
+    return (
         <View>
-            <ActivityIndicator size={25} color="#092955"/>
+            <ActivityIndicator size={25} color="#092955" />
         </View>
     )
 }
