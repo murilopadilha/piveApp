@@ -1,29 +1,34 @@
-import React, {useState} from "react";
-import { Text, TextInput, View, TouchableOpacity,StyleSheet } from "react-native";
+import React, {useState, useEffect } from "react";
+import { Text, TextInput, View, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from "react-native";
 
 import AntDesign from '@expo/vector-icons/AntDesign';
+import axios from "axios";
 
 import style from "../../components/style";
 
 export default ({ navigation }) => {
-    async function fetchDonors() {
+    const baseURL = 'https://api.github.com'
+    const perPage = 20
 
-        const response = await fetch('http://192.168.1.183:8080/donor')
-        const donors = await response.json()
+    const [data, setData] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [page, setPage] = useState(1)
 
-        const donorsData = JSON.stringify(donors)
+    useEffect(() => {
+        loadApi()
+    }, [])
 
-        return donorsData;
-    }  
+    async function loadApi(){
+        if(loading) return
 
-    const renderItem = ({ item }) => (
-        <View style={styles.itemContainer}>
-            <Text style={styles.itemText}>Nome: {item.name}</Text>
-            <Text style={styles.itemText}>Raça: {item.breed}</Text>
-            <Text style={styles.itemText}>Identificação: {item.registrationNumber}</Text>
-            <Text style={styles.itemText}>Nascimento: {item.birth}</Text>
-        </View>
-    );
+        setLoading(true)
+
+        const response = await axios.get(`${baseURL}/search/repositories?q=react&per_page=${perPage}&page=${page}`)
+
+        setData([...data, ...response.data.items])
+        setPage(page + 1)
+        setLoading(false)
+    }
 
     return (
         <View style={style.menu}>
@@ -37,20 +42,45 @@ export default ({ navigation }) => {
                 </TouchableOpacity>
                 <Text style={style.titleText}>Doadoras Cadastradas</Text>
             </View>
-            <View style={style.content}>
-                {renderItem(fetchDonors())}
+            <View style={style.contentList}>
+                <FlatList 
+                    style={{marginTop: 5}}
+                    contentContainerStyle={{ marginHorizontal: 20 }}
+                    data={data}
+                    keyExtractor={ item => String(item.id)}
+                    renderItem={({ item }) => <ListItem data={item}/>}
+                    onEndReached={loadApi}
+                    onEndReachedThreshold={0.1}
+                    ListFooterComponent={ <FooterList load={loading}/>}
+                />
             </View>
         </View>
     )
 }
 
-const styles = StyleSheet.create({
-    itemContainer: {
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
-    },
-    itemText: {
-        fontSize: 16,
-    },
-});
+function ListItem({ data }) {
+    return (
+        <View style={style.listItemDonor}>
+            <Text style={style.listText}>{`Nome: ${data.name} (${data.name})`}</Text>
+            <Text style={style.listText}>{`Identificação: ${data.id}  \nNascimento: ${data.created_at}`}</Text>
+            <View style={style.listButtonsDonor}>
+                <TouchableOpacity style={style.listButtonEditDonor}>
+                    <Text style={style.listButtonTextEdit}>Editar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={style.listButtonDeleteDonor}>
+                    <Text style={style.listButtonTextDelete}>Excluir</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    )
+}
+
+function FooterList({ load }) {
+    if(!load) return null
+
+    return(
+        <View>
+            <ActivityIndicator size={25} color="#fff"/>
+        </View>
+    )
+}

@@ -1,9 +1,9 @@
 {
-    "receiver": [
+    "donor": [
       {
-        "id": 1,
         "name": "",
         "breed": "",
+        "birth": "",
         "registrationNumber": ""
       }
     ]

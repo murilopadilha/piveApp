@@ -100,4 +100,74 @@ export default StyleSheet.create({
   dateText: {
     textAlign: 'center',
   },
+  listItem: {
+    backgroundColor: '#d3d3d3',
+    padding: 15,
+    marginTop: 10,
+    borderRadius: 10,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  listText: {
+    fontSize: 16,
+    color: '#000'
+  }, contentList: {
+    margin: 5
+  },
+  listButtonEdit: {
+    backgroundColor: '#092955',
+    padding: 4,
+    width: 50,
+    borderRadius: 8,
+    marginBottom: 3
+  },
+  listButtonTextEdit: {
+    color: '#fff',
+    marginLeft: 2
+  },
+  listButtonDelete: {
+    backgroundColor: '#c13',
+    padding: 4,
+    width: 50,
+    borderRadius: 8,
+  },
+  listButtonTextDelete: {
+    color: '#fff'
+  },
+  listButtons: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  listItemDonor: {
+    backgroundColor: '#d3d3d3',
+    padding: 15,
+    marginTop: 10,
+    borderRadius: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between'
+  },
+  listButtonsDonor: {
+    display: 'flex',
+    flexDirection: 'row',
+    marginTop: 2,
+  },
+  listButtonDeleteDonor: {
+    backgroundColor: '#c13',
+    padding: 4,
+    width: 50,
+    borderRadius: 8,
+    marginLeft: 3
+  },
+  listButtonEditDonor: {
+    backgroundColor: '#092955',
+    padding: 4,
+    width: 50,
+    borderRadius: 8,
+    marginBottom: 3
+  },
 })
