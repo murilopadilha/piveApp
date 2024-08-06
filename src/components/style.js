@@ -121,9 +121,10 @@ export default StyleSheet.create({
   listButtonEdit: {
     backgroundColor: '#092955',
     padding: 4,
-    width: 50,
+    width: 57,
     borderRadius: 8,
-    marginBottom: 3
+    marginBottom: 3,
+    marginLeft: 5,
   },
   listButtonTextEdit: {
     color: '#FFFFFF',
@@ -173,4 +174,10 @@ export default StyleSheet.create({
     borderRadius: 8,
     marginBottom: 3
   },
+  search: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 })

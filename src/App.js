@@ -11,7 +11,6 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import Entypo from '@expo/vector-icons/Entypo';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
-
 import style from './components/style';
 
 import Menu from './screens/Menu';

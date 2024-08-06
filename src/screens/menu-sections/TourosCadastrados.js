@@ -13,6 +13,7 @@ export default ({ navigation }) => {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [page, setPage] = useState(1)
+    const [bullIdentification, setIdentification] = useState('')
 
     useEffect(() => {
         loadApi()
@@ -43,6 +44,17 @@ export default ({ navigation }) => {
                 <Text style={style.titleText}>Touros Cadastrados</Text>
             </View>
             <View style={style.contentList}>
+            <View style={style.search}>
+                <TextInput
+                    placeholder="Identificação do Touro"
+                    value={bullIdentification}
+                    style={style.input}
+                    onChangeText={setIdentification}
+                />
+                <TouchableOpacity style={style.listButtonEdit}>
+                    <Text style={style.listButtonTextEdit}>Buscar</Text>
+                </TouchableOpacity>
+                </View>
                 <FlatList 
                     style={{marginTop: 5}}
                     contentContainerStyle={{ marginHorizontal: 20 }}
@@ -66,9 +78,6 @@ function ListItem({ data }) {
                 <Text style={style.listText}>{`Identificação: ${data.id}`}</Text>
             </View>
             <View style={style.listButtons}>
-                <TouchableOpacity style={style.listButtonEdit}>
-                    <Text style={style.listButtonTextEdit}>Editar</Text>
-                </TouchableOpacity>
                 <TouchableOpacity style={style.listButtonDelete}>
                     <Text style={style.listButtonTextDelete}>Excluir</Text>
                 </TouchableOpacity>

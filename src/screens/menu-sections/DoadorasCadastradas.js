@@ -13,6 +13,7 @@ export default ({ navigation }) => {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [page, setPage] = useState(1)
+    const [donorIdentification, setIdentification] = useState('')
 
     useEffect(() => {
         loadApi()
@@ -43,6 +44,17 @@ export default ({ navigation }) => {
                 <Text style={style.titleText}>Doadoras Cadastradas</Text>
             </View>
             <View style={style.contentList}>
+                <View style={style.search}>
+                <TextInput
+                    placeholder="Identificação da Doadora"
+                    value={donorIdentification}
+                    style={style.input}
+                    onChangeText={setIdentification}
+                />
+                <TouchableOpacity style={style.listButtonEdit}>
+                    <Text style={style.listButtonTextEdit}>Buscar</Text>
+                </TouchableOpacity>
+                </View>
                 <FlatList 
                     style={{marginTop: 5}}
                     contentContainerStyle={{ marginHorizontal: 20 }}
@@ -64,9 +76,6 @@ function ListItem({ data }) {
             <Text style={style.listText}>{`Nome: ${data.name} (${data.name})`}</Text>
             <Text style={style.listText}>{`Identificação: ${data.id}  \nNascimento: ${data.created_at}`}</Text>
             <View style={style.listButtonsDonor}>
-                <TouchableOpacity style={style.listButtonEditDonor}>
-                    <Text style={style.listButtonTextEdit}>Editar</Text>
-                </TouchableOpacity>
                 <TouchableOpacity style={style.listButtonDeleteDonor}>
                     <Text style={style.listButtonTextDelete}>Excluir</Text>
                 </TouchableOpacity>
