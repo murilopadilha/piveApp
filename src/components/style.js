@@ -121,30 +121,34 @@ export default StyleSheet.create({
   listButtonEdit: {
     backgroundColor: '#092955',
     padding: 4,
-    width: 57,
+    width: 55,
     borderRadius: 8,
-    marginBottom: 3,
+    marginTop: 3,
     marginLeft: 5,
+    textAlign: 'center'
   },
   listButtonTextEdit: {
     color: '#FFFFFF',
-    marginLeft: 2
+    marginLeft: 2,
+    textAlign: "center",
   },
   listButtonDelete: {
     backgroundColor: '#c13',
     padding: 4,
-    width: 50,
+    width: 55,
     borderRadius: 8,
+    marginLeft: 5,
+    textAlign: 'center',
   },
   listButtonTextDelete: {
-    color: '#FFFFFF'
+    color: '#FFFFFF',
+    textAlign: 'center'
   },
   listButtons: {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 2,
   },
   listItemDonor: {
     backgroundColor: '#FFFFFF',

@@ -103,6 +103,12 @@ function ListItem({ data, onRemove }) {
                 >
                     <Text style={style.listButtonTextDelete}>Excluir</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                    style={style.listButtonEdit}
+                    onPress={() => null}
+                >
+                    <Text style={style.listButtonTextEdit}>Editar</Text>
+                </TouchableOpacity>
             </View>
         </View>
     )
