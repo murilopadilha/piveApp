@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Text, TextInput, View, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import React, { useState } from "react";
+import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
@@ -37,6 +37,23 @@ export default ({ route, navigation }) => {
             Alert.alert('Erro', 'Não foi possível atualizar os dados.');
         }
     }
+
+    const confirmUpdate = () => {
+        Alert.alert(
+            "Confirmar Edição",
+            "Você tem certeza de que deseja editar os dados da doadora?",
+            [
+                {
+                    text: "Cancelar",
+                    style: "cancel"
+                },
+                {
+                    text: "Editar",
+                    onPress: () => updateDonor(donorId, newDonorName, newDonorBreed, newDonorIndentification, newDonorDateOfBirth)
+                }
+            ]
+        );
+    };
 
     // Função para formatar e definir a data
     const onChangeDate = (event, selectedDate) => {
@@ -93,7 +110,7 @@ export default ({ route, navigation }) => {
                 <View>
                     <TouchableOpacity 
                         style={style.button} 
-                        onPress={() => updateDonor(donorId, newDonorName, newDonorBreed, newDonorIndentification, newDonorDateOfBirth)}
+                        onPress={confirmUpdate}
                     >
                         <Text style={style.buttonText}>Editar</Text>
                     </TouchableOpacity>

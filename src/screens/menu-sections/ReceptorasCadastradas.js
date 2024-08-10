@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
+import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from "axios";
 import style from "../../components/style";
@@ -43,6 +43,23 @@ export default ({ navigation }) => {
         }
     }
 
+    function confirmRemove(id) {
+        Alert.alert(
+            "Confirmar Exclusão",
+            "Você tem certeza de que deseja excluir esta receptora?",
+            [
+                {
+                    text: "Cancelar",
+                    style: "cancel"
+                },
+                {
+                    text: "Excluir",
+                    onPress: () => removeItem(id)
+                }
+            ]
+        );
+    }
+
     async function removeItem(id) {
         try {
             // Supondo que você tenha uma rota de API para deletar o item pelo ID
@@ -82,7 +99,7 @@ export default ({ navigation }) => {
                 data={data}
                 keyExtractor={item => String(item.id)}
                 renderItem={({ item }) => (
-                    <ListItem data={item} onRemove={removeItem} navigation={navigation} />
+                    <ListItem data={item} onRemove={confirmRemove} navigation={navigation} />
                 )}
                 ListFooterComponent={<FooterList load={loading} />}
                 />

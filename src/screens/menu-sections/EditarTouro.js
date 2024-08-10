@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Text, TextInput, View, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
 
 export default ({ route, navigation }) => {
-    const { donor } = route.params; // Recebe os dados da doadora da navegação
+    const { donor } = route.params; // Recebe os dados do touro da navegação
     const [newDonorName, setName] = useState(donor.name);
     const [newDonorBreed, setBreed] = useState(donor.breed);
     const [newDonorIndentification, setNumber] = useState(donor.registrationNumber);
     const [newDonorDateOfBirth, setDateOfBirth] = useState(donor.birth);
-    const [donorId, setDonorId] = useState(donor.id); // Adiciona o ID da doadora
+    const [donorId, setDonorId] = useState(donor.id); // Adiciona o ID do touro
 
-    async function updateDonor(id, name, breed, registrationNumber, birth) {
+    async function updateBull(id, name, registrationNumber) {
         const donorData = {
             "name": name,
-            "breed": breed,
-            "birth": birth,
             "registrationNumber": registrationNumber
         };
 
@@ -33,7 +31,7 @@ export default ({ route, navigation }) => {
             Alert.alert('Sucesso', 'Touro atualizado com sucesso!');
             navigation.goBack(); // Volta para a tela anterior
         } catch (error) {
-            console.error('Erro ao atualizar o doador:', error);
+            console.error('Erro ao atualizar o touro:', error);
             Alert.alert('Erro', 'Não foi possível atualizar os dados.');
         }
     }
@@ -54,6 +52,23 @@ export default ({ route, navigation }) => {
         });
     }
 
+    function confirmUpdate() {
+        Alert.alert(
+            "Confirmar Edição",
+            "Você tem certeza de que deseja editar os dados do touro?",
+            [
+                {
+                    text: "Cancelar",
+                    style: "cancel"
+                },
+                {
+                    text: "Editar",
+                    onPress: () => updateBull(donorId, newDonorName, newDonorBreed, newDonorIndentification, newDonorDateOfBirth)
+                }
+            ]
+        );
+    }
+
     return (
         <View style={style.menu}>
             <View style={style.divTitle}>
@@ -67,14 +82,14 @@ export default ({ route, navigation }) => {
             <View style={style.content}>
                 <Text style={style.label}>Nome:</Text>
                 <TextInput
-                    placeholder="Nome da Doadora"
+                    placeholder="Nome do Touro"
                     value={newDonorName}
                     style={style.input}
                     onChangeText={setName}
                 />
                 <Text style={style.label}>Identificação:</Text>
                 <TextInput
-                    placeholder="Identificação da Doadora"
+                    placeholder="Identificação do Touro"
                     value={newDonorIndentification}
                     style={style.input}
                     onChangeText={setNumber}
@@ -82,7 +97,7 @@ export default ({ route, navigation }) => {
                 <View>
                     <TouchableOpacity 
                         style={style.button} 
-                        onPress={() => updateDonor(donorId, newDonorName, newDonorBreed, newDonorIndentification, newDonorDateOfBirth)}
+                        onPress={confirmUpdate} // Altere para usar a função de confirmação
                     >
                         <Text style={style.buttonText}>Editar</Text>
                     </TouchableOpacity>

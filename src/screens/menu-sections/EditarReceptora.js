@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Text, TextInput, View, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
@@ -12,11 +12,10 @@ export default ({ route, navigation }) => {
     const [newDonorDateOfBirth, setDateOfBirth] = useState(donor.birth);
     const [donorId, setDonorId] = useState(donor.id); // Adiciona o ID da doadora
 
-    async function updateDonor(id, name, breed, registrationNumber, birth) {
+    async function updateReceiver(id, name, breed, registrationNumber) {
         const donorData = {
             "name": name,
             "breed": breed,
-            "birth": birth,
             "registrationNumber": registrationNumber
         };
 
@@ -54,6 +53,23 @@ export default ({ route, navigation }) => {
         });
     }
 
+    function confirmUpdate() {
+        Alert.alert(
+            "Confirmar Edição",
+            "Você tem certeza de que deseja editar os dados da receptora?",
+            [
+                {
+                    text: "Cancelar",
+                    style: "cancel"
+                },
+                {
+                    text: "Editar",
+                    onPress: () => updateReceiver(donorId, newDonorName, newDonorBreed, newDonorIndentification, newDonorDateOfBirth)
+                }
+            ]
+        );
+    }
+
     return (
         <View style={style.menu}>
             <View style={style.divTitle}>
@@ -67,21 +83,21 @@ export default ({ route, navigation }) => {
             <View style={style.content}>
                 <Text style={style.label}>Nome:</Text>
                 <TextInput
-                    placeholder="Nome da Doadora"
+                    placeholder="Nome da Receptora"
                     value={newDonorName}
                     style={style.input}
                     onChangeText={setName}
                 />
                 <Text style={style.label}>Raça:</Text>
                 <TextInput
-                    placeholder="Raça da Doadora"
+                    placeholder="Raça da Receptora"
                     value={newDonorBreed}
                     style={style.input}
                     onChangeText={setBreed}
                 />
                 <Text style={style.label}>Identificação:</Text>
                 <TextInput
-                    placeholder="Identificação da Doadora"
+                    placeholder="Identificação da Receptora"
                     value={newDonorIndentification}
                     style={style.input}
                     onChangeText={setNumber}
@@ -89,7 +105,7 @@ export default ({ route, navigation }) => {
                 <View>
                     <TouchableOpacity 
                         style={style.button} 
-                        onPress={() => updateDonor(donorId, newDonorName, newDonorBreed, newDonorIndentification, newDonorDateOfBirth)}
+                        onPress={confirmUpdate} // Altere para usar a função de confirmação
                     >
                         <Text style={style.buttonText}>Editar</Text>
                     </TouchableOpacity>

@@ -1,56 +1,73 @@
 import React, { useState, useEffect } from "react";
-import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
+import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from "axios";
 import style from "../../components/style";
 
 export default ({ navigation }) => {
-    const baseURL = 'http://3.139.55.89:8080'
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(false)
-    const [registrationNumber, setRegistrationNumber] = useState('')
+    const baseURL = 'http://3.139.55.89:8080';
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [registrationNumber, setRegistrationNumber] = useState('');
 
     useEffect(() => {
-        loadApi()
-    }, [])
+        loadApi();
+    }, []);
 
     async function loadApi(query = '') {
-        if (loading) return
+        if (loading) return;
 
-        setLoading(true)
+        setLoading(true);
 
         try {
             let response;
             if (query) {
                 // Busca pelo registrationNumber exato
-                response = await axios.get(`${baseURL}/bull/search?registrationNumber=${query}`)
-                setData(response.data)  // Define data com o resultado da busca
+                response = await axios.get(`${baseURL}/bull/search?registrationNumber=${query}`);
+                setData(response.data);  // Define data com o resultado da busca
             } else {
                 // Busca inicial ou genérica
-                response = await axios.get(`${baseURL}/bull`)
-                setData(response.data)  // Define data com todos os itens
+                response = await axios.get(`${baseURL}/bull`);
+                setData(response.data);  // Define data com todos os itens
             }
         } catch (error) {
-            console.error("Erro ao carregar dados:", error)
+            console.error("Erro ao carregar dados:", error);
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     }
 
     function handleSearch() {
         if (registrationNumber) {
-            loadApi(registrationNumber)  // Carrega dados baseados no registrationNumber
+            loadApi(registrationNumber);  // Carrega dados baseados no registrationNumber
         }
+    }
+
+    function confirmRemove(id) {
+        Alert.alert(
+            "Confirmar Exclusão",
+            "Você tem certeza de que deseja excluir este touro?",
+            [
+                {
+                    text: "Cancelar",
+                    style: "cancel"
+                },
+                {
+                    text: "Excluir",
+                    onPress: () => removeItem(id)
+                }
+            ]
+        );
     }
 
     async function removeItem(id) {
         try {
             // Supondo que você tenha uma rota de API para deletar o item pelo ID
-            await axios.delete(`${baseURL}/bull/${id}`)
+            await axios.delete(`${baseURL}/bull/${id}`);
             // Remove o item da lista localmente após a exclusão bem-sucedida
-            setData(data.filter(item => item.id !== id))
+            setData(data.filter(item => item.id !== id));
         } catch (error) {
-            console.error("Erro ao deletar o item:", error)
+            console.error("Erro ao deletar o item:", error);
         }
     }
 
@@ -77,18 +94,18 @@ export default ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
                 <FlatList
-                style={{ marginTop: 5 }}
-                contentContainerStyle={{ marginHorizontal: 20 }}
-                data={data}
-                keyExtractor={item => String(item.id)}
-                renderItem={({ item }) => (
-                    <ListItem data={item} onRemove={removeItem} navigation={navigation} />
-                )}
-                ListFooterComponent={<FooterList load={loading} />}
+                    style={{ marginTop: 5 }}
+                    contentContainerStyle={{ marginHorizontal: 20 }}
+                    data={data}
+                    keyExtractor={item => String(item.id)}
+                    renderItem={({ item }) => (
+                        <ListItem data={item} onRemove={confirmRemove} navigation={navigation} />
+                    )}
+                    ListFooterComponent={<FooterList load={loading} />}
                 />
             </View>
         </View>
-    )
+    );
 }
 
 function ListItem({ data, onRemove, navigation }) {
@@ -113,15 +130,15 @@ function ListItem({ data, onRemove, navigation }) {
                 </TouchableOpacity>
             </View>
         </View>
-    )
+    );
 }
 
 function FooterList({ load }) {
-    if (!load) return null
+    if (!load) return null;
 
     return (
         <View>
             <ActivityIndicator size={25} color="#092955" />
         </View>
-    )
+    );
 }

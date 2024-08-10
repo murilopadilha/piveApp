@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
+import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from "axios";
 import style from "../../components/style";
@@ -45,14 +45,13 @@ export default ({ navigation }) => {
 
     async function removeItem(id) {
         try {
-            // Supondo que você tenha uma rota de API para deletar o item pelo ID
-            await axios.delete(`${baseURL}/donor/${id}`)
-            // Remove o item da lista localmente após a exclusão bem-sucedida
-            setData(data.filter(item => item.id !== id))
+            await axios.delete(`${baseURL}/donor/${id}`);
+            setData(data.filter(item => item.id !== id));
         } catch (error) {
-            console.error("Erro ao deletar o item:", error)
+            console.error("Erro ao deletar o item:", error);
         }
     }
+    
 
     return (
         <View style={style.menu}>
@@ -92,6 +91,23 @@ export default ({ navigation }) => {
 }
 
 function ListItem({ data, onRemove, navigation }) {
+    const confirmDelete = (id) => {
+        Alert.alert(
+            "Confirmar Exclusão",
+            "Você tem certeza de que deseja excluir esta doadora?",
+            [
+                {
+                    text: "Cancelar",
+                    style: "cancel"
+                },
+                {
+                    text: "Excluir",
+                    onPress: () => onRemove(id)
+                }
+            ]
+        );
+    };
+
     return (
         <View style={style.listItem}>
             <View>
@@ -101,7 +117,7 @@ function ListItem({ data, onRemove, navigation }) {
             <View style={style.listButtons}>
                 <TouchableOpacity
                     style={style.listButtonDelete}
-                    onPress={() => onRemove(data.id)}
+                    onPress={() => confirmDelete(data.id)}
                 >
                     <Text style={style.listButtonTextDelete}>Excluir</Text>
                 </TouchableOpacity>
@@ -115,6 +131,7 @@ function ListItem({ data, onRemove, navigation }) {
         </View>
     );
 }
+
 
 function FooterList({ load }) {
     if (!load) return null
