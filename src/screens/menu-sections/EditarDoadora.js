@@ -1,36 +1,40 @@
-import React, { useState } from "react";
-import { Text, TextInput, View, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { Text, TextInput, View, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
 
-export default ({ navigation }) => {
-    const [newDonorName, setName] = useState('');
-    const [newDonorBreed, setBreed] = useState('');
-    const [newDonorIndentification, setNumber] = useState('');
-    const [newDonorDateOfBirth, setDateOfBirth] = useState('');
+export default ({ route, navigation }) => {
+    const { donor } = route.params; // Recebe os dados da doadora da navegação
+    const [newDonorName, setName] = useState(donor.name);
+    const [newDonorBreed, setBreed] = useState(donor.breed);
+    const [newDonorIndentification, setNumber] = useState(donor.registrationNumber);
+    const [newDonorDateOfBirth, setDateOfBirth] = useState(donor.birth);
+    const [donorId, setDonorId] = useState(donor.id); // Adiciona o ID da doadora
 
-    async function postDonors(name, breed, registrationNumber, birth) {
-        const receiverData = {
+    async function updateDonor(id, name, breed, registrationNumber, birth) {
+        const donorData = {
             "name": name,
             "breed": breed,
-            "birth": birth, // Usando a data formatada diretamente do estado
+            "birth": birth,
             "registrationNumber": registrationNumber
         };
 
         try {
-            const response = await fetch('http://3.139.55.89:8080/donor', {
-                method: 'POST',
+            const response = await fetch(`http://3.139.55.89:8080/donor/${id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(receiverData)
-                })
-                const receivers = await response.json()
-            console.log(receivers); // Para depuração
-            alert(`Doadora cadastrada com sucesso!`)
+                body: JSON.stringify(donorData)
+            });
+            const result = await response.json();
+            console.log(result); // Para depuração
+            Alert.alert('Sucesso', 'Doadora atualizada com sucesso!');
+            navigation.goBack(); // Volta para a tela anterior
         } catch (error) {
-            console.error('Erro ao salvar o doador:', error);
+            console.error('Erro ao atualizar o doador:', error);
+            Alert.alert('Erro', 'Não foi possível atualizar os dados.');
         }
     }
 
@@ -47,7 +51,7 @@ export default ({ navigation }) => {
             mode: 'date',
             is24Hour: true,
             onChange: onChangeDate,
-        })
+        });
     }
 
     return (
@@ -58,7 +62,7 @@ export default ({ navigation }) => {
                         <AntDesign name="arrowleft" size={24} color="#fff" />
                     </View>
                 </TouchableOpacity>
-                <Text style={style.titleText}>Cadastro da Doadora</Text>
+                <Text style={style.titleText}>Editar Doadora</Text>
             </View>
             <View style={style.content}>
                 <Text style={style.label}>Nome:</Text>
@@ -66,21 +70,21 @@ export default ({ navigation }) => {
                     placeholder="Nome da Doadora"
                     value={newDonorName}
                     style={style.input}
-                    onChangeText={(text) => setName(text)}
+                    onChangeText={setName}
                 />
                 <Text style={style.label}>Raça:</Text>
                 <TextInput
                     placeholder="Raça da Doadora"
                     value={newDonorBreed}
                     style={style.input}
-                    onChangeText={(text) => setBreed(text)}
+                    onChangeText={setBreed}
                 />
                 <Text style={style.label}>Identificação:</Text>
                 <TextInput
                     placeholder="Identificação da Doadora"
                     value={newDonorIndentification}
                     style={style.input}
-                    onChangeText={(text) => setNumber(text)}
+                    onChangeText={setNumber}
                 />
                 <Text style={style.label}>Data de Nascimento:</Text>
                 <TouchableOpacity onPress={showDatePicker} style={style.dateInput}>
@@ -89,12 +93,12 @@ export default ({ navigation }) => {
                 <View>
                     <TouchableOpacity 
                         style={style.button} 
-                        onPress={() => postDonors(newDonorName, newDonorBreed, newDonorIndentification, newDonorDateOfBirth)}
+                        onPress={() => updateDonor(donorId, newDonorName, newDonorBreed, newDonorIndentification, newDonorDateOfBirth)}
                     >
-                        <Text style={style.buttonText}>Salvar</Text>
+                        <Text style={style.buttonText}>Editar</Text>
                     </TouchableOpacity>
                 </View>
             </View>
         </View>
-    )
+    );
 }

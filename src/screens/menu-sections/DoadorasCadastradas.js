@@ -5,7 +5,7 @@ import axios from "axios";
 import style from "../../components/style";
 
 export default ({ navigation }) => {
-    const baseURL = 'http://172.20.7.184:8080'
+    const baseURL = 'http://3.139.55.89:8080'
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
@@ -72,24 +72,26 @@ export default ({ navigation }) => {
                         style={style.input}
                         onChangeText={setRegistrationNumber}
                     />
-                    <TouchableOpacity style={style.listButtonEdit} onPress={handleSearch}>
+                    <TouchableOpacity style={style.listButtonSearch} onPress={handleSearch}>
                         <Text style={style.listButtonTextEdit}>Buscar</Text>
                     </TouchableOpacity>
                 </View>
                 <FlatList
-                    style={{ marginTop: 5 }}
-                    contentContainerStyle={{ marginHorizontal: 20 }}
-                    data={data}
-                    keyExtractor={item => String(item.id)}
-                    renderItem={({ item }) => <ListItem data={item} onRemove={removeItem} />}
-                    ListFooterComponent={<FooterList load={loading} />}
+                style={{ marginTop: 5 }}
+                contentContainerStyle={{ marginHorizontal: 20 }}
+                data={data}
+                keyExtractor={item => String(item.id)}
+                renderItem={({ item }) => (
+                    <ListItem data={item} onRemove={removeItem} navigation={navigation} />
+                )}
+                ListFooterComponent={<FooterList load={loading} />}
                 />
             </View>
         </View>
     )
 }
 
-function ListItem({ data, onRemove }) {
+function ListItem({ data, onRemove, navigation }) {
     return (
         <View style={style.listItem}>
             <View>
@@ -103,9 +105,15 @@ function ListItem({ data, onRemove }) {
                 >
                     <Text style={style.listButtonTextDelete}>Excluir</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                    style={style.listButtonEdit}
+                    onPress={() => navigation.navigate('EditarDoadora', { donor: data })}
+                >
+                    <Text style={style.listButtonTextEdit}>Editar</Text>
+                </TouchableOpacity>
             </View>
         </View>
-    )
+    );
 }
 
 function FooterList({ load }) {

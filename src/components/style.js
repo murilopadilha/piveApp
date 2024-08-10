@@ -127,6 +127,16 @@ export default StyleSheet.create({
     marginLeft: 5,
     textAlign: 'center'
   },
+  listButtonSearch: {
+    backgroundColor: '#092955',
+    padding: 4,
+    width: 55,
+    borderRadius: 8,
+    marginTop: 3,
+    marginBottom: 10,
+    marginLeft: 5,
+    textAlign: 'center'
+  },
   listButtonTextEdit: {
     color: '#FFFFFF',
     marginLeft: 2,

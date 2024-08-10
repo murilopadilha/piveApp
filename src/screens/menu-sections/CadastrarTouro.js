@@ -18,7 +18,7 @@ export default ({ navigation }) => {
         "registrationNumber": registrationNumber
         }
 
-        const response = await fetch('http://172.20.7.184:8080/bull', {
+        const response = await fetch('http://3.139.55.89:8080/bull', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
