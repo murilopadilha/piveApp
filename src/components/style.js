@@ -36,6 +36,17 @@ export default StyleSheet.create({
       marginBottom: 10,
       paddingLeft: 15,
     },
+    inputSelect: {
+      borderColor: '#092955',
+      borderWidth: 3,
+      borderRadius: 8, 
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: 40,
+      marginLeft: 20,
+      marginRight: 20,
+      marginTop: 10,
+    },
     label: {
       margin: 10,
     },
@@ -44,18 +55,18 @@ export default StyleSheet.create({
       marginBottom: 10
     },
     content: {
-        margin: 30
+      margin: 30
     },
     button: {
-        width: 85,
-        height: 40,
-        borderRadius: 50,
-        backgroundColor: '#092955',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 200,
-        marginLeft: 125,
+      width: 85,
+      height: 40,
+      borderRadius: 50,
+      backgroundColor: '#092955',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 200,
+      marginLeft: 125,
     }, 
     buttonText: {
         color: '#FFFFFF'
@@ -193,5 +204,9 @@ export default StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  calendar: {
+    backgroundColor: 'transparent',
+    color: '#000'
   }
 })
