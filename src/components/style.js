@@ -25,7 +25,7 @@ export default StyleSheet.create({
       fontSize: 20,
       marginRight: 50,
       color: '#FFFFFF',
-      fontFamily: ''
+      fontFamily: 'Kanit-Bold'
     },
     input: {
       width: 200,
