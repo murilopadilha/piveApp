@@ -216,9 +216,52 @@ export default StyleSheet.create({
     paddingBottom: 2,
     paddingRight: 2,
     marginBottom: 20,
-    marginTop: 10
+    marginTop: 10,
   },
   scheduleText: {
-    color: '#FFFFFF'
-  }
+    color: '#FFFFFF',
+  },
+  safeAreaView: {
+    flex: 1,
+    backgroundColor: '#FFF',
+  },
+  calendarContainer: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  calendar: {
+    width: 350,
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: '#E0E0E0',
+  },
+  headerStyle: {
+    backgroundColor: '#E0E0E0',
+    borderBottomWidth: 1,
+    borderBottomColor: '#092955',
+  },
+  selectListBox: {
+    width: '90%', // Ajuste a largura para garantir que o dropdown tenha espaço suficiente
+    maxWidth: 352, // Define uma largura máxima
+    height: 45,
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: '#092955',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+    marginTop: 10,
+    paddingTop: 9,
+  },
+  selectListInput: {
+    fontSize: 14,
+    color: '#000',
+  },
+  selectListDropdown: {
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: '#092955',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+  },
 })
