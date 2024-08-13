@@ -1,13 +1,22 @@
 import React, { useState } from "react";
-import { Text, TextInput, View, TouchableOpacity, StyleSheet } from "react-native";
+import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar } from 'react-native-calendars';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import { SelectList } from 'react-native-dropdown-select-list';
 
 import style from "../components/style"; // Certifique-se de que este estilo é adequado para o seu projeto
 
 export default (props) => {
     const [scheduleDate, setScheduleDate] = useState('');
+    const [category, setCategory] = useState('');
+
+    const categories = [
+        { key: 'OP1', value: 'Option 1' },
+        { key: 'OP2', value: 'Option 2' },
+        { key: 'OP3', value: 'Option 3' },
+        { key: 'OP4', value: 'Option 4' },
+    ];
 
     const onChangeDate = (event, selectedDate) => {
         const currentDate = selectedDate || new Date();
@@ -33,12 +42,22 @@ export default (props) => {
                 <Text style={style.titleText}>PiveApper</Text>
             </View>
             <View>
-                <TextInput style={style.inputSelect} />
-                <TouchableOpacity onPress={showDatePicker} style={[style.dateInput, { marginLeft: 20, marginRight: 20, marginBottom: 20, marginTop: 10 }]}>
+                <SelectList
+                    setSelected={setCategory}
+                    data={categories}
+                    placeholder={"Selecione seu agendamento"}
+                    boxStyles={styles.selectListBox}
+                    inputStyles={styles.selectListInput}
+                    dropdownStyles={styles.selectListDropdown}
+                />
+                <TouchableOpacity onPress={showDatePicker} style={[style.dateInput, { marginLeft: 20, marginRight: 20, marginTop: 10 }]}>
                     <Text style={style.dateText}>{scheduleDate || "Selecione a Data"}</Text>
                 </TouchableOpacity>
+                <TouchableOpacity style={style.scheduleButton}>
+                    <Text style={style.scheduleText}>Agendar</Text>
+                </TouchableOpacity>
             </View>
-            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+            <View style={styles.calendarContainer}>
                 <Calendar
                     style={styles.calendar}
                     headerStyle={styles.headerStyle}
@@ -47,14 +66,14 @@ export default (props) => {
                         monthTextColor: '#000',
                         selectedDayBackgroundColor: '#092955',
                         selectedDayTextColor: '#FFFFFF',
-                        dayTextColor: '#000', // Cor dos dias
+                        dayTextColor: '#000',
                         textDayFontFamily: 'Arial',
                         textMonthFontFamily: 'Arial',
                         textDayHeaderFontFamily: 'Arial',
                         textDayFontSize: 16,
                         textMonthFontSize: 20,
                         textDayHeaderFontSize: 14,
-                        calendarBackground: '#E0E0E0', // Cor do fundo do calendário
+                        calendarBackground: '#E0E0E0',
                         textSectionTitleColor: '#000',
                         arrowColor: '#092955',
                         monthTextColor: '#000',
@@ -66,7 +85,7 @@ export default (props) => {
                         textMonthFontFamily: 'Arial',
                     }}
                     monthFormat={'yyyy MMMM'}
-                    firstDay={1} // Define a segunda-feira como o primeiro dia da semana
+                    firstDay={1}
                     markedDates={{
                         [scheduleDate]: {
                             selected: true,
@@ -86,18 +105,45 @@ export default (props) => {
 const styles = StyleSheet.create({
     safeAreaView: {
         flex: 1,
-        backgroundColor: '#FFF', // Cor de fundo do SafeAreaView
+        backgroundColor: '#FFF',
+    },
+    calendarContainer: {
+        flex: 1,
+        alignItems: 'center',
+        paddingHorizontal: 10,
     },
     calendar: {
-        width: '95%', // Ajuste a largura conforme necessário
+        width: 350,
         borderRadius: 10,
         overflow: 'hidden',
-        marginBottom: 20,
-        backgroundColor: '#E0E0E0', // Cor do fundo do calendário
+        backgroundColor: '#E0E0E0',
     },
     headerStyle: {
-        backgroundColor: '#E0E0E0', // Cor do fundo do cabeçalho
+        backgroundColor: '#E0E0E0',
         borderBottomWidth: 1,
         borderBottomColor: '#092955',
+    },
+    selectListBox: {
+        width: '90%', // Ajuste a largura para garantir que o dropdown tenha espaço suficiente
+        maxWidth: 352, // Define uma largura máxima
+        height: 45,
+        borderRadius: 10,
+        borderWidth: 3,
+        borderColor: '#092955',
+        backgroundColor: '#FFFFFF',
+        marginHorizontal: 20,
+        marginTop: 10,
+        paddingTop: 9,
+    },
+    selectListInput: {
+        fontSize: 14,
+        color: '#000',
+    },
+    selectListDropdown: {
+        borderRadius: 10,
+        borderWidth: 3,
+        borderColor: '#092955',
+        backgroundColor: '#FFFFFF',
+        marginHorizontal: 20,
     },
 });

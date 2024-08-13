@@ -1,84 +1,73 @@
 import { StyleSheet } from 'react-native'
 
 export default StyleSheet.create({
-    app:{
-        margin: 0,
-        padding: 0,
-    },
-    menu: {
-      backgroundColor: '#F1F2F4',
-    },
-    divTitle:{
-      backgroundColor: "#092955",
-      borderBottomLeftRadius: 22,
-      borderBottomRightRadius: 22,
-      padding: 25,
-      shadowColor: '#000',
-      shadowOpacity: 1,
-      shadowRadius: 2,
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    titleText:{
-      fontSize: 20,
-      marginRight: 50,
-      color: '#FFFFFF',
-      fontFamily: 'Kanit-Bold'
-    },
-    input: {
-      width: 200,
-      height: 40,
-      borderColor: '#092955',
-      borderWidth: 3,
-      borderRadius: 8,
-      marginBottom: 10,
-      paddingLeft: 15,
-    },
-    inputSelect: {
-      borderColor: '#092955',
-      borderWidth: 3,
-      borderRadius: 8, 
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: 40,
-      marginLeft: 20,
-      marginRight: 20,
-      marginTop: 10,
-    },
-    label: {
-      margin: 10,
-    },
-    text: {
-      color: '#000',
-      marginBottom: 10
-    },
-    content: {
-      margin: 30
-    },
-    button: {
-      width: 85,
-      height: 40,
-      borderRadius: 50,
-      backgroundColor: '#092955',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: 200,
-      marginLeft: 125,
-    }, 
-    buttonText: {
-        color: '#FFFFFF'
-    },
-    menuContent: {
-      display: 'flex',
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      margin: 20,
-      alignItems: 'center',
-      justifyContent: 'space-evenly',
-      height: '100%'
+  app:{
+    margin: 0,
+    padding: 0,
+  },
+  menu: {
+    backgroundColor: '#F1F2F4',
+  },
+  divTitle:{
+    backgroundColor: "#092955",
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 22,
+    padding: 25,
+    shadowColor: '#000',
+    shadowOpacity: 1,
+    shadowRadius: 2,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titleText:{
+    fontSize: 20,
+    marginRight: 50,
+    color: '#FFFFFF',
+    fontFamily: 'Kanit-'
+  },
+  input: {
+    width: 200,
+    height: 40,
+    borderColor: '#092955',
+    borderWidth: 3,
+    borderRadius: 8,
+    marginBottom: 10,
+    paddingLeft: 15,
+  },
+  label: {
+    margin: 10,
+  },
+  text: {
+    color: '#000',
+    marginBottom: 10
+  },
+  content: {
+    margin: 30
+  },
+  button: {
+    width: 85,
+    height: 40,
+    borderRadius: 50,
+    backgroundColor: '#092955',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 200,
+    marginLeft: 125,
+  }, 
+  buttonText: {
+    color: '#FFFFFF'
+  },
+  menuContent: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    margin: 20,
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    height: '100%'
   },
   menuContentButton: {
     backgroundColor: '#FFFFFF',
@@ -204,9 +193,32 @@ export default StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center'
+  }, 
+  inputSelect: {
+    borderColor: '#092955',
+    borderWidth: 3,
+    borderRadius: 8, 
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 40,
+    marginLeft: 20,
+    marginRight: 20,
+    marginTop: 10,
   },
-  calendar: {
-    backgroundColor: 'transparent',
-    color: '#000'
+  scheduleButton: {
+    backgroundColor: '#092955',
+    width: 70,
+    height: 30,
+    borderRadius: 8,
+    marginLeft: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 2,
+    paddingRight: 2,
+    marginBottom: 20,
+    marginTop: 10
+  },
+  scheduleText: {
+    color: '#FFFFFF'
   }
 })
