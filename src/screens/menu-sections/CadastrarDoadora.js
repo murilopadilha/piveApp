@@ -19,7 +19,7 @@ export default ({ navigation }) => {
         };
 
         try {
-            const response = await fetch('http://3.138.173.182:8080/donor', {
+            const response = await fetch('http://18.217.70.110:8080/donor', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

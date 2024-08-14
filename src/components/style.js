@@ -232,7 +232,8 @@ export default StyleSheet.create({
   },
   calendar: {
     width: 350,
-    borderRadius: 10,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
     overflow: 'hidden',
     backgroundColor: '#E0E0E0',
   },
@@ -242,8 +243,8 @@ export default StyleSheet.create({
     borderBottomColor: '#092955',
   },
   selectListBox: {
-    width: '90%', // Ajuste a largura para garantir que o dropdown tenha espaço suficiente
-    maxWidth: 352, // Define uma largura máxima
+    width: '90%',
+    maxWidth: 352, 
     height: 45,
     borderRadius: 10,
     borderWidth: 3,
@@ -263,5 +264,26 @@ export default StyleSheet.create({
     borderColor: '#092955',
     backgroundColor: '#FFFFFF',
     marginHorizontal: 20,
+  },
+  detailsContainer: {
+    marginBottom: 70,
+    padding: 10,
+    backgroundColor: '#E0E0E0',
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    width: 350
+  },
+  detailItem: {
+    padding: 10,
+    borderBottomColor: '#fff',
+    borderBottomWidth: 1,
+  },
+  detailsText: {
+    paddingLeft: 5,
+    paddingBottom: 3,
+    fontSize: 16,
+    color: '#333',
   },
 })
