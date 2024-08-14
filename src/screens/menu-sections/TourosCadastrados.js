@@ -5,41 +5,39 @@ import axios from "axios";
 import style from "../../components/style";
 
 export default ({ navigation }) => {
-    const baseURL = 'http://18.217.70.110:8080';
+    const baseURL = 'http://18.217.70.110:8080'
     const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [registrationNumber, setRegistrationNumber] = useState('');
+    const [loading, setLoading] = useState(false)
+    const [registrationNumber, setRegistrationNumber] = useState('')
 
     useEffect(() => {
-        loadApi();
-    }, []);
+        loadApi()
+    }, [])
 
     async function loadApi(query = '') {
-        if (loading) return;
+        if (loading) return
 
-        setLoading(true);
+        setLoading(true)
 
         try {
-            let response;
+            let response
             if (query) {
-                // Busca pelo registrationNumber exato
-                response = await axios.get(`${baseURL}/bull/search?registrationNumber=${query}`);
-                setData(response.data);  // Define data com o resultado da busca
+                response = await axios.get(`${baseURL}/bull/search?registrationNumber=${query}`)
+                setData(response.data)
             } else {
-                // Busca inicial ou genérica
-                response = await axios.get(`${baseURL}/bull`);
-                setData(response.data);  // Define data com todos os itens
+                response = await axios.get(`${baseURL}/bull`)
+                setData(response.data)
             }
         } catch (error) {
-            console.error("Erro ao carregar dados:", error);
+            console.error("Erro ao carregar dados:", error)
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
     }
 
     function handleSearch() {
         if (registrationNumber) {
-            loadApi(registrationNumber);  // Carrega dados baseados no registrationNumber
+            loadApi(registrationNumber)
         }
     }
 
@@ -57,17 +55,15 @@ export default ({ navigation }) => {
                     onPress: () => removeItem(id)
                 }
             ]
-        );
+        )
     }
 
     async function removeItem(id) {
         try {
-            // Supondo que você tenha uma rota de API para deletar o item pelo ID
-            await axios.delete(`${baseURL}/bull/${id}`);
-            // Remove o item da lista localmente após a exclusão bem-sucedida
-            setData(data.filter(item => item.id !== id));
+            await axios.delete(`${baseURL}/bull/${id}`)
+            setData(data.filter(item => item.id !== id))
         } catch (error) {
-            console.error("Erro ao deletar o item:", error);
+            console.error("Erro ao deletar o item:", error)
         }
     }
 
@@ -105,7 +101,7 @@ export default ({ navigation }) => {
                 />
             </View>
         </View>
-    );
+    )
 }
 
 function ListItem({ data, onRemove, navigation }) {
@@ -130,15 +126,15 @@ function ListItem({ data, onRemove, navigation }) {
                 </TouchableOpacity>
             </View>
         </View>
-    );
+    )
 }
 
 function FooterList({ load }) {
-    if (!load) return null;
+    if (!load) return null
 
     return (
         <View>
             <ActivityIndicator size={25} color="#092955" />
         </View>
-    );
+    )
 }

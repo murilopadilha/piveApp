@@ -5,19 +5,19 @@ import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
 
 export default ({ route, navigation }) => {
-    const { donor } = route.params; // Recebe os dados da doadora da navegação
-    const [newDonorName, setName] = useState(donor.name);
+    const { donor } = route.params
+    const [newDonorName, setName] = useState(donor.name)
     const [newDonorBreed, setBreed] = useState(donor.breed);
-    const [newDonorIndentification, setNumber] = useState(donor.registrationNumber);
-    const [newDonorDateOfBirth, setDateOfBirth] = useState(donor.birth);
-    const [donorId, setDonorId] = useState(donor.id); // Adiciona o ID da doadora
+    const [newDonorIndentification, setNumber] = useState(donor.registrationNumber)
+    const [newDonorDateOfBirth, setDateOfBirth] = useState(donor.birth)
+    const [donorId, setDonorId] = useState(donor.id)
 
     async function updateReceiver(id, name, breed, registrationNumber) {
         const donorData = {
             "name": name,
             "breed": breed,
             "registrationNumber": registrationNumber
-        };
+        }
 
         try {
             const response = await fetch(`http://18.217.70.110:8080/receiver/${id}`, {
@@ -27,22 +27,21 @@ export default ({ route, navigation }) => {
                 },
                 body: JSON.stringify(donorData)
             });
-            const result = await response.json();
-            console.log(result); // Para depuração
-            Alert.alert('Sucesso', 'Receptora atualizada com sucesso!');
-            navigation.goBack(); // Volta para a tela anterior
+            const result = await response.json()
+            console.log(result)
+            Alert.alert('Sucesso', 'Receptora atualizada com sucesso!')
+            navigation.goBack()
         } catch (error) {
-            console.error('Erro ao atualizar o doador:', error);
-            Alert.alert('Erro', 'Não foi possível atualizar os dados.');
+            console.error('Erro ao atualizar o doador:', error)
+            Alert.alert('Erro', 'Não foi possível atualizar os dados.')
         }
     }
 
-    // Função para formatar e definir a data
     const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || new Date();
-        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`;
-        setDateOfBirth(formattedDate);
-    };
+        const currentDate = selectedDate || new Date()
+        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
+        setDateOfBirth(formattedDate)
+    }
 
     const showDatePicker = () => {
         DateTimePickerAndroid.open({
@@ -50,7 +49,7 @@ export default ({ route, navigation }) => {
             mode: 'date',
             is24Hour: true,
             onChange: onChangeDate,
-        });
+        })
     }
 
     function confirmUpdate() {
@@ -67,7 +66,7 @@ export default ({ route, navigation }) => {
                     onPress: () => updateReceiver(donorId, newDonorName, newDonorBreed, newDonorIndentification, newDonorDateOfBirth)
                 }
             ]
-        );
+        )
     }
 
     return (
@@ -105,12 +104,12 @@ export default ({ route, navigation }) => {
                 <View>
                     <TouchableOpacity 
                         style={style.button} 
-                        onPress={confirmUpdate} // Altere para usar a função de confirmação
+                        onPress={confirmUpdate}
                     >
                         <Text style={style.buttonText}>Editar</Text>
                     </TouchableOpacity>
                 </View>
             </View>
         </View>
-    );
+    )
 }

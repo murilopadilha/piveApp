@@ -22,13 +22,11 @@ export default ({ navigation }) => {
         try {
             let response;
             if (query) {
-                // Busca pelo registrationNumber exato
                 response = await axios.get(`${baseURL}/donor/search?registrationNumber=${query}`)
-                setData(response.data)  // Define data com o resultado da busca
+                setData(response.data) 
             } else {
-                // Busca inicial ou genérica
                 response = await axios.get(`${baseURL}/donor`)
-                setData(response.data)  // Define data com todos os itens
+                setData(response.data) 
             }
         } catch (error) {
             console.error("Erro ao carregar dados:", error)
@@ -39,16 +37,16 @@ export default ({ navigation }) => {
 
     function handleSearch() {
         if (registrationNumber) {
-            loadApi(registrationNumber)  // Carrega dados baseados no registrationNumber
+            loadApi(registrationNumber)
         }
     }
 
     async function removeItem(id) {
         try {
-            await axios.delete(`${baseURL}/donor/${id}`);
-            setData(data.filter(item => item.id !== id));
+            await axios.delete(`${baseURL}/donor/${id}`)
+            setData(data.filter(item => item.id !== id))
         } catch (error) {
-            console.error("Erro ao deletar o item:", error);
+            console.error("Erro ao deletar o item:", error)
         }
     }
     
@@ -105,8 +103,8 @@ function ListItem({ data, onRemove, navigation }) {
                     onPress: () => onRemove(id)
                 }
             ]
-        );
-    };
+        )
+    }
 
     return (
         <View style={style.listItem}>
@@ -129,7 +127,7 @@ function ListItem({ data, onRemove, navigation }) {
                 </TouchableOpacity>
             </View>
         </View>
-    );
+    )
 }
 
 

@@ -20,15 +20,13 @@ export default ({ navigation }) => {
         setLoading(true)
 
         try {
-            let response;
+            let response
             if (query) {
-                // Busca pelo registrationNumber exato
                 response = await axios.get(`${baseURL}/receiver/search?registrationNumber=${query}`)
-                setData(response.data)  // Define data com o resultado da busca
+                setData(response.data) 
             } else {
-                // Busca inicial ou genérica
                 response = await axios.get(`${baseURL}/receiver`)
-                setData(response.data)  // Define data com todos os itens
+                setData(response.data)
             }
         } catch (error) {
             console.error("Erro ao carregar dados:", error)
@@ -39,7 +37,7 @@ export default ({ navigation }) => {
 
     function handleSearch() {
         if (registrationNumber) {
-            loadApi(registrationNumber)  // Carrega dados baseados no registrationNumber
+            loadApi(registrationNumber) 
         }
     }
 
@@ -57,14 +55,12 @@ export default ({ navigation }) => {
                     onPress: () => removeItem(id)
                 }
             ]
-        );
+        )
     }
 
     async function removeItem(id) {
         try {
-            // Supondo que você tenha uma rota de API para deletar o item pelo ID
             await axios.delete(`${baseURL}/receiver/${id}`)
-            // Remove o item da lista localmente após a exclusão bem-sucedida
             setData(data.filter(item => item.id !== id))
         } catch (error) {
             console.error("Erro ao deletar o item:", error)

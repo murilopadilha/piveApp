@@ -14,9 +14,9 @@ export default ({ navigation }) => {
         const receiverData = {
             "name": name,
             "breed": breed,
-            "birth": birth, // Usando a data formatada diretamente do estado
+            "birth": birth,
             "registrationNumber": registrationNumber
-        };
+        }
 
         try {
             const response = await fetch('http://18.217.70.110:8080/donor', {
@@ -27,19 +27,18 @@ export default ({ navigation }) => {
                 body: JSON.stringify(receiverData)
                 })
                 const receivers = await response.json()
-            console.log(receivers); // Para depuração
+            console.log(receivers)
             alert(`Doadora cadastrada com sucesso!`)
         } catch (error) {
-            console.error('Erro ao salvar o doador:', error);
+            console.error('Erro ao salvar o doador:', error)
         }
     }
 
-    // Função para formatar e definir a data
     const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || new Date();
-        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`;
-        setDateOfBirth(formattedDate);
-    };
+        const currentDate = selectedDate || new Date()
+        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
+        setDateOfBirth(formattedDate)
+    }
 
     const showDatePicker = () => {
         DateTimePickerAndroid.open({

@@ -65,5 +65,5 @@ export default ({ navigation }) => {
                 </View>
             </View>
         </View>
-    );
-};
+    )
+}
