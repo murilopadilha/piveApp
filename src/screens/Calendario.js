@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar } from 'react-native-calendars';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { SelectList } from 'react-native-dropdown-select-list';
+import { useNavigation } from '@react-navigation/native'; // Adicione isto para navegação
 
 import style from "../components/style"; // Certifique-se de que este estilo é adequado para o seu projeto
 
@@ -12,6 +13,8 @@ export default (props) => {
     const [category, setCategory] = useState('');
     const [markedDates, setMarkedDates] = useState({});
     const [selectedDateDetails, setSelectedDateDetails] = useState([]); // Lista de detalhes do agendamento
+
+    const navigation = useNavigation(); // Adicione isto para navegação
 
     const categories = [
         { key: 'OOCYTE_COLLECTION', value: 'Coleta de Oócito' },
@@ -131,24 +134,6 @@ export default (props) => {
         }
     };
 
-    // Função para confirmar e excluir um agendamento
-    const confirmDelete = (id) => {
-        Alert.alert(
-            "Confirmar Cancelamento",
-            "Você tem certeza de que deseja cancelar este agendamento?",
-            [
-                {
-                    text: "Cancelar",
-                    style: "cancel"
-                },
-                {
-                    text: "OK",
-                    onPress: () => handleDelete(id)
-                }
-            ]
-        );
-    };
-
     // Função para excluir um agendamento
     const handleDelete = async (id) => {
         try {
@@ -238,10 +223,10 @@ export default (props) => {
                                 <Text style={style.detailsText}><Text>Agendamento:</Text> {detail.procedureType}</Text>
                                 <Text style={style.detailsText}><Text>Data:</Text> {detail.date}</Text>
                                 <View style={{display: 'flex', flexDirection: 'row'}}>
-                                    <TouchableOpacity onPress={() => confirmDelete(detail.id)} style={[style.listButtonDelete, {width: 70}]}>
+                                    <TouchableOpacity onPress={() => handleDelete(detail.id)} style={[style.listButtonDelete, {width: 70}]}>
                                         <Text style={style.listButtonTextDelete}>Cancelar</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={[style.listButtonEdit, {marginTop: 0, height: 30}]}>
+                                    <TouchableOpacity onPress={() => navigation.navigate('EditarAgendamento', { detail })} style={[style.listButtonEdit, {marginTop: 0, height: 30}]}>
                                         <Text style={style.listButtonTextEdit}>Editar</Text>
                                     </TouchableOpacity>
                                 </View>

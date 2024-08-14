@@ -26,6 +26,7 @@ import TourosCadastrados from './screens/menu-sections/TourosCadastrados';
 import EditarDoadora from './screens/menu-sections/EditarDoadora';
 import EditarReceptora from './screens/menu-sections/EditarReceptora'
 import EditarTouro from './screens/menu-sections/EditarTouro';
+import EditarAgendamento from './screens/calendar-sections/EditarAgendamento';
 
 const MenuStack = createStackNavigator()
 
@@ -35,6 +36,7 @@ function MenuTabStack() {
       headerShown: false,
     }}>
       <MenuStack.Screen name='Menu' component={Menu}/>
+      <MenuStack.Screen name='Calendario' component={Calendario}/>
       <MenuStack.Screen name='CadastrarReceptora' component={CadastrarReceptoras}/>
       <MenuStack.Screen name='CadastrarDoadora' component={CadastrarDoadora} />
       <MenuStack.Screen name='CadastrarTouro' component={CadastrarTouro} />
@@ -44,6 +46,7 @@ function MenuTabStack() {
       <MenuStack.Screen name="EditarDoadora" component={EditarDoadora} />
       <MenuStack.Screen name="EditarReceptora" component={EditarReceptora} />
       <MenuStack.Screen name="EditarTouro" component={EditarTouro} />
+      <MenuStack.Screen name="EditarAgendamento" component={EditarAgendamento} />
     </MenuStack.Navigator>
   )
 }
