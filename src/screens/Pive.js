@@ -60,7 +60,7 @@ export default ({ navigation }) => {
 
             </ScrollView>
             <TouchableOpacity style={[style.listButtonSearch, {width: 80, height: 35, marginLeft: 155}]}
-            onPress={() => navigation.navigate('NovaFIV')}
+            onPress={() => navigation.navigate('ColetaOocitos')}
             >
                 <Text style={{color: '#FFFFFF', textAlign: 'center', paddingTop: 3}}>Nova FIV</Text>
             </TouchableOpacity>

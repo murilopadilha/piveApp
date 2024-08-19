@@ -57,11 +57,6 @@ export default ({ navigation }) => {
             </View>
             <View style={style.content}>
                 <ScrollView style={{height: '86%'}}>
-                    <Text style={style.label}>Partida FIV:</Text>
-                    <TextInput
-                        placeholder="Partida da FIV"
-                        style={style.input}
-                    />
                     <Text style={style.label}>Data da coleta:</Text>
                     <TouchableOpacity onPress={showDatePicker} style={style.dateInput}>
                         <Text style={style.dateText}>{newOocyteCollectionDate || "Selecione a Data"}</Text>
