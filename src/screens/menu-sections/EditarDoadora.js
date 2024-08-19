@@ -21,7 +21,7 @@ export default ({ route, navigation }) => {
         }
 
         try {
-            const response = await fetch(`http://18.217.70.110:8080/donor/${id}`, {
+            const response = await fetch(`http://3.135.1.128:8080/donor/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'

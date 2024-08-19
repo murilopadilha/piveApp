@@ -5,7 +5,7 @@ import axios from "axios";
 import style from "../../components/style";
 
 export default ({ navigation }) => {
-    const baseURL = 'http://18.217.70.110:8080'
+    const baseURL = 'http://3.135.1.128:8080'
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
@@ -29,7 +29,7 @@ export default ({ navigation }) => {
                 setData(response.data) 
             }
         } catch (error) {
-            console.error("Erro ao carregar dados:", error)
+            
         } finally {
             setLoading(false)
         }

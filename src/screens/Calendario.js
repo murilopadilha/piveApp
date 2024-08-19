@@ -57,7 +57,7 @@ export default (props) => {
         }
 
         try {
-            const response = await fetch('http://18.217.70.110:8080/schedule', {
+            const response = await fetch('http://3.135.1.128:8080/schedule', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export default (props) => {
 
     const fetchScheduledDates = async () => {
         try {
-            const response = await fetch('http://18.217.70.110:8080/schedule')
+            const response = await fetch('http://3.135.1.128:8080/schedule')
             if (!response.ok) {
                 throw new Error('Falha na solicitação')
             }
@@ -109,7 +109,7 @@ export default (props) => {
 
     const fetchDateDetails = async (date) => {
         try {
-            const response = await fetch(`http://18.217.70.110:8080/schedule/search?date=${date}`)
+            const response = await fetch(`http://3.135.1.128:8080/schedule/search?date=${date}`)
             if (!response.ok) {
                 throw new Error('Falha na solicitação')
             }
@@ -132,7 +132,7 @@ export default (props) => {
 
     const handleDelete = async (id) => {
         try {
-            const response = await fetch(`http://18.217.70.110:8080/schedule/${id}`, {
+            const response = await fetch(`http://3.135.1.128:8080/schedule/${id}`, {
                 method: 'DELETE',
             })
 

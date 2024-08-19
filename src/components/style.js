@@ -286,4 +286,37 @@ export default StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  searchPive: {
+    marginTop: 5,
+    marginLeft: 20,
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  selectListBoxPive: {
+    width: '90%',
+    maxWidth: 100, 
+    height: 40,
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: '#092955',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 10,
+    paddingTop: 6,
+    paddingLeft: 5,
+  },
+  selectListDropdownPive: {
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: '#092955',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+    width: 100,
+  },
+  listPive: {
+    marginLeft: 20,
+    width: '90%',
+    height: '65%',
+    display: 'flex',
+    flexDirection: 'column',
+  }
 })
