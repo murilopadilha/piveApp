@@ -6,6 +6,8 @@ import { SelectList } from "react-native-dropdown-select-list";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
 
+import { IPAdress } from "../../components/APIip";
+
 export default () => {
     const route = useRoute()
     const navigation = useNavigation()
@@ -52,7 +54,7 @@ export default () => {
 
     const fetchScheduledDates = async () => {
         try {
-            const response = await fetch('http://18.217.70.110:8080/schedule')
+            const response = await fetch(`http://${IPAdress}/schedule`)
             if (!response.ok) {
                 throw new Error('Falha na solicitação')
             }
@@ -84,7 +86,7 @@ export default () => {
                         const scheduleId = detail.id
 
                         try {
-                            const response = await fetch(`http://18.217.70.110:8080/schedule/${scheduleId}`, {
+                            const response = await fetch(`http://${IPAdress}/schedule/${scheduleId}`, {
                                 method: 'PUT',
                                 headers: {
                                     'Content-Type': 'application/json',

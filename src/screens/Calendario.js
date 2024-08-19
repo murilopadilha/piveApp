@@ -8,6 +8,8 @@ import { useNavigation } from '@react-navigation/native';
 
 import style from "../components/style"; 
 
+import { IPAdress } from "../components/APIip";
+
 export default (props) => {
     const [scheduleDate, setScheduleDate] = useState('')
     const [category, setCategory] = useState('')
@@ -57,7 +59,7 @@ export default (props) => {
         }
 
         try {
-            const response = await fetch('http://3.135.1.128:8080/schedule', {
+            const response = await fetch(`http://${IPAdress}/schedule`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -85,7 +87,7 @@ export default (props) => {
 
     const fetchScheduledDates = async () => {
         try {
-            const response = await fetch('http://3.135.1.128:8080/schedule')
+            const response = await fetch(`http://${IPAdress}/schedule`)
             if (!response.ok) {
                 throw new Error('Falha na solicitação')
             }
@@ -109,7 +111,7 @@ export default (props) => {
 
     const fetchDateDetails = async (date) => {
         try {
-            const response = await fetch(`http://3.135.1.128:8080/schedule/search?date=${date}`)
+            const response = await fetch(`http://${IPAdress}/schedule/search?date=${date}`)
             if (!response.ok) {
                 throw new Error('Falha na solicitação')
             }
@@ -132,7 +134,7 @@ export default (props) => {
 
     const handleDelete = async (id) => {
         try {
-            const response = await fetch(`http://3.135.1.128:8080/schedule/${id}`, {
+            const response = await fetch(`http://${IPAdress}/schedule/${id}`, {
                 method: 'DELETE',
             })
 

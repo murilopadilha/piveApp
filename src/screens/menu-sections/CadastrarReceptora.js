@@ -3,6 +3,8 @@ import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import style from "../../components/style";
 
+import { IPAdress } from "../../components/APIip";
+
 export default ({ navigation }) => {
     const [newReceiverName, setName] = useState('')
     const [newReceiverBreed, setBreed] = useState('')
@@ -15,7 +17,7 @@ export default ({ navigation }) => {
         "registrationNumber": registrationNumber
         }
 
-        const response = await fetch('http://3.135.1.128:8080/receiver', {
+        const response = await fetch(`http://${IPAdress}/receiver`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

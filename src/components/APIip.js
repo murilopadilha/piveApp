@@ -1,0 +1,1 @@
+export const IPAdress = '172.20.4.20:8080';

@@ -4,8 +4,10 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from "axios";
 import style from "../../components/style";
 
+import { IPAdress } from "../../components/APIip";
+
 export default ({ navigation }) => {
-    const baseURL = 'http://3.135.1.128:8080'
+    const baseURL = `http://${IPAdress}`
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')

@@ -3,6 +3,8 @@ import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import style from "../../components/style";
 
+import { IPAdress } from "../../components/APIip";
+
 export default ({ navigation }) => {
     const [newBullName, setName] = useState('')
     const [newBullIndentification, setNumber] = useState('')
@@ -14,7 +16,7 @@ export default ({ navigation }) => {
         }
 
         try {
-            const response = await fetch('http://3.135.1.128:8080/bull', {
+            const response = await fetch(`http://${IPAdress}/bull`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

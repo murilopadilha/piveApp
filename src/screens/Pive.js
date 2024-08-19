@@ -53,7 +53,7 @@ export default ({ navigation }) => {
                 dropdownStyles={[style.selectListDropdownPive, {marginLeft: 10, marginRight: 5}]}
             />
             <TouchableOpacity>
-                <Ionicons style={{marginRight: 5}}name="search-circle-sharp" size={45} color="#092955" />
+                <Ionicons style={{marginRight: 5}} name="search-circle-sharp" size={45} color="#092955" />
             </TouchableOpacity>
             </View>
             <ScrollView style={style.listPive}>

@@ -4,6 +4,8 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
 
+import { IPAdress } from "../../components/APIip";
+
 export default ({ navigation }) => {
     const [newDonorName, setName] = useState('');
     const [newDonorBreed, setBreed] = useState('');
@@ -19,7 +21,7 @@ export default ({ navigation }) => {
         }
 
         try {
-            const response = await fetch('http://3.135.1.128:8080/donor', {
+            const response = await fetch(`http://${IPAdress}/donor`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
