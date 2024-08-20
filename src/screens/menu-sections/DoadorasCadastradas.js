@@ -3,6 +3,7 @@ import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator, A
 import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from "axios";
 import style from "../../components/style";
+import Octicons from '@expo/vector-icons/Octicons';
 
 import { IPAdress } from "../../components/APIip";
 
@@ -119,6 +120,7 @@ function ListItem({ data, onRemove, navigation }) {
                     style={style.listButtonDelete}
                     onPress={() => confirmDelete(data.id)}
                 >
+                    <Octicons name="trash" size={20} color="white" />
                     <Text style={style.listButtonTextDelete}>Excluir</Text>
                 </TouchableOpacity>
                 <TouchableOpacity

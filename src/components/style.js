@@ -87,7 +87,7 @@ export default StyleSheet.create({
     height: 125,
   },
   bottomBorder: {
-    height: 7, // Espessura da borda inferior
+    height: 7, 
   },
   dateComponent: {
     width: 350,
@@ -143,12 +143,15 @@ export default StyleSheet.create({
     textAlign: "center",
   },
   listButtonDelete: {
-    backgroundColor: '#c13',
+    backgroundColor: '#092955',
     padding: 4,
-    width: 55,
+    width: 70,
     borderRadius: 8,
     marginLeft: 5,
     textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly'
   },
   listButtonTextDelete: {
     color: '#FFFFFF',
@@ -175,7 +178,7 @@ export default StyleSheet.create({
     marginTop: 2,
   },
   listButtonDeleteDonor: {
-    backgroundColor: '#c13',
+    backgroundColor: '#092955',
     padding: 4,
     width: 50,
     borderRadius: 8,

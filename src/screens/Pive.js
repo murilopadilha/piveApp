@@ -6,6 +6,8 @@ import { SelectList } from 'react-native-dropdown-select-list';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import style from '../components/style';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Feather from '@expo/vector-icons/Feather';
 
 import { IPAdress } from '../components/APIip';
 
@@ -35,7 +37,6 @@ export default ({ navigation }) => {
 
     const handleNewFIV = async () => {
         try {
-            
             await axios.post(API_URL)
 
             const response = await axios.get(API_URL)
@@ -80,13 +81,23 @@ export default ({ navigation }) => {
             <ScrollView style={style.listPive}>
                 {items.map(item => (
                     <TouchableOpacity key={item.id} style={style.listItemPive}>
-                        <View style={{display: 'flex', flexDirection: 'column', width: 320}}>
-                            <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20}}>
+                        <View style={{ display: 'flex', flexDirection: 'column', width: 320 }}>
+                            <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 20 }}>
                                 <Text>FIV ID: {item.id}</Text>
-                                <Text>Coleta dos Oócitos: {item.oocyteCollection || 'N/A'}</Text>
-                                <Text>Cultivo: {item.cultivation || 'N/A'}</Text>
+                                <Text style={{marginLeft: 25}}>Coleta dos Oócitos: </Text>
+                                {item.oocyteCollection ? (
+                                    <MaterialIcons style={{}}name="done" size={20} color="black" />
+                                ) : (
+                                    <Feather name="x" size={20} color="black" />
+                                )}
+                                <Text style={{marginLeft: 25}}>Cultivo: </Text>
+                                {item.cultivation ? (
+                                    <MaterialIcons name="done" size={20} color="black" />
+                                ) : (
+                                    <Feather name="x" size={20} color="black" />
+                                )}
                             </View>
-                            <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
                                 <Text>Data Asp: </Text>
                                 <Text>Total Emb: </Text>
                                 <Text>Emb Via: </Text>

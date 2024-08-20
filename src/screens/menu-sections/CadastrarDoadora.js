@@ -3,6 +3,7 @@ import { Text, TextInput, View, TouchableOpacity, StyleSheet } from "react-nativ
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
+import Octicons from '@expo/vector-icons/Octicons';
 
 import { IPAdress } from "../../components/APIip";
 
