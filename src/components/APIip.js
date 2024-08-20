@@ -1,1 +1,1 @@
-export const IPAdress = '3.135.1.128:8080';
+export const IPAdress = '192.168.120.125:8080';

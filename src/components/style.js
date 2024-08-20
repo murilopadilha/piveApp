@@ -318,5 +318,15 @@ export default StyleSheet.create({
     height: '65%',
     display: 'flex',
     flexDirection: 'column',
+  },
+  listItemPive: {
+    backgroundColor: '#FFFFFF',
+    padding: 15,
+    marginTop: 10,
+    borderRadius: 10,
+    height: 90,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   }
 })

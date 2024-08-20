@@ -7,42 +7,50 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import style from '../components/style';
 
-const API_URL = 'http://3.135.1.128:8080/fiv';
+import { IPAdress } from '../components/APIip';
+
+const API_URL = `http://${IPAdress}/fiv`
 
 export default ({ navigation }) => {
-    const [category, setCategory] = useState('');
-    const [items, setItems] = useState([]);
+    const [category, setCategory] = useState('')
+    const [items, setItems] = useState([])
 
     const categories = [
         { key: 'BULL_REGISTRED', value: 'Touro' },
         { key: 'DONATOR_REGISTRED', value: 'Doadora' },
         { key: 'FIV_REGISTRED', value: 'FIV' },
-    ];
+    ]
 
     const categoryData = categories.map(cat => ({
         key: cat.key,
         value: cat.value
-    }));
+    }))
 
     const handleSelect = (selectedKey) => {
-        const selectedCategory = categories.find(cat => cat.key === selectedKey);
+        const selectedCategory = categories.find(cat => cat.key === selectedKey)
         if (selectedCategory) {
-            setCategory(selectedCategory.key);
+            setCategory(selectedCategory.key)
         }
     };
 
     const handleNewFIV = async () => {
         try {
-            // Making a POST request
-            await axios.post(API_URL);
-            // Making a GET request to retrieve updated list
-            const response = await axios.get(API_URL);
-            setItems(response.data);
+            
+            await axios.post(API_URL)
+
+            const response = await axios.get(API_URL)
+            setItems(response.data)
+
+            Alert.alert(
+                "Sucesso",
+                "FIV criada com sucesso!",
+                [{ text: "OK" }]
+            )
         } catch (error) {
-            console.error(error);
-            Alert.alert('Error', 'An error occurred while processing your request.');
+            console.error(error)
+            Alert.alert('Erro', 'Ocorreu um erro ao processar sua requisição.')
         }
-    };
+    }
 
     return (
         <SafeAreaView>
@@ -71,10 +79,19 @@ export default ({ navigation }) => {
             </View>
             <ScrollView style={style.listPive}>
                 {items.map(item => (
-                    <TouchableOpacity key={item.id} style={style.listItem}>
-                        <Text>FIV ID: {item.id}</Text>
-                        <Text>Coleta dos Oócitos: {item.oocyteCollection || 'N/A'}</Text>
-                        <Text>Cultivo: {item.cultivation || 'N/A'}</Text>
+                    <TouchableOpacity key={item.id} style={style.listItemPive}>
+                        <View style={{display: 'flex', flexDirection: 'column', width: 320}}>
+                            <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20}}>
+                                <Text>FIV ID: {item.id}</Text>
+                                <Text>Coleta dos Oócitos: {item.oocyteCollection || 'N/A'}</Text>
+                                <Text>Cultivo: {item.cultivation || 'N/A'}</Text>
+                            </View>
+                            <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                                <Text>Data Asp: </Text>
+                                <Text>Total Emb: </Text>
+                                <Text>Emb Via: </Text>
+                            </View>
+                        </View>
                     </TouchableOpacity>
                 ))}
             </ScrollView>
@@ -85,5 +102,5 @@ export default ({ navigation }) => {
                 <Text style={{ color: '#FFFFFF', textAlign: 'center', paddingTop: 3 }}>Nova FIV</Text>
             </TouchableOpacity>
         </SafeAreaView>
-    );
-};
+    )
+}
