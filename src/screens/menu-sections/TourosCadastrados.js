@@ -3,12 +3,13 @@ import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator, A
 import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from "axios";
 import style from "../../components/style";
+import Octicons from '@expo/vector-icons/Octicons';
 
 import { IPAdress } from "../../components/APIip";
 
 export default ({ navigation }) => {
     const baseURL = `http://${IPAdress}`
-    const [data, setData] = useState([]);
+    const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
 
@@ -118,13 +119,13 @@ function ListItem({ data, onRemove, navigation }) {
                     style={style.listButtonDelete}
                     onPress={() => onRemove(data.id)}
                 >
-                    <Text style={style.listButtonTextDelete}>Excluir</Text>
+                    <Octicons name="trash" size={20} color="#908D8E" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={style.listButtonEdit}
+                    style={style.listButtonDelete}
                     onPress={() => navigation.navigate('EditarTouro', { donor: data })}
                 >
-                    <Text style={style.listButtonTextEdit}>Editar</Text>
+                    <Octicons name="pencil" size={20} color="#908D8E" />
                 </TouchableOpacity>
             </View>
         </View>

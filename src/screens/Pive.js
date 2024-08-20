@@ -1,14 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, TextInput, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import LinearGradient from 'react-native-linear-gradient';
-import { SelectList } from 'react-native-dropdown-select-list';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
 import style from '../components/style';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Feather from '@expo/vector-icons/Feather';
-
+import { SelectList } from 'react-native-dropdown-select-list';
 import { IPAdress } from '../components/APIip';
 
 const API_URL = `http://${IPAdress}/fiv`
@@ -28,20 +26,36 @@ export default ({ navigation }) => {
         value: cat.value
     }))
 
+    const fetchItems = async () => {
+        try {
+            const response = await axios.get(API_URL)
+            setItems(response.data)
+        } catch (error) {
+            console.error(error)
+            Alert.alert('Erro', 'Ocorreu um erro ao carregar a lista de FIVs.')
+        }
+    }
+
+    useEffect(() => {
+        fetchItems()
+
+        const intervalId = setInterval(() => {
+            fetchItems()
+        }, 1000 * 60)
+
+        return () => clearInterval(intervalId)
+    }, [])
+
     const handleSelect = (selectedKey) => {
         const selectedCategory = categories.find(cat => cat.key === selectedKey)
         if (selectedCategory) {
             setCategory(selectedCategory.key)
         }
-    };
+    }
 
     const handleNewFIV = async () => {
         try {
             await axios.post(API_URL)
-
-            const response = await axios.get(API_URL)
-            setItems(response.data)
-
             Alert.alert(
                 "Sucesso",
                 "FIV criada com sucesso!",
@@ -84,17 +98,17 @@ export default ({ navigation }) => {
                         <View style={{ display: 'flex', flexDirection: 'column', width: 320 }}>
                             <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 20 }}>
                                 <Text>FIV ID: {item.id}</Text>
-                                <Text style={{marginLeft: 25}}>Coleta dos Oócitos: </Text>
+                                <Text style={{ marginLeft: 25 }}>Coleta dos Oócitos: </Text>
                                 {item.oocyteCollection ? (
-                                    <MaterialIcons style={{}}name="done" size={20} color="black" />
+                                    <MaterialIcons style={{}} name="done" size={20} color="black" />
                                 ) : (
                                     <Feather name="x" size={20} color="black" />
                                 )}
-                                <Text style={{marginLeft: 25}}>Cultivo: </Text>
+                                <Text style={{ marginLeft: 25 }}>Cultivo: </Text>
                                 {item.cultivation ? (
                                     <MaterialIcons name="done" size={20} color="black" />
                                 ) : (
-                                    <Feather name="x" size={20} color="black" />
+                                    <Feather name="x" size={20} color="black"/>
                                 )}
                             </View>
                             <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>

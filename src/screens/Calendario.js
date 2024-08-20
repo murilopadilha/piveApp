@@ -4,7 +4,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar } from 'react-native-calendars';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { SelectList } from 'react-native-dropdown-select-list';
-import { useNavigation } from '@react-navigation/native'; 
+import { useNavigation } from '@react-navigation/native';
+import Octicons from '@expo/vector-icons/Octicons';
+import Feather from '@expo/vector-icons/Feather';
 
 import style from "../components/style"; 
 
@@ -128,7 +130,7 @@ export default (props) => {
                 setSelectedDateDetails([])
             }
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao buscar detalhes do agendamento: ${error.message}`)
+            
         }
     }
 
@@ -220,11 +222,13 @@ export default (props) => {
                                 <Text style={style.detailsText}><Text>Agendamento:</Text> {detail.procedureType}</Text>
                                 <Text style={style.detailsText}><Text>Data:</Text> {detail.date}</Text>
                                 <View style={{display: 'flex', flexDirection: 'row'}}>
-                                    <TouchableOpacity onPress={() => handleDelete(detail.id)} style={[style.listButtonDelete, {width: 70}]}>
-                                        <Text style={style.listButtonTextDelete}>Cancelar</Text>
+                                    <TouchableOpacity onPress={() => handleDelete(detail.id)} style={[style.listButtonEdit, {width: 90}]}>
+                                        <Feather name="x" size={20} color="#E0E0E0" />
+                                        <Text style={{color: '#E0E0E0'}}>Cancelar</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity onPress={() => navigation.navigate('EditarAgendamento', { detail })} style={[style.listButtonEdit, {marginTop: 0, height: 30}]}>
-                                        <Text style={style.listButtonTextEdit}>Editar</Text>
+                                        <Octicons name="pencil" size={20} color="#E0E0E0" />
+                                        <Text style={{color: '#E0E0E0'}}>Editar</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>

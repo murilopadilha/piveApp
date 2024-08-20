@@ -120,14 +120,13 @@ function ListItem({ data, onRemove, navigation }) {
                     style={style.listButtonDelete}
                     onPress={() => confirmDelete(data.id)}
                 >
-                    <Octicons name="trash" size={20} color="white" />
-                    <Text style={style.listButtonTextDelete}>Excluir</Text>
+                    <Octicons name="trash" size={20} color="#908D8E" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={style.listButtonEdit}
+                    style={[style.listButtonDelete, {marginTop: 2}]}
                     onPress={() => navigation.navigate('EditarDoadora', { donor: data })}
                 >
-                    <Text style={style.listButtonTextEdit}>Editar</Text>
+                <Octicons name="pencil" size={20} color="#908D8E" />
                 </TouchableOpacity>
             </View>
         </View>

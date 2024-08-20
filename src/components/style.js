@@ -120,12 +120,15 @@ export default StyleSheet.create({
   },
   listButtonEdit: {
     backgroundColor: '#092955',
-    padding: 4,
-    width: 55,
+    padding: 3,
+    width: 80,
     borderRadius: 8,
-    marginTop: 3,
     marginLeft: 5,
-    textAlign: 'center'
+    marginRight: 5,
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly'
   },
   listButtonSearch: {
     backgroundColor: '#092955',
@@ -143,9 +146,9 @@ export default StyleSheet.create({
     textAlign: "center",
   },
   listButtonDelete: {
-    backgroundColor: '#092955',
-    padding: 4,
-    width: 70,
+    borderColor: '#ccc',
+    padding: 3,
+    width: 30,
     borderRadius: 8,
     marginLeft: 5,
     textAlign: 'center',
