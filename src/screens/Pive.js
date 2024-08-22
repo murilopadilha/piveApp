@@ -31,8 +31,7 @@ export default ({ navigation }) => {
             const response = await axios.get(API_URL)
             setItems(response.data)
         } catch (error) {
-            console.error(error)
-            Alert.alert('Erro', 'Ocorreu um erro ao carregar a lista de FIVs.')
+            
         }
     }
 
@@ -122,11 +121,11 @@ export default ({ navigation }) => {
                             </View>
                             <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
                                 <Text style={{ fontWeight: 'bold' }}>Data Asp: </Text>
-                                <Text>{item.dataAsp}</Text>
+                                <Text>{item.oocyteCollection ? item.oocyteCollection.date : '-'}</Text>
                                 <Text style={{ fontWeight: 'bold' }}>Total Emb: </Text>
-                                <Text>{item.totalEmb}</Text>
+                                <Text>{item.cultivation ? item.cultivation.totalEmbryos : '-'}</Text>
                                 <Text style={{ fontWeight: 'bold' }}>Emb Via: </Text>
-                                <Text>{item.embVia}</Text>
+                                <Text>{item.cultivation ? item.cultivation.viableEmbryos : '-'}</Text>
                             </View>
                         </View>
                     </TouchableOpacity>

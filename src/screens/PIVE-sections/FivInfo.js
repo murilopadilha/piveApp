@@ -5,6 +5,8 @@ import Octicons from '@expo/vector-icons/Octicons';
 import axios from "axios";
 import style from "../../components/style";
 
+import { IPAdress } from "../../components/APIip";
+
 export default ({ route, navigation }) => {
     const { fiv } = route.params
     const [data, setData] = useState(null)
@@ -14,10 +16,17 @@ export default ({ route, navigation }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`http://18.218.115.38:8080/oocyte-collection/${fiv.id}`)
-                setData(response.data)
+                const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`)
+                
+                if (Array.isArray(response.data) && response.data.length > 0) {
+                    setData(response.data[0])
+                } else if (response.data && response.data.oocyteCollection) {
+                    setData(response.data)
+                } else {
+                    setData(null)
+                }
             } catch (err) {
-                setError(err.message)
+                setError(err.message);
             } finally {
                 setLoading(false)
             }
@@ -28,7 +37,8 @@ export default ({ route, navigation }) => {
 
     if (loading) {
         return <ActivityIndicator size="large" color="#092955" />
-    } 
+    }
+
     if (error) {
         return <Text>Error: {error}</Text>
     }
@@ -36,44 +46,44 @@ export default ({ route, navigation }) => {
     return (
         <View style={styles.container}>
             <View style={style.divTitle}>
-                <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
+                <TouchableOpacity onPress={() => navigation.navigate('Pive')}>
                     <View style={{ marginRight: 50 }}>
                         <AntDesign name="arrowleft" size={24} color="#fff" />
                     </View>
                 </TouchableOpacity>
                 <Text style={style.titleText}>Informação da FIV</Text>
             </View>
-            <ScrollView style={[styles.scrollContainer, {marginHorizontal: 20}]}>
+            <ScrollView style={[styles.scrollContainer, { marginHorizontal: 20 }]}>
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Coleta dos Oócitos</Text>
                     <View style={styles.infoContainer}>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Data da coleta:</Text>
-                            <Text style={styles.value}>{data.date}</Text>
+                            <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.date : '-'}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Fazenda:</Text>
-                            <Text style={styles.value}>{data.farm}</Text>
+                            <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.farm : '-'}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Cliente:</Text>
-                            <Text style={styles.value}>{data.client}</Text>
+                            <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.client : '-'}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Veterinário:</Text>
-                            <Text style={styles.value}>{data.veterinarian}</Text>
+                            <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.veterinarian : '-'}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Técnico:</Text>
-                            <Text style={styles.value}>{data.technical}</Text>
+                            <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.technical : '-'}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Doadora:</Text>
-                            <Text style={styles.value}>{data.donorCattle.name} ({data.donorCattle.registrationNumber})</Text>
+                            <Text style={styles.value}>{data.oocyteCollection && data.oocyteCollection.donorCattle ? `${data.oocyteCollection.donorCattle.name} (${data.oocyteCollection.donorCattle.registrationNumber})` : '-'}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Touro:</Text>
-                            <Text style={styles.value}>{data.bull.name} ({data.bull.registrationNumber})</Text>
+                            <Text style={styles.value}>{data.oocyteCollection && data.oocyteCollection.bull ? `${data.oocyteCollection.bull.name} (${data.oocyteCollection.bull.registrationNumber})` : '-'}</Text>
                         </View>
                     </View>
                     <Text style={[styles.sectionTitle, styles.oocytesTitle]}>Oócitos:</Text>
@@ -81,15 +91,15 @@ export default ({ route, navigation }) => {
                         <View style={styles.oocytesRow}>
                             <View style={styles.oocytesItem}>
                                 <Text style={styles.label}>Total:</Text>
-                                <Text style={styles.value}>{data.totalOocytes}</Text>
+                                <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.totalOocytes : '-'}</Text>
                             </View>
                             <View style={styles.oocytesItem}>
                                 <Text style={styles.label}>Viáveis:</Text>
-                                <Text style={styles.value}>{data.viableOocytes}</Text>
+                                <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.viableOocytes : '-'}</Text>
                             </View>
                             <View style={styles.oocytesItem}>
                                 <Text style={styles.label}>Inviáveis:</Text>
-                                <Text style={styles.value}>{data.nonViableOocytes}</Text>
+                                <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.nonViableOocytes : '-'}</Text>
                             </View>
                         </View>
                     </View>
@@ -97,11 +107,11 @@ export default ({ route, navigation }) => {
                     <View style={styles.cultivationContainer}>
                         <View style={styles.cultivationItem}>
                             <Text style={styles.label}>Total de Embriões:</Text>
-                            <Text style={styles.value}>-</Text>
+                            <Text style={styles.value}>{data.cultivation ? data.cultivation.totalEmbryos : '-'}</Text>
                         </View>
                         <View style={styles.cultivationItem}>
                             <Text style={styles.label}>Embriões Viáveis:</Text>
-                            <Text style={styles.value}>-</Text>
+                            <Text style={styles.value}>{data.cultivation ? data.cultivation.viableEmbryos : '-'}</Text>
                         </View>
                     </View>
                     <TouchableOpacity
@@ -140,7 +150,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         textAlign: 'center',
         fontWeight: 'bold',
-        textDecorationLine: 'underline',
         marginBottom: 10,
     },
     infoContainer: {
