@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import style from "../../components/style";
-
 import { IPAdress } from "../../components/APIip";
 
 export default ({ navigation }) => {
@@ -12,21 +11,35 @@ export default ({ navigation }) => {
 
     async function postReceivers(name, breed, registrationNumber) {
         const receiverData = {
-        "name": name,
-        "breed": breed,
-        "registrationNumber": registrationNumber
+            "name": name,
+            "breed": breed,
+            "registrationNumber": registrationNumber
         }
 
-        const response = await fetch(`http://${IPAdress}/receiver`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(receiverData)
-        })
-        const receivers = await response.json()
-        alert('Receptora cadastrada com sucesso!')
-    }    
+        try {
+            const response = await fetch(`http://${IPAdress}/receiver`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(receiverData)
+            })
+
+            if (response.ok) {
+                const receivers = await response.json();
+                Alert.alert('Sucesso', 'Receptora cadastrada com sucesso!');
+                
+                setName('')
+                setBreed('')
+                setIdentification('')
+            } else {
+                Alert.alert('Erro', 'Erro ao cadastrar a receptora.');
+            }
+        } catch (error) {
+            console.error('Erro ao salvar a receptora:', error)
+            Alert.alert('Erro', 'Erro ao cadastrar a receptora.')
+        }
+    }
 
     return (
         <View style={style.menu}>
@@ -61,7 +74,10 @@ export default ({ navigation }) => {
                     onChangeText={setIdentification}
                 />
                 <View>
-                    <TouchableOpacity style={style.button} onPress={() => postReceivers(newReceiverName, newReceiverBreed, newReceiverIdentification)}>
+                    <TouchableOpacity 
+                        style={style.button} 
+                        onPress={() => postReceivers(newReceiverName, newReceiverBreed, newReceiverIdentification)}
+                    >
                         <Text style={style.buttonText}>Salvar</Text>
                     </TouchableOpacity>
                 </View>

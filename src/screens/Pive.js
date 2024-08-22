@@ -41,7 +41,7 @@ export default ({ navigation }) => {
 
         const intervalId = setInterval(() => {
             fetchItems()
-        }, 1000 * 60)
+        }, 1000 * 3)
 
         return () => clearInterval(intervalId)
     }, [])
@@ -94,33 +94,45 @@ export default ({ navigation }) => {
             </View>
             <ScrollView style={style.listPive}>
                 {items.map(item => (
-                    <TouchableOpacity key={item.id} style={style.listItemPive}>
+                    <TouchableOpacity
+                        key={item.id}
+                        style={style.listItemPive}
+                        onPress={() => navigation.navigate('FivInfo', { fiv: item })}
+                    >
                         <View style={{ display: 'flex', flexDirection: 'column', width: 320 }}>
                             <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 20 }}>
-                                <Text>FIV ID: {item.id}</Text>
-                                <Text style={{ marginLeft: 25 }}>Coleta dos Oócitos: </Text>
-                                {item.oocyteCollection ? (
-                                    <MaterialIcons style={{}} name="done" size={20} color="black" />
-                                ) : (
-                                    <Feather name="x" size={20} color="black" />
-                                )}
-                                <Text style={{ marginLeft: 25 }}>Cultivo: </Text>
-                                {item.cultivation ? (
-                                    <MaterialIcons name="done" size={20} color="black" />
-                                ) : (
-                                    <Feather name="x" size={20} color="black"/>
-                                )}
+                                <Text style={{ fontWeight: 'bold' }}>FIV ID: </Text>
+                                <Text>{item.id}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 25 }}>
+                                    <Text style={{ fontWeight: 'bold' }}>Coleta dos Oócitos: </Text>
+                                    {item.oocyteCollection ? (
+                                        <MaterialIcons name="done" size={20} color="#555" />
+                                    ) : (
+                                        <Feather name="x" size={20} color="#555" />
+                                    )}
+                                </View>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 25 }}>
+                                    <Text style={{ fontWeight: 'bold' }}>Cultivo: </Text>
+                                    {item.cultivation ? (
+                                        <MaterialIcons name="done" size={20} color="#555" />
+                                    ) : (
+                                        <Feather name="x" size={20} color="#555" />
+                                    )}
+                                </View>
                             </View>
                             <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <Text>Data Asp: </Text>
-                                <Text>Total Emb: </Text>
-                                <Text>Emb Via: </Text>
+                                <Text style={{ fontWeight: 'bold' }}>Data Asp: </Text>
+                                <Text>{item.dataAsp}</Text>
+                                <Text style={{ fontWeight: 'bold' }}>Total Emb: </Text>
+                                <Text>{item.totalEmb}</Text>
+                                <Text style={{ fontWeight: 'bold' }}>Emb Via: </Text>
+                                <Text>{item.embVia}</Text>
                             </View>
                         </View>
                     </TouchableOpacity>
                 ))}
             </ScrollView>
-            <TouchableOpacity 
+            <TouchableOpacity
                 style={[style.listButtonSearch, { width: 80, height: 35, marginLeft: 155 }]}
                 onPress={handleNewFIV}
             >

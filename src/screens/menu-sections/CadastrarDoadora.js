@@ -7,10 +7,10 @@ import style from "../../components/style";
 import { IPAdress } from "../../components/APIip";
 
 export default ({ navigation }) => {
-    const [newDonorName, setName] = useState('');
-    const [newDonorBreed, setBreed] = useState('');
-    const [newDonorIndentification, setNumber] = useState('');
-    const [newDonorDateOfBirth, setDateOfBirth] = useState('');
+    const [newDonorName, setName] = useState('')
+    const [newDonorBreed, setBreed] = useState('')
+    const [newDonorIndentification, setNumber] = useState('')
+    const [newDonorDateOfBirth, setDateOfBirth] = useState('')
 
     async function postDonors(name, breed, registrationNumber, birth) {
         const receiverData = {
@@ -27,10 +27,15 @@ export default ({ navigation }) => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(receiverData)
-                })
-                const receivers = await response.json()
+            })
+            const receivers = await response.json()
             console.log(receivers)
-            alert(`Doadora cadastrada com sucesso!`)
+            alert('Doadora cadastrada com sucesso!')
+            
+            setName('')
+            setBreed('')
+            setNumber('')
+            setDateOfBirth('')
         } catch (error) {
             console.error('Erro ao salvar o doador:', error)
         }

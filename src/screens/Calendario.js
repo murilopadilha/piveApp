@@ -219,16 +219,26 @@ export default (props) => {
                     <ScrollView style={style.detailsContainer}>
                         {selectedDateDetails.map((detail, index) => (
                             <View key={index} style={style.detailItem}>
-                                <Text style={style.detailsText}><Text>Agendamento:</Text> {detail.procedureType}</Text>
-                                <Text style={style.detailsText}><Text>Data:</Text> {detail.date}</Text>
-                                <View style={{display: 'flex', flexDirection: 'row'}}>
-                                    <TouchableOpacity onPress={() => handleDelete(detail.id)} style={[style.listButtonEdit, {width: 90}]}>
+                                <Text style={style.detailsText}>
+                                    <Text style={{ fontWeight: 'bold' }}>Agendamento:</Text> {detail.procedureType}
+                                </Text>
+                                <Text style={[style.detailsText, { marginBottom: 5 }]}>
+                                    <Text style={{ fontWeight: 'bold' }}>Data:</Text> {detail.date}
+                                </Text>
+                                <View style={{ display: 'flex', flexDirection: 'row' }}>
+                                    <TouchableOpacity
+                                        onPress={() => handleDelete(detail.id)}
+                                        style={[style.listButtonEdit, { width: 90 }]}
+                                    >
                                         <Feather name="x" size={20} color="#E0E0E0" />
-                                        <Text style={{color: '#E0E0E0'}}>Cancelar</Text>
+                                        <Text style={{ color: '#E0E0E0' }}>Cancelar</Text>
                                     </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => navigation.navigate('EditarAgendamento', { detail })} style={[style.listButtonEdit, {marginTop: 0, height: 30}]}>
+                                    <TouchableOpacity
+                                        onPress={() => navigation.navigate('EditarAgendamento', { detail })}
+                                        style={[style.listButtonEdit, { marginTop: 0, height: 30 }]}
+                                    >
                                         <Octicons name="pencil" size={20} color="#E0E0E0" />
-                                        <Text style={{color: '#E0E0E0'}}>Editar</Text>
+                                        <Text style={{ color: '#E0E0E0' }}>Editar</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>

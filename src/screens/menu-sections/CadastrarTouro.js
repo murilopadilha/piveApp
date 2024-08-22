@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import style from "../../components/style";
-
 import { IPAdress } from "../../components/APIip";
 
 export default ({ navigation }) => {
@@ -25,13 +24,14 @@ export default ({ navigation }) => {
             })
 
             if (response.ok) { 
-                const result = await response.json()
+                const result = await response.json();
                 
                 Alert.alert(
                     "Sucesso",
                     "Cadastro realizado com sucesso!",
                     [{ text: "OK" }]
-                );
+                )
+
                 setName('')
                 setNumber('')
             } else {
@@ -58,14 +58,14 @@ export default ({ navigation }) => {
                     placeholder="Nome do Touro"
                     value={newBullName}
                     style={style.input}
-                    onChangeText={(text) => setName(text)}
+                    onChangeText={setName}
                 />
                 <Text style={style.label}>Identificação:</Text>
                 <TextInput
                     placeholder="Identificação do Touro"
                     value={newBullIndentification}
                     style={style.input}
-                    onChangeText={(text) => setNumber(text)}
+                    onChangeText={setNumber}
                 />
                 <View>
                     <TouchableOpacity

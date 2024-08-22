@@ -28,6 +28,7 @@ import EditarReceptora from './screens/menu-sections/EditarReceptora'
 import EditarTouro from './screens/menu-sections/EditarTouro';
 import EditarAgendamento from './screens/calendar-sections/EditarAgendamento';
 import ColetaOocitos from './screens/PIVE-sections/ColetaOocitos';
+import FivInfo from './screens/PIVE-sections/FivInfo'
 
 const MenuStack = createStackNavigator()
 
@@ -50,6 +51,7 @@ function MenuTabStack() {
       <MenuStack.Screen name="EditarAgendamento" component={EditarAgendamento} />
       <MenuStack.Screen name="ColetaOocitos" component={ColetaOocitos} />
       <MenuStack.Screen name="Pive" component={Pive} />
+      <MenuStack.Screen name="FivInfo" component={FivInfo} />
     </MenuStack.Navigator>
   )
 }

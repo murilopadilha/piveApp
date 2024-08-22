@@ -111,8 +111,14 @@ function ListItem({ data, onRemove, navigation }) {
     return (
         <View style={style.listItem}>
             <View>
-                <Text style={style.listText}>{`Nome: ${data.name}`}</Text>
-                <Text style={style.listText}>{`Número de Registro: ${data.registrationNumber}`}</Text>
+                <Text style={style.listText}>
+                    <Text style={{ fontWeight: 'bold' }}>Nome: </Text>
+                    {data.name}
+                </Text>
+                <Text style={style.listText}>
+                    <Text style={{ fontWeight: 'bold' }}>Número de Registro: </Text>
+                    {data.registrationNumber}
+                </Text>
             </View>
             <View style={style.listButtons}>
                 <TouchableOpacity
@@ -122,7 +128,7 @@ function ListItem({ data, onRemove, navigation }) {
                     <Octicons name="trash" size={20} color="#908D8E" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={style.listButtonDelete}
+                    style={[style.listButtonDelete, { marginTop: 2 }]}
                     onPress={() => navigation.navigate('EditarTouro', { donor: data })}
                 >
                     <Octicons name="pencil" size={20} color="#908D8E" />
@@ -131,6 +137,7 @@ function ListItem({ data, onRemove, navigation }) {
         </View>
     )
 }
+
 
 function FooterList({ load }) {
     if (!load) return null
