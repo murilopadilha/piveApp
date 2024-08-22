@@ -7,6 +7,8 @@ import style from "../../components/style";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { SelectList } from 'react-native-dropdown-select-list';
 
+import { IPAdress } from "../../components/APIip";
+
 export default ({ route, navigation }) => {
     const [newOocyteCollectionDate, setDateOfOocyteCollection] = useState('')
     const [farm, setFarm] = useState('')
@@ -25,8 +27,8 @@ export default ({ route, navigation }) => {
         const fetchDonorsAndBulls = async () => {
             try {
                 const [donorsResponse, bullsResponse] = await Promise.all([
-                    axios.get('http://18.218.115.38:8080/donor'),
-                    axios.get('http://18.218.115.38:8080/bull')
+                    axios.get(`http://${IPAdress}/donor`),
+                    axios.get(`http://${IPAdress}/bull`)
                 ])
 
                 setDonors(donorsResponse.data)
@@ -67,7 +69,7 @@ export default ({ route, navigation }) => {
 
     const handleSave = async () => {
         try {
-            await axios.post('http://18.218.115.38:8080/oocyte-collection', {
+            await axios.post(`http://${IPAdress}/oocyte-collection`, {
                 fivId: fiv.id, 
                 date: newOocyteCollectionDate,
                 farm,
@@ -185,7 +187,8 @@ export default ({ route, navigation }) => {
                             <MaterialIcons name="done" size={20} color="white" style={{ paddingLeft: 5, paddingTop: 3 }} />
                             <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Salvar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={[style.listButtonSearch, { width: 90, height: 35, display: 'flex', flexDirection: 'row', marginTop: 20 }]}>
+                        <TouchableOpacity style={[style.listButtonSearch, { width: 90, height: 35, display: 'flex', flexDirection: 'row', marginTop: 20 }]}
+                        onPress={() => navigation.navigate('Cultivo', { fiv: fiv })}>
                             <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Cultivo</Text>
                             <AntDesign name="right" size={16} color="#FFFFFF" style={{ paddingLeft: 10, paddingTop: 5 }} />
                         </TouchableOpacity>
