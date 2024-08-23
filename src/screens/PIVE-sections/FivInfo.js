@@ -6,6 +6,7 @@ import axios from "axios";
 import style from "../../components/style";
 import { IPAdress } from "../../components/APIip";
 import { SelectList } from 'react-native-dropdown-select-list';  // Importe o SelectList
+import stylesEmbryos from "../../components/stylesEmbryos"
 
 export default ({ route, navigation }) => {
     const { fiv } = route.params;
@@ -97,7 +98,7 @@ export default ({ route, navigation }) => {
     const cultivation = data?.cultivation || {};
 
     return (
-        <View style={styles.container}>
+        <View style={stylesEmbryos.container}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Pive')}>
                     <View style={{ marginRight: 50 }}>
@@ -106,72 +107,72 @@ export default ({ route, navigation }) => {
                 </TouchableOpacity>
                 <Text style={style.titleText}>Informação da FIV</Text>
             </View>
-            <ScrollView style={[styles.scrollContainer, { marginHorizontal: 20 }]}>
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Coleta dos Oócitos</Text>
-                    <View style={styles.infoContainer}>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.label}>Data da coleta:</Text>
-                            <Text style={styles.value}>{oocyteCollection.date || '-'}</Text>
+            <ScrollView style={[stylesEmbryos.scrollContainer, { marginHorizontal: 20 }]}>
+                <View style={stylesEmbryos.section}>
+                    <Text style={stylesEmbryos.sectionTitle}>Coleta dos Oócitos</Text>
+                    <View style={stylesEmbryos.infoContainer}>
+                        <View style={stylesEmbryos.infoRow}>
+                            <Text style={stylesEmbryos.label}>Data da coleta:</Text>
+                            <Text style={stylesEmbryos.value}>{oocyteCollection.date || '-'}</Text>
                         </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.label}>Fazenda:</Text>
-                            <Text style={styles.value}>{oocyteCollection.farm || '-'}</Text>
+                        <View style={stylesEmbryos.infoRow}>
+                            <Text style={stylesEmbryos.label}>Fazenda:</Text>
+                            <Text style={stylesEmbryos.value}>{oocyteCollection.farm || '-'}</Text>
                         </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.label}>Cliente:</Text>
-                            <Text style={styles.value}>{oocyteCollection.client || '-'}</Text>
+                        <View style={stylesEmbryos.infoRow}>
+                            <Text style={stylesEmbryos.label}>Cliente:</Text>
+                            <Text style={stylesEmbryos.value}>{oocyteCollection.client || '-'}</Text>
                         </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.label}>Veterinário:</Text>
-                            <Text style={styles.value}>{oocyteCollection.veterinarian || '-'}</Text>
+                        <View style={stylesEmbryos.infoRow}>
+                            <Text style={stylesEmbryos.label}>Veterinário:</Text>
+                            <Text style={stylesEmbryos.value}>{oocyteCollection.veterinarian || '-'}</Text>
                         </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.label}>Técnico:</Text>
-                            <Text style={styles.value}>{oocyteCollection.technical || '-'}</Text>
+                        <View style={stylesEmbryos.infoRow}>
+                            <Text style={stylesEmbryos.label}>Técnico:</Text>
+                            <Text style={stylesEmbryos.value}>{oocyteCollection.technical || '-'}</Text>
                         </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.label}>Doadora:</Text>
-                            <Text style={styles.value}>
+                        <View style={stylesEmbryos.infoRow}>
+                            <Text style={stylesEmbryos.label}>Doadora:</Text>
+                            <Text style={stylesEmbryos.value}>
                                 {oocyteCollection.donorCattle ? `${oocyteCollection.donorCattle.name} (${oocyteCollection.donorCattle.registrationNumber})` : '-'}
                             </Text>
                         </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.label}>Touro:</Text>
-                            <Text style={styles.value}>
+                        <View style={stylesEmbryos.infoRow}>
+                            <Text style={stylesEmbryos.label}>Touro:</Text>
+                            <Text style={stylesEmbryos.value}>
                                 {oocyteCollection.bull ? `${oocyteCollection.bull.name} (${oocyteCollection.bull.registrationNumber})` : '-'}
                             </Text>
                         </View>
                     </View>
-                    <Text style={[styles.sectionTitle, styles.oocytesTitle]}>Oócitos:</Text>
-                    <View style={styles.oocytesContainer}>
-                        <View style={styles.oocytesRow}>
-                            <View style={styles.oocytesItem}>
-                                <Text style={styles.label}>Total:</Text>
-                                <Text style={styles.value}>{oocyteCollection.totalOocytes || '-'}</Text>
+                    <Text style={[stylesEmbryos.sectionTitle, stylesEmbryos.oocytesTitle]}>Oócitos:</Text>
+                    <View style={stylesEmbryos.oocytesContainer}>
+                        <View style={stylesEmbryos.oocytesRow}>
+                            <View style={stylesEmbryos.oocytesItem}>
+                                <Text style={stylesEmbryos.label}>Total:</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollection.totalOocytes || '-'}</Text>
                             </View>
-                            <View style={styles.oocytesItem}>
-                                <Text style={styles.label}>Viáveis:</Text>
-                                <Text style={styles.value}>{oocyteCollection.viableOocytes || '-'}</Text>
+                            <View style={stylesEmbryos.oocytesItem}>
+                                <Text style={stylesEmbryos.label}>Viáveis:</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollection.viableOocytes || '-'}</Text>
                             </View>
-                            <View style={styles.oocytesItem}>
-                                <Text style={styles.label}>Inviáveis:</Text>
-                                <Text style={styles.value}>{oocyteCollection.nonViableOocytes || '-'}</Text>
+                            <View style={stylesEmbryos.oocytesItem}>
+                                <Text style={stylesEmbryos.label}>Inviáveis:</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollection.nonViableOocytes || '-'}</Text>
                             </View>
                         </View>
                     </View>
-                    <Text style={[styles.sectionTitle, styles.cultivationTitle]}>Cultivo</Text>
-                    <View style={styles.cultivationContainer}>
-                        <View style={styles.cultivationItem}>
-                            <Text style={styles.label}>Total de Embriões:</Text>
-                            <Text style={styles.value}>{cultivation.totalEmbryos || '-'}</Text>
+                    <Text style={[stylesEmbryos.sectionTitle, stylesEmbryos.cultivationTitle]}>Cultivo</Text>
+                    <View style={stylesEmbryos.cultivationContainer}>
+                        <View style={stylesEmbryos.cultivationItem}>
+                            <Text style={stylesEmbryos.label}>Total de Embriões:</Text>
+                            <Text style={stylesEmbryos.value}>{cultivation.totalEmbryos || '-'}</Text>
                         </View>
                         <TouchableOpacity
-                            style={styles.cultivationItem}
+                            style={stylesEmbryos.cultivationItem}
                             onPress={() => setModalVisible(true)}
                         >
-                            <Text style={[styles.label, { textDecorationLine: 'underline' }]}>Embriões Viáveis:</Text>
-                            <Text style={styles.value}>{cultivation.viableEmbryos || '-'}</Text>
+                            <Text style={[stylesEmbryos.label, { textDecorationLine: 'underline' }]}>Embriões Viáveis:</Text>
+                            <Text style={stylesEmbryos.value}>{cultivation.viableEmbryos || '-'}</Text>
                         </TouchableOpacity>
                     </View>
                     <TouchableOpacity
@@ -189,11 +190,11 @@ export default ({ route, navigation }) => {
                 visible={modalVisible}
                 onRequestClose={() => setModalVisible(false)}
             >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Gerenciar Embriões Viáveis</Text>
-                        <Text style={styles.modalSubtitle}>Registro {}/{}</Text>
-                        <View style={styles.optionContainer}>
+                <View style={stylesEmbryos.modalContainer}>
+                    <View style={stylesEmbryos.modalContent}>
+                        <Text style={stylesEmbryos.modalTitle}>Gerenciar Embriões Viáveis</Text>
+                        <Text style={stylesEmbryos.modalSubtitle}>Registro {}/{}</Text>
+                        <View style={stylesEmbryos.optionContainer}>
                             <Text>Congelado: </Text>
                             <SelectList
                                 setSelected={handleSelect}
@@ -216,23 +217,23 @@ export default ({ route, navigation }) => {
                                 dropdownStyles={[style.selectListDropdown]}
                             />
                         </View>
-                        <View style={styles.buttonContainer}>
+                        <View style={stylesEmbryos.buttonContainer}>
                             <TouchableOpacity
-                                style={styles.navigationButton}
+                                style={stylesEmbryos.navigationButton}
                             >
-                                <Text style={styles.navigationButtonText}>Anterior</Text>
+                                <Text style={stylesEmbryos.navigationButtonText}>Anterior</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={styles.navigationButton}
+                                style={stylesEmbryos.navigationButton}
                             >
-                                <Text style={styles.navigationButtonText}>Próximo</Text>
+                                <Text style={stylesEmbryos.navigationButtonText}>Próximo</Text>
                             </TouchableOpacity>
                         </View>
                         <TouchableOpacity
-                            style={styles.closeButton}
+                            style={stylesEmbryos.closeButton}
                             onPress={() => setModalVisible(false)}
                         >
-                            <Text style={styles.closeButtonText}>Fechar</Text>
+                            <Text style={stylesEmbryos.closeButtonText}>Fechar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -241,150 +242,4 @@ export default ({ route, navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-    },
-    title: {
-        color: '#fff',
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginLeft: 20,
-        flex: 1,
-        textAlign: 'center',
-    },
-    scrollContainer: {
-        flex: 1,
-        padding: 10,
-    },
-    section: {
-        marginBottom: 20,
-    },
-    sectionTitle: {
-        textAlign: 'center',
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    infoContainer: {
-        marginBottom: 20,
-    },
-    infoRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 10,
-    },
-    label: {
-        fontWeight: 'bold',
-    },
-    value: {
-        color: '#555',
-    },
-    oocytesTitle: {
-        marginTop: 20,
-    },
-    oocytesContainer: {
-        marginBottom: 20,
-    },
-    oocytesRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    oocytesItem: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    cultivationTitle: {
-        marginTop: 20,
-    },
-    cultivationContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        marginBottom: 20,
-    },
-    cultivationItem: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalContent: {
-        width: 300,
-        padding: 20,
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    modalSubtitle: {
-        fontSize: 14,
-        color: '#555',
-        marginBottom: 20,
-    },
-    optionContainer: {
-        width: '100%',
-        marginBottom: 20,
-    },
-    optionLabel: {
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    optionButtons: {
-        flexDirection: 'row',
-        marginBottom: 20,
-    },
-    optionButton: {
-        padding: 10,
-        borderRadius: 5,
-        backgroundColor: '#E0E0E0',
-        marginHorizontal: 5,
-    },
-    optionButtonSelected: {
-        backgroundColor: '#092955',
-    },
-    optionButtonSelectedText: {
-        color: '#fff',
-    },
-    optionButtonText: {
-        color: '#555',
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        marginBottom: 20,
-    },
-    navigationButton: {
-        backgroundColor: '#092955',
-        padding: 10,
-        borderRadius: 5,
-        marginHorizontal: 10,
-    },
-    navigationButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    closeButton: {
-        backgroundColor: '#E0E0E0',
-        padding: 10,
-        borderRadius: 5,
-    },
-    closeButtonText: {
-        color: '#555',
-        fontWeight: 'bold',
-    },
-    selectListDropdown: {
-        position: 'absolute',
-        backgroundColor: '#fff',
-        borderColor: '#ddd',
-        borderWidth: 1,
-        borderRadius: 5,
-        maxHeight: 150, // Ajuste a altura máxima se necessário
-    },
-});
+
