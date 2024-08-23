@@ -14,6 +14,35 @@ export default ({ route, navigation }) => {
     const [error, setError] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [viableEmbryos, setViableEmbryos] = useState([]);
+    const [category, setCategory] = useState('');
+    const [receiver, setReceiver] = useState([]);
+    const [selectedReceiver, setSelectedReceiver] = useState('');
+
+    // Defina categories antes de usá-las
+    const categories = [
+        { key: 'true', value: 'Sim' },
+        { key: 'false', value: 'Não' },
+    ];
+
+    // Use categories para gerar categoryData
+    const categoryData = categories.map(cat => ({
+        key: cat.key,
+        value: cat.value
+    }));
+
+    const handleSelect = (selectedKey) => {
+        const selectedCategory = categories.find(cat => cat.key === selectedKey);
+        if (selectedCategory) {
+            setCategory(selectedCategory.key);
+        }
+    };
+
+    const handleReceiverSelect = (selectedId) => {
+        const selectedReceiver = receiver.find(rec => rec.id === selectedId);
+        if (selectedReceiver) {
+            setSelectedReceiver(selectedReceiver.name);
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -33,7 +62,6 @@ export default ({ route, navigation }) => {
             }
         };
 
-
         fetchData();
     }, [fiv]);
 
@@ -43,6 +71,19 @@ export default ({ route, navigation }) => {
             setViableEmbryos(embryos);
         }
     }, [data]);
+
+    useEffect(() => {
+        const fetchReceivers = async () => {
+            try {
+                const response = await axios.get('http://18.218.115.38:8080/receiver/available');
+                setReceiver(response.data);
+            } catch (err) {
+                console.error(err.message);
+            }
+        };
+
+        fetchReceivers();
+    }, []);
 
     if (loading) {
         return <ActivityIndicator size="large" color="#092955" />;
@@ -152,6 +193,29 @@ export default ({ route, navigation }) => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Gerenciar Embriões Viáveis</Text>
                         <Text style={styles.modalSubtitle}>Registro {}/{}</Text>
+                        <View style={styles.optionContainer}>
+                            <Text>Congelado: </Text>
+                            <SelectList
+                                setSelected={handleSelect}
+                                data={categoryData}
+                                placeholder={"Selecione uma opção"}
+                                boxStyles={[style.selectListBox, { marginBottom: 15 }]}
+                                inputStyles={style.selectListInput}
+                                dropdownStyles={[style.selectListDropdown]}
+                            />
+                            <Text>Receptora: </Text>
+                            <SelectList
+                                setSelected={handleReceiverSelect}
+                                data={receiver.map(rec => ({
+                                    key: rec.id.toString(),
+                                    value: rec.name
+                                }))}
+                                placeholder={"Selecione a receptora"}
+                                boxStyles={[style.selectListBox, { marginBottom: 15 }]}
+                                inputStyles={style.selectListInput}
+                                dropdownStyles={[style.selectListDropdown]}
+                            />
+                        </View>
                         <View style={styles.buttonContainer}>
                             <TouchableOpacity
                                 style={styles.navigationButton}
@@ -314,5 +378,13 @@ const styles = StyleSheet.create({
     closeButtonText: {
         color: '#555',
         fontWeight: 'bold',
+    },
+    selectListDropdown: {
+        position: 'absolute',
+        backgroundColor: '#fff',
+        borderColor: '#ddd',
+        borderWidth: 1,
+        borderRadius: 5,
+        maxHeight: 150, // Ajuste a altura máxima se necessário
     },
 });
