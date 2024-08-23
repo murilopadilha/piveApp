@@ -28,8 +28,9 @@ import EditarReceptora from './screens/menu-sections/EditarReceptora'
 import EditarTouro from './screens/menu-sections/EditarTouro';
 import EditarAgendamento from './screens/calendar-sections/EditarAgendamento';
 import ColetaOocitos from './screens/PIVE-sections/ColetaOocitos';
-import FivInfo from './screens/PIVE-sections/FivInfo'
-import Cultivo from './screens/PIVE-sections/Cultivo'
+import FivInfo from './screens/PIVE-sections/FivInfo';
+import Cultivo from './screens/PIVE-sections/Cultivo';
+import EmbrioesViaveis from './screens/PIVE-sections/EmbrioesViaveis';
 
 const MenuStack = createStackNavigator()
 
@@ -54,6 +55,7 @@ function MenuTabStack() {
       <MenuStack.Screen name="Pive" component={Pive} />
       <MenuStack.Screen name="FivInfo" component={FivInfo} />
       <MenuStack.Screen name="Cultivo" component={Cultivo} />
+      <MenuStack.Screen name="EmbrioesViaveis" component={EmbrioesViaveis} />
     </MenuStack.Navigator>
   )
 }

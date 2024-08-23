@@ -1,47 +1,59 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from "react-native";
+import { Text, View, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Modal } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Octicons from '@expo/vector-icons/Octicons';
 import axios from "axios";
 import style from "../../components/style";
-
 import { IPAdress } from "../../components/APIip";
+import { SelectList } from 'react-native-dropdown-select-list';  // Importe o SelectList
 
 export default ({ route, navigation }) => {
-    const { fiv } = route.params
-    const [data, setData] = useState(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
+    const { fiv } = route.params;
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [viableEmbryos, setViableEmbryos] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`)
-                
+                const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`);
                 if (Array.isArray(response.data) && response.data.length > 0) {
-                    setData(response.data[0])
-                } else if (response.data && response.data.oocyteCollection) {
-                    setData(response.data)
+                    setData(response.data[0]);
+                } else if (response.data && (response.data.oocyteCollection || response.data.cultivation)) {
+                    setData(response.data);
                 } else {
-                    setData(null)
+                    setData(null);
                 }
             } catch (err) {
                 setError(err.message);
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
-        }
+        };
 
-        fetchData()
-    }, [fiv])
+
+        fetchData();
+    }, [fiv]);
+
+    useEffect(() => {
+        if (data && data.cultivation) {
+            const embryos = Array.isArray(data.cultivation.viableEmbryos) ? data.cultivation.viableEmbryos : [];
+            setViableEmbryos(embryos);
+        }
+    }, [data]);
 
     if (loading) {
-        return <ActivityIndicator size="large" color="#092955" />
+        return <ActivityIndicator size="large" color="#092955" />;
     }
 
     if (error) {
-        return <Text>Error: {error}</Text>
+        return <Text>Error: {error}</Text>;
     }
+
+    const oocyteCollection = data?.oocyteCollection || {};
+    const cultivation = data?.cultivation || {};
 
     return (
         <View style={styles.container}>
@@ -59,31 +71,35 @@ export default ({ route, navigation }) => {
                     <View style={styles.infoContainer}>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Data da coleta:</Text>
-                            <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.date : '-'}</Text>
+                            <Text style={styles.value}>{oocyteCollection.date || '-'}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Fazenda:</Text>
-                            <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.farm : '-'}</Text>
+                            <Text style={styles.value}>{oocyteCollection.farm || '-'}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Cliente:</Text>
-                            <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.client : '-'}</Text>
+                            <Text style={styles.value}>{oocyteCollection.client || '-'}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Veterinário:</Text>
-                            <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.veterinarian : '-'}</Text>
+                            <Text style={styles.value}>{oocyteCollection.veterinarian || '-'}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Técnico:</Text>
-                            <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.technical : '-'}</Text>
+                            <Text style={styles.value}>{oocyteCollection.technical || '-'}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Doadora:</Text>
-                            <Text style={styles.value}>{data.oocyteCollection && data.oocyteCollection.donorCattle ? `${data.oocyteCollection.donorCattle.name} (${data.oocyteCollection.donorCattle.registrationNumber})` : '-'}</Text>
+                            <Text style={styles.value}>
+                                {oocyteCollection.donorCattle ? `${oocyteCollection.donorCattle.name} (${oocyteCollection.donorCattle.registrationNumber})` : '-'}
+                            </Text>
                         </View>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Touro:</Text>
-                            <Text style={styles.value}>{data.oocyteCollection && data.oocyteCollection.bull ? `${data.oocyteCollection.bull.name} (${data.oocyteCollection.bull.registrationNumber})` : '-'}</Text>
+                            <Text style={styles.value}>
+                                {oocyteCollection.bull ? `${oocyteCollection.bull.name} (${oocyteCollection.bull.registrationNumber})` : '-'}
+                            </Text>
                         </View>
                     </View>
                     <Text style={[styles.sectionTitle, styles.oocytesTitle]}>Oócitos:</Text>
@@ -91,15 +107,15 @@ export default ({ route, navigation }) => {
                         <View style={styles.oocytesRow}>
                             <View style={styles.oocytesItem}>
                                 <Text style={styles.label}>Total:</Text>
-                                <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.totalOocytes : '-'}</Text>
+                                <Text style={styles.value}>{oocyteCollection.totalOocytes || '-'}</Text>
                             </View>
                             <View style={styles.oocytesItem}>
                                 <Text style={styles.label}>Viáveis:</Text>
-                                <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.viableOocytes : '-'}</Text>
+                                <Text style={styles.value}>{oocyteCollection.viableOocytes || '-'}</Text>
                             </View>
                             <View style={styles.oocytesItem}>
                                 <Text style={styles.label}>Inviáveis:</Text>
-                                <Text style={styles.value}>{data.oocyteCollection ? data.oocyteCollection.nonViableOocytes : '-'}</Text>
+                                <Text style={styles.value}>{oocyteCollection.nonViableOocytes || '-'}</Text>
                             </View>
                         </View>
                     </View>
@@ -107,12 +123,15 @@ export default ({ route, navigation }) => {
                     <View style={styles.cultivationContainer}>
                         <View style={styles.cultivationItem}>
                             <Text style={styles.label}>Total de Embriões:</Text>
-                            <Text style={styles.value}>{data.cultivation ? data.cultivation.totalEmbryos : '-'}</Text>
+                            <Text style={styles.value}>{cultivation.totalEmbryos || '-'}</Text>
                         </View>
-                        <View style={styles.cultivationItem}>
-                            <Text style={styles.label}>Embriões Viáveis:</Text>
-                            <Text style={styles.value}>{data.cultivation ? data.cultivation.viableEmbryos : '-'}</Text>
-                        </View>
+                        <TouchableOpacity
+                            style={styles.cultivationItem}
+                            onPress={() => setModalVisible(true)}
+                        >
+                            <Text style={[styles.label, { textDecorationLine: 'underline' }]}>Embriões Viáveis:</Text>
+                            <Text style={styles.value}>{cultivation.viableEmbryos || '-'}</Text>
+                        </TouchableOpacity>
                     </View>
                     <TouchableOpacity
                         onPress={() => navigation.navigate('ColetaOocitos', { fiv: fiv })}
@@ -123,9 +142,40 @@ export default ({ route, navigation }) => {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
+            <Modal
+                transparent={true}
+                animationType="slide"
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Gerenciar Embriões Viáveis</Text>
+                        <Text style={styles.modalSubtitle}>Registro {}/{}</Text>
+                        <View style={styles.buttonContainer}>
+                            <TouchableOpacity
+                                style={styles.navigationButton}
+                            >
+                                <Text style={styles.navigationButtonText}>Anterior</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.navigationButton}
+                            >
+                                <Text style={styles.navigationButtonText}>Próximo</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setModalVisible(false)}
+                        >
+                            <Text style={styles.closeButtonText}>Fechar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
-    )
-}
+    );
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -192,8 +242,77 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
     },
-    registerButtonText: {
-        color: '#E0E0E0',
-        marginLeft: 5,
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
     },
-})
+    modalContent: {
+        width: 300,
+        padding: 20,
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    modalSubtitle: {
+        fontSize: 14,
+        color: '#555',
+        marginBottom: 20,
+    },
+    optionContainer: {
+        width: '100%',
+        marginBottom: 20,
+    },
+    optionLabel: {
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    optionButtons: {
+        flexDirection: 'row',
+        marginBottom: 20,
+    },
+    optionButton: {
+        padding: 10,
+        borderRadius: 5,
+        backgroundColor: '#E0E0E0',
+        marginHorizontal: 5,
+    },
+    optionButtonSelected: {
+        backgroundColor: '#092955',
+    },
+    optionButtonSelectedText: {
+        color: '#fff',
+    },
+    optionButtonText: {
+        color: '#555',
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        marginBottom: 20,
+    },
+    navigationButton: {
+        backgroundColor: '#092955',
+        padding: 10,
+        borderRadius: 5,
+        marginHorizontal: 10,
+    },
+    navigationButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    closeButton: {
+        backgroundColor: '#E0E0E0',
+        padding: 10,
+        borderRadius: 5,
+    },
+    closeButtonText: {
+        color: '#555',
+        fontWeight: 'bold',
+    },
+});
