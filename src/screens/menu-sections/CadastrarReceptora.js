@@ -8,6 +8,7 @@ export default ({ navigation }) => {
     const [newReceiverName, setName] = useState('')
     const [newReceiverBreed, setBreed] = useState('')
     const [newReceiverIdentification, setIdentification] = useState('')
+    const [receiver, setReceiver] = useState([])
 
     async function postReceivers(name, breed, registrationNumber) {
         const receiverData = {
