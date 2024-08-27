@@ -8,7 +8,6 @@ export default ({ navigation }) => {
     const [newReceiverName, setName] = useState('')
     const [newReceiverBreed, setBreed] = useState('')
     const [newReceiverIdentification, setIdentification] = useState('')
-    const [receiver, setReceiver] = useState([])
 
     async function postReceivers(name, breed, registrationNumber) {
         const receiverData = {
@@ -27,18 +26,21 @@ export default ({ navigation }) => {
             })
 
             if (response.ok) {
-                const receivers = await response.json();
-                Alert.alert('Sucesso', 'Receptora cadastrada com sucesso!');
+                const receivers = await response.json()
+                Alert.alert('Sucesso', 'Deu erro poha!')
                 
                 setName('')
                 setBreed('')
                 setIdentification('')
+            } else if (response.status == '409') {
+                const errorMessage = await response.text()
+                Alert.alert('Erro', errorMessage);
             } else {
-                Alert.alert('Erro', 'Erro ao cadastrar a receptora.');
+                Alert.alert('Erro', "Erro ao enviar dados")
             }
         } catch (error) {
-            console.error('Erro ao salvar a receptora:', error)
-            Alert.alert('Erro', 'Erro ao cadastrar a receptora.')
+            console.error('Erro dnv:', error)
+            Alert.alert('Erro', 'Ocorreu um erro')
         }
     }
 

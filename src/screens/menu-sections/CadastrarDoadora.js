@@ -3,6 +3,7 @@ import { Text, TextInput, View, TouchableOpacity, StyleSheet } from "react-nativ
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
+import { Alert } from "react-native";
 
 import { IPAdress } from "../../components/APIip";
 
@@ -28,7 +29,9 @@ export default ({ navigation }) => {
                 },
                 body: JSON.stringify(receiverData)
             })
-            const receivers = await response.json()
+
+            if(response.ok) {
+                const receivers = await response.json()
             console.log(receivers)
             alert('Doadora cadastrada com sucesso!')
             
@@ -36,8 +39,16 @@ export default ({ navigation }) => {
             setBreed('')
             setNumber('')
             setDateOfBirth('')
+            } else if(response.status == '409') {
+                const errorMessage = await response.text()
+                Alert.alert('Erro', errorMessage);
+            } else {
+                Alert.alert('Erro', "Erro ao enviar dados")
+            }
+            
         } catch (error) {
             console.error('Erro ao salvar o doador:', error)
+            Alert.alert('Erro', error.message)
         }
     }
 

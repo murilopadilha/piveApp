@@ -34,8 +34,11 @@ export default ({ navigation }) => {
 
                 setName('')
                 setNumber('')
+            } else if (response.status == '409') {
+                const errorMessage = await response.text()
+                Alert.alert('Erro', errorMessage);
             } else {
-                throw new Error('Falha no cadastro.')
+                Alert.alert('Erro', "Erro ao enviar dados")
             }
         } catch (error) {
             Alert.alert('Erro', error.message)
