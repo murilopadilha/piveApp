@@ -146,4 +146,10 @@ export default StyleSheet.create({
         borderRadius: 5,
         maxHeight: 150,
     },
+    buttonSearchFiv: {
+        paddingTop: 5,
+        paddingHorizontal: 5,
+        backgroundColor: '#fff',
+        borderRadius: 10,
+    }
 })

@@ -1,94 +1,104 @@
 import React, { useState, useEffect } from 'react';
-import { Text, TextInput, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import axios from 'axios';
-import style from '../components/style';
+import { SelectList } from 'react-native-dropdown-select-list';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Feather from '@expo/vector-icons/Feather';
-import { SelectList } from 'react-native-dropdown-select-list';
+import style from '../components/style';
+import stylesEmbryos from '../components/stylesEmbryos';
 import { IPAdress } from '../components/APIip';
 
-const API_URL = `http://${IPAdress}/fiv`
+const API_URL = `http://${IPAdress}/fiv`;
 
 export default ({ navigation }) => {
-    const [category, setCategory] = useState('')
-    const [items, setItems] = useState([])
-
-    const categories = [
-        { key: 'BULL_REGISTRED', value: 'Touro' },
-        { key: 'DONATOR_REGISTRED', value: 'Doadora' },
-        { key: 'FIV_REGISTRED', value: 'FIV' },
-    ]
+    const [category, setCategory] = useState('');
+    const [items, setItems] = useState([]);
+    const [categories, setCategories] = useState([
+        { key: 'IN_PROCESS', value: 'Em processo' },
+        { key: 'OOCYTE_COLLECTION_COMPLETED', value: 'Coleta de oócitos completa' },
+        { key: 'COMPLETED', value: 'FIV completa' },
+    ]);
+    const [icon, setIcon] = useState('list-status');
 
     const categoryData = categories.map(cat => ({
         key: cat.key,
         value: cat.value
-    }))
+    }));
 
     const fetchItems = async () => {
         try {
-            const response = await axios.get(API_URL)
-            setItems(response.data)
+            const response = await axios.get(API_URL);
+            setItems(response.data);
         } catch (error) {
-            
+        
         }
-    }
+    };
 
     useEffect(() => {
-        fetchItems()
+        fetchItems();
 
         const intervalId = setInterval(() => {
-            fetchItems()
-        }, 1000 * 3)
+            fetchItems();
+        }, 1000 * 3);
 
-        return () => clearInterval(intervalId)
-    }, [])
+        return () => clearInterval(intervalId);
+    }, []);
 
     const handleSelect = (selectedKey) => {
-        const selectedCategory = categories.find(cat => cat.key === selectedKey)
+        const selectedCategory = categories.find(cat => cat.key === selectedKey);
         if (selectedCategory) {
-            setCategory(selectedCategory.key)
+            setCategory(selectedCategory.key);
         }
-    }
+    };
 
     const handleNewFIV = async () => {
         try {
-            await axios.post(API_URL)
-            Alert.alert(
-                "Sucesso",
-                "FIV criada com sucesso!",
-                [{ text: "OK" }]
-            )
+            await axios.post(API_URL);
+            Alert.alert("Sucesso", "FIV criada com sucesso!", [{ text: "OK" }]);
         } catch (error) {
-            console.error(error)
-            Alert.alert('Erro', 'Ocorreu um erro ao processar sua requisição.')
+            console.error(error);
+            Alert.alert('Erro', 'Ocorreu um erro ao processar sua requisição.');
         }
-    }
+    };
+
+    const toggleCategory = () => {
+        if (icon === 'list-status') {
+            setCategories([
+                { key: 'donor', value: 'Doadoras' },
+                { key: 'bull', value: 'Touros' },
+            ]);
+            setIcon('cow');
+        } else {
+            setCategories([
+                { key: 'IN_PROCESS', value: 'Em processo' },
+                { key: 'OOCYTE_COLLECTION_COMPLETED', value: 'Coleta de oócitos completa' },
+                { key: 'COMPLETED', value: 'FIV completa' },
+            ]);
+            setIcon('list-status');
+        }
+    };
 
     return (
         <SafeAreaView>
-            <View style={[style.divTitle]} >
+            <View style={[style.divTitle]}>
                 <TouchableOpacity>
                     <View style={{ marginRight: 50 }}></View>
                 </TouchableOpacity>
                 <Text style={style.titleText}>PiveApper</Text>
             </View>
             <View style={style.searchPive}>
-                <TextInput
-                    placeholder="Filtrar FIV"
-                    style={style.input}
-                />
                 <SelectList
                     setSelected={handleSelect}
                     data={categoryData}
                     placeholder={"Selecione"}
                     boxStyles={[style.selectListBoxPive, { marginRight: 5 }]}
                     inputStyles={style.selectListInput}
-                    dropdownStyles={[style.selectListDropdownPive, { marginLeft: 10, marginRight: 5 }]}
+                    dropdownStyles={style.selectListDropdownPive}
                 />
-                <TouchableOpacity>
-                    <Ionicons style={{ marginRight: 5 }} name="search-circle-sharp" size={45} color="#092955" />
+                <TouchableOpacity style={stylesEmbryos.buttonSearchFiv} onPress={toggleCategory}>
+                    <MaterialCommunityIcons name={icon} size={30} color="#092955" />
                 </TouchableOpacity>
             </View>
             <ScrollView style={style.listPive}>
@@ -138,5 +148,5 @@ export default ({ navigation }) => {
                 <Text style={{ color: '#FFFFFF', textAlign: 'center', paddingTop: 3 }}>Nova FIV</Text>
             </TouchableOpacity>
         </SafeAreaView>
-    )
+    );
 }
