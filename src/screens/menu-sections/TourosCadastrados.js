@@ -14,8 +14,12 @@ export default ({ navigation }) => {
     const [registrationNumber, setRegistrationNumber] = useState('')
 
     useEffect(() => {
-        loadApi()
-    }, [])
+        const debounceTimer = setTimeout(() => {
+            loadApi(registrationNumber);
+        }, 500);
+
+        return () => clearTimeout(debounceTimer);
+    }, [registrationNumber]);
 
     async function loadApi(query = '') {
         if (loading) return
@@ -78,19 +82,17 @@ export default ({ navigation }) => {
                         <AntDesign name="arrowleft" size={24} color="#fff" />
                     </View>
                 </TouchableOpacity>
-                <Text style={style.titleText}>Touros Cadastrados</Text>
+                <Text style={style.titleText}>Touros cadastrados</Text>
             </View>
             <View style={style.contentList}>
                 <View style={style.search}>
                     <TextInput
-                        placeholder="Número de Registro"
+                        placeholder="Número de registro"
+                        keyboardType="numeric"
                         value={registrationNumber}
-                        style={style.input}
+                        style={[style.input, {width: 340}]}
                         onChangeText={setRegistrationNumber}
                     />
-                    <TouchableOpacity style={style.listButtonSearch} onPress={handleSearch}>
-                        <Text style={style.listButtonTextEdit}>Buscar</Text>
-                    </TouchableOpacity>
                 </View>
                 <FlatList
                     style={{ marginTop: 5 }}
@@ -116,7 +118,7 @@ function ListItem({ data, onRemove, navigation }) {
                     {data.name}
                 </Text>
                 <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Número de Registro: </Text>
+                    <Text style={{ fontWeight: 'bold' }}>Número de registro: </Text>
                     {data.registrationNumber}
                 </Text>
             </View>

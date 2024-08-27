@@ -52,26 +52,26 @@ export default ({ navigation }) => {
                         <AntDesign name="arrowleft" size={24} color="#fff" />
                     </View>
                 </TouchableOpacity>
-                <Text style={style.titleText}>Cadastro da Receptora</Text>
+                <Text style={style.titleText}>Cadastro da receptora</Text>
             </View>
             <View style={style.content}>
                 <Text style={style.label}>Nome:</Text>
                 <TextInput
-                    placeholder="Nome da Receptora"
+                    placeholder="Nome da receptora"
                     value={newReceiverName}
                     style={style.input}
                     onChangeText={setName}
                 />
                 <Text style={style.label}>Raça:</Text>
                 <TextInput
-                    placeholder="Raça da Receptora"
+                    placeholder="Raça da receptora"
                     value={newReceiverBreed}
                     style={style.input}
                     onChangeText={setBreed}
                 />
                 <Text style={style.label}>Identificação:</Text>
                 <TextInput
-                    placeholder="Identificação da Receptora"
+                    placeholder="Identificação da receptora"
                     value={newReceiverIdentification}
                     style={style.input}
                     onChangeText={setIdentification}

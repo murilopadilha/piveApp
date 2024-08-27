@@ -13,9 +13,11 @@ import { IPAdress } from '../components/APIip';
 const API_URL = `http://${IPAdress}/fiv`;
 
 export default ({ navigation }) => {
-    const [category, setCategory] = useState('');
+    const [category, setCategory] = useState('ALL');
     const [items, setItems] = useState([]);
+    const [filteredItems, setFilteredItems] = useState([]);
     const [categories, setCategories] = useState([
+        { key: 'ALL', value: 'Todas as FIVs'},
         { key: 'IN_PROCESS', value: 'Em processo' },
         { key: 'OOCYTE_COLLECTION_COMPLETED', value: 'Coleta de oócitos completa' },
         { key: 'COMPLETED', value: 'FIV completa' },
@@ -32,7 +34,7 @@ export default ({ navigation }) => {
             const response = await axios.get(API_URL);
             setItems(response.data);
         } catch (error) {
-        
+            console.error(error);
         }
     };
 
@@ -45,6 +47,14 @@ export default ({ navigation }) => {
 
         return () => clearInterval(intervalId);
     }, []);
+
+    useEffect(() => {
+        if (category === 'ALL') {
+            setFilteredItems(items);
+        } else {
+            setFilteredItems(items.filter(item => item.status === category));
+        }
+    }, [category, items]);
 
     const handleSelect = (selectedKey) => {
         const selectedCategory = categories.find(cat => cat.key === selectedKey);
@@ -72,6 +82,7 @@ export default ({ navigation }) => {
             setIcon('cow');
         } else {
             setCategories([
+                { key: 'ALL', value: 'Todas as FIVs'},
                 { key: 'IN_PROCESS', value: 'Em processo' },
                 { key: 'OOCYTE_COLLECTION_COMPLETED', value: 'Coleta de oócitos completa' },
                 { key: 'COMPLETED', value: 'FIV completa' },
@@ -92,7 +103,7 @@ export default ({ navigation }) => {
                 <SelectList
                     setSelected={handleSelect}
                     data={categoryData}
-                    placeholder={"Selecione"}
+                    placeholder={"Selecione a opção para filtrar"}
                     boxStyles={[style.selectListBoxPive, { marginRight: 5 }]}
                     inputStyles={style.selectListInput}
                     dropdownStyles={style.selectListDropdownPive}
@@ -102,7 +113,7 @@ export default ({ navigation }) => {
                 </TouchableOpacity>
             </View>
             <ScrollView style={style.listPive}>
-                {items.map(item => (
+                {filteredItems.map(item => (
                     <TouchableOpacity
                         key={item.id}
                         style={style.listItemPive}
@@ -149,4 +160,4 @@ export default ({ navigation }) => {
             </TouchableOpacity>
         </SafeAreaView>
     );
-}
+};

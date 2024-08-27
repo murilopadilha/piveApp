@@ -53,19 +53,19 @@ export default ({ navigation }) => {
                         <AntDesign name="arrowleft" size={24} color="#fff" />
                     </View>
                 </TouchableOpacity>
-                <Text style={style.titleText}>Cadastro do Touro</Text>
+                <Text style={style.titleText}>Cadastro do touro</Text>
             </View>
             <View style={style.content}>
                 <Text style={style.label}>Nome:</Text>
                 <TextInput
-                    placeholder="Nome do Touro"
+                    placeholder="Nome do touro"
                     value={newBullName}
                     style={style.input}
                     onChangeText={setName}
                 />
                 <Text style={style.label}>Identificação:</Text>
                 <TextInput
-                    placeholder="Identificação do Touro"
+                    placeholder="Identificação do touro"
                     value={newBullIndentification}
                     style={style.input}
                     onChangeText={setNumber}

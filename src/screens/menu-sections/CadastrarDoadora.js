@@ -75,33 +75,33 @@ export default ({ navigation }) => {
                         <AntDesign name="arrowleft" size={24} color="#fff" />
                     </View>
                 </TouchableOpacity>
-                <Text style={style.titleText}>Cadastro da Doadora</Text>
+                <Text style={style.titleText}>Cadastro da doadora</Text>
             </View>
             <View style={style.content}>
                 <Text style={style.label}>Nome:</Text>
                 <TextInput
-                    placeholder="Nome da Doadora"
+                    placeholder="Nome da doadora"
                     value={newDonorName}
                     style={style.input}
                     onChangeText={(text) => setName(text)}
                 />
                 <Text style={style.label}>Raça:</Text>
                 <TextInput
-                    placeholder="Raça da Doadora"
+                    placeholder="Raça da doadora"
                     value={newDonorBreed}
                     style={style.input}
                     onChangeText={(text) => setBreed(text)}
                 />
                 <Text style={style.label}>Identificação:</Text>
                 <TextInput
-                    placeholder="Identificação da Doadora"
+                    placeholder="Identificação da doadora"
                     value={newDonorIndentification}
                     style={style.input}
                     onChangeText={(text) => setNumber(text)}
                 />
                 <Text style={style.label}>Data de Nascimento:</Text>
                 <TouchableOpacity onPress={showDatePicker} style={style.dateInput}>
-                    <Text style={style.dateText}>{newDonorDateOfBirth || "Selecione a Data"}</Text>
+                    <Text style={style.dateText}>{newDonorDateOfBirth || "Selecione a data"}</Text>
                 </TouchableOpacity>
                 <View>
                     <TouchableOpacity 
