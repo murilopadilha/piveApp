@@ -114,7 +114,7 @@ export default ({ navigation }) => {
                                 <Text>{item.id}</Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 25 }}>
                                     <Text style={{ fontWeight: 'bold' }}>Coleta dos Oócitos: </Text>
-                                    {item.oocyteCollection ? (
+                                    {item.status === 'OOCYTE_COLLECTION_COMPLETED' || item.status === 'COMPLETED' ? (
                                         <MaterialIcons name="done" size={20} color="#555" />
                                     ) : (
                                         <Feather name="x" size={20} color="#555" />
@@ -122,7 +122,7 @@ export default ({ navigation }) => {
                                 </View>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 25 }}>
                                     <Text style={{ fontWeight: 'bold' }}>Cultivo: </Text>
-                                    {item.cultivation ? (
+                                    {item.status === 'COMPLETED'  ? (
                                         <MaterialIcons name="done" size={20} color="#555" />
                                     ) : (
                                         <Feather name="x" size={20} color="#555" />

@@ -53,7 +53,7 @@ export default ({ route, navigation }) => {
 
     const fetchEmbryosRegistered = async (cultivationId) => {
         try {
-            const response = await axios.get(`http://18.218.115.38:8080/cultivation/${cultivationId}`)
+            const response = await axios.get(`http://${IPAdress}/cultivation/${cultivationId}`)
             if (response.data) {
                 setEmbryosRegistered(response.data.embryosRegistered)
             }
@@ -133,7 +133,7 @@ export default ({ route, navigation }) => {
                 return
             }
     
-            const response = await axios.post(`http://18.218.115.38:8080/embryo`, {
+            const response = await axios.post(`http://${IPAdress}/embryo`, {
                 cultivationId: cultivationId,
                 frozen: category === 'true',
                 receiverCattleId: receiverId

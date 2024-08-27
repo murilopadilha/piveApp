@@ -27,7 +27,7 @@ export default ({ navigation }) => {
 
             if (response.ok) {
                 const receivers = await response.json()
-                Alert.alert('Sucesso', 'Deu erro poha!')
+                Alert.alert('Sucesso', 'Receptora cadastrada com sucesso!')
                 
                 setName('')
                 setBreed('')

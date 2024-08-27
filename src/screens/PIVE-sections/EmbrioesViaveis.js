@@ -186,9 +186,8 @@ export default ({ route, navigation }) => {
                     <Text style={{ color: '#E0E0E0', paddingTop: 1 }}>Todos Embriões</Text>
                 </TouchableOpacity>
             </View>
-            <View style={[style.listItem, { marginHorizontal: 20, paddingBottom: 350 }]}>
+            <View style={[style.listItem, { backgroundColor: '#F1F2F4', marginHorizontal: 20, paddingBottom: 350 }]}>
                 <FlatList
-                    style={{ marginTop: 5 }}
                     data={embryos}
                     renderItem={renderItem}
                     keyExtractor={item => item.id.toString()}
