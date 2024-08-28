@@ -112,11 +112,18 @@ export default ({ navigation }) => {
                     <MaterialCommunityIcons name={icon} size={30} color="#092955" />
                 </TouchableOpacity>
             </View>
-            <ScrollView style={style.listPive}>
+            <ScrollView style={style.listPive}
+            showsVerticalScrollIndicator={false}>
                 {filteredItems.map(item => (
                     <TouchableOpacity
                         key={item.id}
-                        style={style.listItemPive}
+                        style={[style.listItemPive, { 
+                            shadowColor: '#000', 
+                            shadowOffset: { width: 0, height: 3 }, 
+                            shadowOpacity: 0.3, 
+                            shadowRadius: 4, 
+                            elevation: 5,
+                        }]}
                         onPress={() => navigation.navigate('FivInfo', { fiv: item })}
                     >
                         <View style={{ display: 'flex', flexDirection: 'column', width: 320 }}>
@@ -153,7 +160,7 @@ export default ({ navigation }) => {
                 ))}
             </ScrollView>
             <TouchableOpacity
-                style={[style.listButtonSearch, { width: 80, height: 35, marginLeft: 155 }]}
+                style={[style.listButtonSearch, { marginTop: 650, width: 80, height: 35, marginLeft: 260, position: 'absolute', zIndex: 5 }]}
                 onPress={handleNewFIV}
             >
                 <Text style={{ color: '#FFFFFF', textAlign: 'center', paddingTop: 3 }}>Nova FIV</Text>

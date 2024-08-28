@@ -4,6 +4,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
 import { Alert } from "react-native";
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { IPAdress } from "../../components/APIip";
 
@@ -102,13 +103,15 @@ export default ({ navigation }) => {
                 <Text style={style.label}>Data de Nascimento:</Text>
                 <TouchableOpacity onPress={showDatePicker} style={style.dateInput}>
                     <Text style={style.dateText}>{newDonorDateOfBirth || "Selecione a data"}</Text>
+                    <AntDesign style={{paddingLeft: 90}} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
                 <View>
-                    <TouchableOpacity 
-                        style={style.button} 
-                        onPress={() => postDonors(newDonorName, newDonorBreed, newDonorIndentification, newDonorDateOfBirth)}
+                <TouchableOpacity
+                        style={[style.button, {display: 'flex', flexDirection: 'row'}]}
+                        onPress={() => postBulls(newBullName, newBullIndentification)}
                     >
-                        <Text style={style.buttonText}>Salvar</Text>
+                        <MaterialIcons name="done" size={20} color="#fff" />
+                        <Text style={[style.buttonText, {marginLeft: 5, paddingBottom: 2}]}>Salvar</Text>
                     </TouchableOpacity>
                 </View>
             </View>

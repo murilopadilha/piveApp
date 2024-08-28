@@ -3,6 +3,7 @@ import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import style from "../../components/style";
 import { IPAdress } from "../../components/APIip";
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export default ({ navigation }) => {
     const [newBullName, setName] = useState('')
@@ -72,10 +73,11 @@ export default ({ navigation }) => {
                 />
                 <View>
                     <TouchableOpacity
-                        style={style.button}
+                        style={[style.button, {display: 'flex', flexDirection: 'row'}]}
                         onPress={() => postBulls(newBullName, newBullIndentification)}
                     >
-                        <Text style={style.buttonText}>Salvar</Text>
+                        <MaterialIcons name="done" size={20} color="#fff" />
+                        <Text style={[style.buttonText, {marginLeft: 5, paddingBottom: 2}]}>Salvar</Text>
                     </TouchableOpacity>
                 </View>
             </View>

@@ -173,21 +173,15 @@ export default ({ route, navigation }) => {
                 </TouchableOpacity>
                 <Text style={style.titleText}>Embriões Viáveis</Text>
             </View>
-            <View style={style.searchPive}>
+            <View style={[style.searchPive, {marginLeft: 30}]}>
                 <TextInput
                     placeholder="Buscar Embrião"
                     style={style.input}
                 />
-                <TouchableOpacity
-                    onPress={() => navigation.navigate('ColetaOocitos', { fiv: fiv })}
-                    style={[style.listButtonEdit, { marginLeft: 10, marginTop: 5, height: 30, width: 150 }]}
-                >
-                    <MaterialCommunityIcons name="clipboard-text-search-outline" size={24} color="#E0E0E0" />
-                    <Text style={{ color: '#E0E0E0', paddingTop: 1 }}>Todos Embriões</Text>
-                </TouchableOpacity>
             </View>
-            <View style={[style.listItem, { backgroundColor: '#F1F2F4', marginHorizontal: 20, paddingBottom: 350 }]}>
+            <View style={[style.listItem, { backgroundColor: '#F1F2F4', marginTop: 0, marginHorizontal: 20, paddingBottom: 250 }]}>
                 <FlatList
+                    showsVerticalScrollIndicator={false}
                     data={embryos}
                     renderItem={renderItem}
                     keyExtractor={item => item.id.toString()}

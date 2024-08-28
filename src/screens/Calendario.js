@@ -7,6 +7,8 @@ import { SelectList } from 'react-native-dropdown-select-list';
 import { useNavigation } from '@react-navigation/native';
 import Octicons from '@expo/vector-icons/Octicons';
 import Feather from '@expo/vector-icons/Feather';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
 import style from "../components/style"; 
 
@@ -158,7 +160,7 @@ export default (props) => {
     }, [])
 
     return (
-        <SafeAreaView style={style.safeAreaView}>
+        <SafeAreaView style={[style.safeAreaView, {backgroundColor: '#F1F2F4'}]}>
             <View style={style.divTitle}>
                 <TouchableOpacity>
                     <View style={{ marginRight: 50 }} />
@@ -176,9 +178,11 @@ export default (props) => {
                 />
                 <TouchableOpacity onPress={showDatePicker} style={[style.dateInput, { marginLeft: 20, marginRight: 20, marginTop: 10 }]}>
                     <Text style={style.dateText}>{scheduleDate || "Selecione a Data"}</Text>
+                    <AntDesign style={{paddingLeft: 100}} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleSchedule} style={style.scheduleButton}>
-                    <Text style={style.scheduleText}>Agendar</Text>
+                <TouchableOpacity onPress={handleSchedule} style={[style.scheduleButton, {display: 'flex', flexDirection: 'row', width: 90}]}>
+                    <FontAwesome5 name="calendar-check" size={20} color="white" />
+                    <Text style={[style.scheduleText, {paddingLeft: 5}]}>Agendar</Text>
                 </TouchableOpacity>
             </View>
             <View style={style.calendarContainer}>
@@ -216,7 +220,8 @@ export default (props) => {
                     }}
                 />
                 {selectedDateDetails.length > 0 && (
-                    <ScrollView style={style.detailsContainer}>
+                    <ScrollView style={style.detailsContainer}
+                    showsVerticalScrollIndicator={false}>
                         {selectedDateDetails.map((detail, index) => (
                             <View key={index} style={style.detailItem}>
                                 <Text style={style.detailsText}>

@@ -3,8 +3,10 @@ import { Text, View, SafeAreaView } from 'react-native';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { BlurView } from '@react-native-community/blur';
 import '../gesture-handler';
 import { createStackNavigator } from '@react-navigation/stack';
+import { StyleSheet } from 'react-native';
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -66,57 +68,73 @@ export default function App() {
   return (
     <NavigationContainer >
       <Tab.Navigator screenOptions={{
-        tabBarInactiveTintColor: '#fff',
+        tabBarInactiveTintColor: '#000',
         tabBarActiveTintColor: '#092955',
         tabBarActiveBackgroundColor: '#fff',
-        tabBarInactiveBackgroundColor: '#092955',
+        tabBarInactiveBackgroundColor: 'transparent',
         tabBarItemStyle:{
-          borderRadius: 10
+          height: 50,
+          marginHorizontal: 10,
+          marginTop: 8,
+          borderRadius: 25
         },
         tabBarLabelStyle: {
           fontSize: 13
         },
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: '#092955',
           borderTopWidth: 0,
           bottom: 14,
           left: 14,
           right: 14,
           elevation: 0,
           borderRadius: 25,
-          height: 50,
-
-        }
+          height: 65,
+        },
+        tabBarBackground: () => (
+          <View 
+            style={{
+              ...StyleSheet.absoluteFillObject,
+              borderRadius: 20,
+              overflow: "hidden",
+            }}
+          >
+            <BlurView 
+              style={{ flex: 1, backgroundColor: "transparent" }}
+              blurType='light'
+              blurAmount={20}
+            />
+          </View>
+        )
       }}>
         <Tab.Screen name="Animais" component={MenuTabStack} options={{
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => {
             if(focused){
-              return  <MaterialCommunityIcons name="cow" size={24} color="#092955" />
+              return  <MaterialCommunityIcons name="cow" size={26} color="#092955" />
             }
 
-            return <MaterialCommunityIcons name="cow-off" size={24} color="#fff" /> 
+            return <MaterialCommunityIcons name="cow-off" size={24} color="#000" /> 
           }
         }}/>
         <Tab.Screen name="PIVE" component={Pive} options={{
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => {
             if(focused){
-              return <FontAwesome5 name="file-invoice" size={24} color="#092955" />
+              return <FontAwesome5 name="file-invoice" size={26} color="#092955" />
             }
 
-            return <FontAwesome5 name="file-alt" size={24} color="#fff" />
+            return <FontAwesome5 name="file-alt" size={24} color="#000" />
           }
         }}/>
         <Tab.Screen name="Calendário" component={Calendario} options={{
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => {
             if(focused){
-              return <Entypo name="calendar" size={24} color="#092955" />
+              return <Entypo name="calendar" size={26} color="#092955" />
             }
 
-            return <AntDesign name="calendar" size={24} color="#fff" />
+            return <AntDesign name="calendar" size={24} color="#000" />
           }
         }}/>
       </Tab.Navigator>

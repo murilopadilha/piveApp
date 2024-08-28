@@ -100,10 +100,12 @@ export default ({ route, navigation }) => {
                 <Text style={[style.titleText, { marginRight: 100 }]}>Coleta Oócitos</Text>
             </View>
             <View style={style.content}>
-                <ScrollView style={{ height: '86%' }}>
+                <ScrollView style={{ height: '86%' }}
+                showsVerticalScrollIndicator={false}>
                     <Text style={style.label}>Data da coleta:</Text>
                     <TouchableOpacity onPress={showDatePicker} style={style.dateInput}>
                         <Text style={style.dateText}>{newOocyteCollectionDate || "Selecione a Data"}</Text>
+                        <AntDesign style={{paddingLeft: 90}} name="calendar" size={24} color="#000" />
                     </TouchableOpacity>
                     <Text style={style.label}>Fazenda:</Text>
                     <TextInput

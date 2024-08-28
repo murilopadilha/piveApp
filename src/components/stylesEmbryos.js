@@ -69,7 +69,7 @@ export default StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.5)[',
     },
     modalContent: {
         width: 300,
@@ -77,6 +77,7 @@ export default StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 10,
         alignItems: 'center',
+        backgroundColor: '#F1F2F4',
     },
     modalTitle: {
         fontSize: 18,
@@ -145,11 +146,13 @@ export default StyleSheet.create({
         borderWidth: 1,
         borderRadius: 5,
         maxHeight: 150,
+        fontWeight: 'bold',
     },
     buttonSearchFiv: {
         paddingTop: 5,
         paddingHorizontal: 5,
         backgroundColor: '#fff',
         borderRadius: 10,
+        marginBottom: 5
     }
 })

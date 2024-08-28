@@ -88,6 +88,7 @@ export default ({ navigation }) => {
                     />
                 </View>
                 <FlatList
+                    showsVerticalScrollIndicator={false}
                     style={{ marginTop: 5 }}
                     contentContainerStyle={{ marginHorizontal: 20 }}
                     data={data}
