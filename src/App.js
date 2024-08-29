@@ -101,8 +101,8 @@ export default function App() {
           >
             <BlurView 
               style={{ flex: 1, backgroundColor: "transparent" }}
-              blurType='light'
-              blurAmount={20}
+              blurType='xlight'
+              blurAmount={5}
             />
           </View>
         )
