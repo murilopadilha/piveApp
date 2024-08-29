@@ -51,7 +51,7 @@ export default ({ navigation }) => {
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
                     <View style={{ marginRight: 50 }}>
-                        <AntDesign name="arrowleft" size={24} color="#fff" />
+                        <AntDesign name="arrowleft" size={24} color="#092955" />
                     </View>
                 </TouchableOpacity>
                 <Text style={style.titleText}>Cadastro do touro</Text>

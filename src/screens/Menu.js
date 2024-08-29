@@ -3,6 +3,7 @@ import { Text, View,  TouchableOpacity, StyleSheet, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import LinearGradient from 'react-native-linear-gradient';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import style from "../components/style";
 import CadastrarReceptoras from "./menu-sections/CadastrarReceptora";
@@ -10,12 +11,9 @@ import CadastrarReceptoras from "./menu-sections/CadastrarReceptora";
 export default ({ navigation }) => {
     return (
         <SafeAreaView style={{backgroundColor: '#F1F2F4'}}>  
-            <View style={[style.divTitle]} >
-                <TouchableOpacity>
-                    <View style={{marginRight: 50}}>
-                    </View>
-                </TouchableOpacity>
-                <Text style={style.titleText}>PiveApper</Text>
+            <View style={[style.divTitleMain]} >
+                <MaterialCommunityIcons style={{ marginRight: 3 }} name="cow" size={34} color="#092955" />
+                <Text style={style.titleTextMain}>BovInA</Text>
             </View>
             <View style={style.menuContent}>
                 <View>

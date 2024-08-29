@@ -91,16 +91,16 @@ export default ({ route, navigation }) => {
 
     return (
         <View style={style.menu}>
-            <View style={style.divTitle}>
+            <View style={[style.divTitle, {marginBottom: 0}]}>
                 <TouchableOpacity onPress={() => navigation.navigate('FivInfo', { fiv: fiv })}>
                     <View style={{ marginRight: 100 }}>
-                        <AntDesign name="arrowleft" size={24} color="#fff" />
+                        <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
                 <Text style={[style.titleText, { marginRight: 100 }]}>Coleta Oócitos</Text>
             </View>
-            <View style={style.content}>
-                <ScrollView style={{ height: '86%' }}
+            <View style={[style.content, {marginTop: 0, paddingTop: 0}]}>
+                <ScrollView style={{ height: '90%'}}
                 showsVerticalScrollIndicator={false}>
                     <Text style={style.label}>Data da coleta:</Text>
                     <TouchableOpacity onPress={showDatePicker} style={style.dateInput}>

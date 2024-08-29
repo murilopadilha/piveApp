@@ -35,7 +35,7 @@ export default ({ route, navigation }) => {
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('ColetaOocitos', { fiv: fiv })}>
                     <View style={{ marginRight: 100 }}>
-                        <AntDesign name="arrowleft" size={24} color="#fff" />
+                        <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
                 <Text style={[style.titleText, { marginRight: 100 }]}>Cultivo</Text>

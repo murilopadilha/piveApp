@@ -73,7 +73,7 @@ export default ({ navigation }) => {
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
                     <View style={{ marginRight: 50 }}>
-                        <AntDesign name="arrowleft" size={24} color="#fff" />
+                        <AntDesign name="arrowleft" size={24} color="#092955" />
                     </View>
                 </TouchableOpacity>
                 <Text style={style.titleText}>Cadastro da doadora</Text>
@@ -108,7 +108,7 @@ export default ({ navigation }) => {
                 <View>
                 <TouchableOpacity
                         style={[style.button, {display: 'flex', flexDirection: 'row'}]}
-                        onPress={() => postBulls(newBullName, newBullIndentification)}
+                        onPress={() => postDonors(newDonorName, newDonorBreed, newDonorIndentification, newDonorDateOfBirth,)}
                     >
                         <MaterialIcons name="done" size={20} color="#fff" />
                         <Text style={[style.buttonText, {marginLeft: 5, paddingBottom: 2}]}>Salvar</Text>

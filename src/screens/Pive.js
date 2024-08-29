@@ -93,11 +93,9 @@ export default ({ navigation }) => {
 
     return (
         <SafeAreaView>
-            <View style={[style.divTitle]}>
-                <TouchableOpacity>
-                    <View style={{ marginRight: 50 }}></View>
-                </TouchableOpacity>
-                <Text style={style.titleText}>PiveApper</Text>
+            <View style={[style.divTitleMain]}>
+                <MaterialCommunityIcons style={{ marginRight: 3 }} name="cow" size={34} color="#092955" />
+                <Text style={style.titleTextMain}>BovInA</Text>
             </View>
             <View style={style.searchPive}>
                 <SelectList

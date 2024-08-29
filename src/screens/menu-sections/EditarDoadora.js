@@ -3,6 +3,7 @@ import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
+import Octicons from '@expo/vector-icons/Octicons';
 
 import { IPAdress } from "../../components/APIip";
 
@@ -107,13 +108,15 @@ export default ({ route, navigation }) => {
                 <Text style={style.label}>Data de nascimento:</Text>
                 <TouchableOpacity onPress={showDatePicker} style={style.dateInput}>
                     <Text style={style.dateText}>{newDonorDateOfBirth || "Selecione a data"}</Text>
+                    <AntDesign style={{paddingLeft: 90}} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
                 <View>
                     <TouchableOpacity 
-                        style={style.button} 
-                        onPress={confirmUpdate}
+                        style={[style.button, {display: 'flex', flexDirection: 'row'}]} 
+                        onPress={confirmUpdate} 
                     >
-                        <Text style={style.buttonText}>Editar</Text>
+                        <Octicons name="pencil" size={20} color="#fff" />
+                        <Text style={[style.buttonText, {paddingLeft: 6, paddingBottom: 2}]}>Editar</Text>
                     </TouchableOpacity>
                 </View>
             </View>

@@ -3,6 +3,7 @@ import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
+import Octicons from '@expo/vector-icons/Octicons';
 
 import { IPAdress } from "../../components/APIip";
 
@@ -97,10 +98,11 @@ export default ({ route, navigation }) => {
                 />
                 <View>
                     <TouchableOpacity 
-                        style={style.button} 
+                        style={[style.button, {display: 'flex', flexDirection: 'row'}]} 
                         onPress={confirmUpdate} 
                     >
-                        <Text style={style.buttonText}>Editar</Text>
+                        <Octicons name="pencil" size={20} color="#fff" />
+                        <Text style={[style.buttonText, {paddingLeft: 6, paddingBottom: 2}]}>Editar</Text>
                     </TouchableOpacity>
                 </View>
             </View>

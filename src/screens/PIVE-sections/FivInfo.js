@@ -166,7 +166,7 @@ export default ({ route, navigation }) => {
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Pive')}>
                     <View style={{ marginRight: 50 }}>
-                        <AntDesign name="arrowleft" size={24} color="#fff" />
+                        <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
                 <Text style={style.titleText}>Informação da FIV</Text>
@@ -275,7 +275,7 @@ export default ({ route, navigation }) => {
                                 placeholder={"Clique"}
                                 boxStyles={[style.selectListBox, { marginBottom: 30, zIndex: 2, width: 73, paddingLeft: 4, marginLeft: 90 }]}
                                 inputStyles={style.selectListInput}
-                                dropdownStyles={[style.selectListDropdown, { zIndex: 3, zIndex: 10, elevation: 10, position: 'absolute', marginTop: 60, marginLeft: 90 }]}
+                                dropdownStyles={[style.selectListDropdown, { zIndex: 3, zIndex: 10, elevation: 10, position: 'absolute', marginTop: 10, marginLeft: 90 }]}
                             />
                             <Text style={{ textAlign: 'center' }}>Receptora: </Text>
                             <SelectList

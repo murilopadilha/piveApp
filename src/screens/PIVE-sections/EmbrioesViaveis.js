@@ -35,7 +35,7 @@ export default ({ route, navigation }) => {
                 if (response.data && Array.isArray(response.data.embryos)) {
                     setEmbryos(response.data.embryos)
                 } else {
-                    console.warn("Embryos data is not an array or is empty.")
+                    console.warn("Erro ao salvar embriões")
                 }
             } catch (err) {
                 setError(err.message)
@@ -168,7 +168,7 @@ export default ({ route, navigation }) => {
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Pive')}>
                     <View style={{ marginRight: 50 }}>
-                        <AntDesign name="arrowleft" size={24} color="#fff" />
+                        <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
                 <Text style={style.titleText}>Embriões Viáveis</Text>
@@ -179,7 +179,7 @@ export default ({ route, navigation }) => {
                     style={style.input}
                 />
             </View>
-            <View style={[style.listItem, { backgroundColor: '#F1F2F4', marginTop: 0, marginHorizontal: 20, paddingBottom: 250 }]}>
+            <View style={[style.listItemEmbryo, { backgroundColor: '#F1F2F4', marginTop: 0, marginHorizontal: 20, paddingBottom: 250 }]}>
                 <FlatList
                     showsVerticalScrollIndicator={false}
                     data={embryos}

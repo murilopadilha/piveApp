@@ -9,6 +9,7 @@ import Octicons from '@expo/vector-icons/Octicons';
 import Feather from '@expo/vector-icons/Feather';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import style from "../components/style"; 
 
@@ -161,11 +162,9 @@ export default (props) => {
 
     return (
         <SafeAreaView style={[style.safeAreaView, {backgroundColor: '#F1F2F4'}]}>
-            <View style={style.divTitle}>
-                <TouchableOpacity>
-                    <View style={{ marginRight: 50 }} />
-                </TouchableOpacity>
-                <Text style={style.titleText}>PiveApper</Text>
+            <View style={style.divTitleMain}>
+                <MaterialCommunityIcons style={{ marginRight: 3 }} name="cow" size={34} color="#092955" />
+                <Text style={style.titleTextMain}>BovInA</Text>
             </View>
             <View>
                 <SelectList
