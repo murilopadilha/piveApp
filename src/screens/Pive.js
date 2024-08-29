@@ -72,9 +72,8 @@ export default ({ navigation }) => {
         React.useCallback(() => {
             fetchItems()
 
-            // No interval needed, just clean up when the screen is unfocused
             return () => {
-                // Any clean up code if necessary
+            
             }
         }, [])
     );
@@ -175,7 +174,7 @@ export default ({ navigation }) => {
                         placeholder={secondaryPlaceholder}
                         boxStyles={[style.selectListBoxPive, { marginRight: 5 }]}
                         inputStyles={style.selectListInput}
-                        dropdownStyles={style.selectListDropdownPive}
+                        dropdownStyles={[style.selectListDropdownPive, {marginTop: 45}]}
                     />
                 </View>
             )}
