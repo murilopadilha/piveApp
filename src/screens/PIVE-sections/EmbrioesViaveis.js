@@ -247,7 +247,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         padding: 15,
         marginTop: 5,
-        borderRadius: 10
+        marginBottom: 10,
+        borderRadius: 10,
+        shadowColor: '#000', 
+        shadowOffset: { width: 0, height: 3 }, 
+        shadowOpacity: 0.3, 
+        shadowRadius: 4, 
+        elevation: 5,
     },
     itemRow: {
         flexDirection: 'row',

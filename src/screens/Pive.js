@@ -9,69 +9,122 @@ import Feather from '@expo/vector-icons/Feather';
 import style from '../components/style';
 import stylesEmbryos from '../components/stylesEmbryos';
 import { IPAdress } from '../components/APIip';
+import { useFocusEffect } from '@react-navigation/native';
 
-const API_URL = `http://${IPAdress}/fiv`;
+const API_URL = `http://${IPAdress}/fiv`
+const BULLS_API_URL = `http://18.218.115.38:8080/bull`
+const DONORS_API_URL = `http://18.218.115.38:8080/donor`
 
 export default ({ navigation }) => {
-    const [category, setCategory] = useState('ALL');
-    const [items, setItems] = useState([]);
-    const [filteredItems, setFilteredItems] = useState([]);
+    const [category, setCategory] = useState('ALL')
+    const [items, setItems] = useState([])
+    const [filteredItems, setFilteredItems] = useState([])
     const [categories, setCategories] = useState([
         { key: 'ALL', value: 'Todas as FIVs'},
         { key: 'IN_PROCESS', value: 'Em processo' },
         { key: 'OOCYTE_COLLECTION_COMPLETED', value: 'Coleta de oócitos completa' },
         { key: 'COMPLETED', value: 'FIV completa' },
-    ]);
-    const [icon, setIcon] = useState('list-status');
+    ])
+    const [icon, setIcon] = useState('list-status')
+    const [secondaryOptions, setSecondaryOptions] = useState([])
+    const [secondaryCategory, setSecondaryCategory] = useState(null)
+    const [secondaryPlaceholder, setSecondaryPlaceholder] = useState('Selecione uma opção')
+    const [selectedSecondary, setSelectedSecondary] = useState(null)
 
     const categoryData = categories.map(cat => ({
         key: cat.key,
         value: cat.value
-    }));
+    }))
 
     const fetchItems = async () => {
         try {
-            const response = await axios.get(API_URL);
-            setItems(response.data);
+            const response = await axios.get(API_URL)
+            setItems(response.data)
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    const fetchSecondaryOptions = async (url) => {
+        try {
+            const response = await axios.get(url)
+            const options = response.data.map(item => ({
+                key: item.id.toString(),
+                value: `${item.name} (${item.registrationNumber || item.breed || item.birth})`
+            }))
+            setSecondaryOptions(options);
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+    const fetchFilteredFIVs = async (id, type) => {
+        const url = type === 'donor' ? `http://18.218.115.38:8080/fiv/donor?donorId=${id}` : `http://18.218.115.38:8080/fiv/bull?bullId=${id}`
+        try {
+            const response = await axios.get(url)
+            setFilteredItems(response.data)
         } catch (error) {
             console.error(error);
         }
-    };
+    }
 
-    useEffect(() => {
-        fetchItems();
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchItems()
 
-        const intervalId = setInterval(() => {
-            fetchItems();
-        }, 1000 * 3);
-
-        return () => clearInterval(intervalId);
-    }, []);
+            // No interval needed, just clean up when the screen is unfocused
+            return () => {
+                // Any clean up code if necessary
+            }
+        }, [])
+    );
 
     useEffect(() => {
         if (category === 'ALL') {
-            setFilteredItems(items);
+            setFilteredItems(items)
         } else {
-            setFilteredItems(items.filter(item => item.status === category));
+            setFilteredItems(items.filter(item => item.status === category))
         }
-    }, [category, items]);
+    }, [category, items])
 
-    const handleSelect = (selectedKey) => {
-        const selectedCategory = categories.find(cat => cat.key === selectedKey);
+    const handleSelect = async (selectedKey) => {
+        const selectedCategory = categories.find(cat => cat.key === selectedKey)
         if (selectedCategory) {
-            setCategory(selectedCategory.key);
+            setCategory(selectedCategory.key)
+            if (selectedKey === 'donor') {
+                fetchSecondaryOptions(DONORS_API_URL)
+                setSecondaryCategory('donor')
+                setSecondaryPlaceholder('Selecione uma doadora')
+            } else if (selectedKey === 'bull') {
+                fetchSecondaryOptions(BULLS_API_URL)
+                setSecondaryCategory('bull')
+                setSecondaryPlaceholder('Selecione um touro')
+            } else {
+                setSecondaryCategory(null)
+                setSecondaryOptions([])
+                setSecondaryPlaceholder('Selecione uma opção')
+                setFilteredItems(items.filter(item => item.status === selectedKey))
+            }
         }
-    };
+    }
+
+    const handleSecondarySelect = (selectedKey) => {
+        const selected = secondaryOptions.find(option => option.key === selectedKey)
+        if (selected) {
+            setSelectedSecondary(selectedKey)
+            fetchFilteredFIVs(selectedKey, secondaryCategory)
+        }
+    }
 
     const handleNewFIV = async () => {
         try {
-            await axios.post(API_URL);
-            Alert.alert("Sucesso", "FIV criada com sucesso!", [{ text: "OK" }]);
+            await axios.post(API_URL)
+            Alert.alert("Sucesso", "FIV criada com sucesso!", [{ text: "OK" }])
         } catch (error) {
-            console.error(error);
-            Alert.alert('Erro', 'Ocorreu um erro ao processar sua requisição.');
+            console.error(error)
+            Alert.alert('Erro', 'Ocorreu um erro ao processar sua requisição.')
         }
-    };
+    }
 
     const toggleCategory = () => {
         if (icon === 'list-status') {
@@ -86,10 +139,14 @@ export default ({ navigation }) => {
                 { key: 'IN_PROCESS', value: 'Em processo' },
                 { key: 'OOCYTE_COLLECTION_COMPLETED', value: 'Coleta de oócitos completa' },
                 { key: 'COMPLETED', value: 'FIV completa' },
-            ]);
-            setIcon('list-status');
+            ])
+            setIcon('list-status')
+            setSecondaryCategory(null)
+            setSecondaryOptions([])
+            setSecondaryPlaceholder('Selecione uma opção')
+            setFilteredItems(items.filter(item => item.status === category))
         }
-    };
+    }
 
     return (
         <SafeAreaView>
@@ -110,8 +167,19 @@ export default ({ navigation }) => {
                     <MaterialCommunityIcons name={icon} size={30} color="#092955" />
                 </TouchableOpacity>
             </View>
-            <ScrollView style={style.listPive}
-            showsVerticalScrollIndicator={false}>
+            {secondaryCategory && (
+                <View style={{ marginTop: 1, marginLeft: 20 }}>
+                    <SelectList
+                        setSelected={handleSecondarySelect}
+                        data={secondaryOptions}
+                        placeholder={secondaryPlaceholder}
+                        boxStyles={[style.selectListBoxPive, { marginRight: 5 }]}
+                        inputStyles={style.selectListInput}
+                        dropdownStyles={style.selectListDropdownPive}
+                    />
+                </View>
+            )}
+            <ScrollView style={style.listPive} showsVerticalScrollIndicator={false}>
                 {filteredItems.map(item => (
                     <TouchableOpacity
                         key={item.id}
@@ -164,5 +232,5 @@ export default ({ navigation }) => {
                 <Text style={{ color: '#FFFFFF', textAlign: 'center', paddingTop: 3 }}>Nova FIV</Text>
             </TouchableOpacity>
         </SafeAreaView>
-    );
-};
+    )
+}

@@ -85,8 +85,8 @@ export default function App() {
           position: 'absolute',
           borderTopWidth: 0,
           bottom: 14,
-          left: 14,
-          right: 14,
+          left: 24,
+          right: 24,
           elevation: 0,
           borderRadius: 25,
           height: 65,
@@ -95,7 +95,7 @@ export default function App() {
           <View 
             style={{
               ...StyleSheet.absoluteFillObject,
-              borderRadius: 20,
+              borderRadius: 50,
               overflow: "hidden",
             }}
           >
