@@ -34,7 +34,7 @@ export default ({ navigation }) => {
             if(response.ok) {
                 const receivers = await response.json()
             console.log(receivers)
-            alert('Doadora cadastrada com sucesso!')
+            Alert.alert('Sucesso','Doadora cadastrada com sucesso!')
             
             setName('')
             setBreed('')

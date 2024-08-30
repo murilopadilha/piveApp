@@ -31,10 +31,17 @@ export default ({ route, navigation }) => {
                 },
                 body: JSON.stringify(donorData)
             })
-            const result = await response.json();
-            console.log(result)
-            Alert.alert('Sucesso', 'Doadora atualizada com sucesso!')
-            navigation.goBack()
+            if (response.ok) {
+                const result = await response.json();
+                console.log(result)
+                Alert.alert('Sucesso', 'Doadora atualizada com sucesso!')
+                navigation.goBack()
+            } else if (response.status == '409') {
+                const errorMessage = await response.text()
+                Alert.alert('Erro', errorMessage);
+            } else {
+                Alert.alert('Erro', "Erro ao enviar dados")
+            }
         } catch (error) {
             console.error('Erro ao atualizar o doador:', error)
             Alert.alert('Erro', 'Não foi possível atualizar os dados.')

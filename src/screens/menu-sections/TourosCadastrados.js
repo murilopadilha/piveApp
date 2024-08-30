@@ -97,7 +97,7 @@ export default ({ navigation }) => {
                 <FlatList
                     showsVerticalScrollIndicator={false}
                     style={{ marginTop: 5 }}
-                    contentContainerStyle={{ marginHorizontal: 20 }}
+                    contentContainerStyle={{ marginHorizontal: 20, paddingBottom: 300 }}
                     data={data}
                     keyExtractor={item => String(item.id)}
                     renderItem={({ item }) => (

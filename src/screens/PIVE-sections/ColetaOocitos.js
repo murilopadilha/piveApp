@@ -13,6 +13,7 @@ export default ({ route, navigation }) => {
     const [newOocyteCollectionDate, setDateOfOocyteCollection] = useState('')
     const [farm, setFarm] = useState('')
     const [client, setClient] = useState('')
+    const [laboratory, setLaboratory] = useState('')
     const [veterinarian, setVeterinarian] = useState('')
     const [technical, setTechnical] = useState('')
     const [donorCattleId, setDonorCattleId] = useState(null)
@@ -68,11 +69,13 @@ export default ({ route, navigation }) => {
     }))
 
     const handleSave = async () => {
+        console.log(totalOocytes)
         try {
-            await axios.post(`http://${IPAdress}/oocyte-collection`, {
+            const response = await axios.post(`http://${IPAdress}/oocyte-collection`, {
                 fivId: fiv.id, 
                 date: newOocyteCollectionDate,
                 farm,
+                laboratory,
                 client,
                 veterinarian,
                 technical,
@@ -81,7 +84,15 @@ export default ({ route, navigation }) => {
                 totalOocytes: parseInt(totalOocytes) || 0,
                 viableOocytes: parseInt(viableOocytes) || 0,
             })
-            Alert.alert('Successo', 'Coleta salva com sucesso!')
+
+            if(response.ok){
+                Alert.alert('Successo', 'Coleta salva com sucesso!')
+            } else if (response.status == '409') {
+                const errorMessage = await response.text()
+                Alert.alert('Erro', errorMessage);
+            } else {
+                Alert.alert('Erro', "Erro ao enviar dados")
+            }
             
         } catch (error) {
             console.error(error)
@@ -93,11 +104,11 @@ export default ({ route, navigation }) => {
         <View style={style.menu}>
             <View style={[style.divTitle, {marginBottom: 0}]}>
                 <TouchableOpacity onPress={() => navigation.navigate('FivInfo', { fiv: fiv })}>
-                    <View style={{ marginRight: 100 }}>
+                    <View style={{ marginRight: 80 }}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
-                <Text style={[style.titleText, { marginRight: 100 }]}>Coleta Oócitos</Text>
+                <Text style={[style.titleText, { marginRight: 120 }]}>Coleta Oócitos</Text>
             </View>
             <View style={[style.content, {marginTop: 0, paddingTop: 0}]}>
                 <ScrollView style={{ height: '90%'}}
@@ -120,6 +131,13 @@ export default ({ route, navigation }) => {
                         style={style.input}
                         value={client}
                         onChangeText={setClient}
+                    />
+                    <Text style={style.label}>Laboratório:</Text>
+                    <TextInput
+                        placeholder="Nome do laboratório"
+                        style={style.input}
+                        value={laboratory}
+                        onChangeText={setLaboratory}
                     />
                     <Text style={style.label}>Veterinário:</Text>
                     <TextInput

@@ -29,10 +29,17 @@ export default ({ route, navigation }) => {
                 },
                 body: JSON.stringify(donorData)
             })
-            const result = await response.json();
-            console.log(result); // Para depuração
-            Alert.alert('Sucesso', 'Touro atualizado com sucesso!')
-            navigation.goBack(); // Volta para a tela anterior
+            if(response.ok) {
+                const result = await response.json()
+                console.log(result)
+                Alert.alert('Sucesso', 'Touro atualizado com sucesso!')
+                navigation.goBack()
+            } else if (response.status == '409') {
+                const errorMessage = await response.text()
+                Alert.alert('Erro', errorMessage);
+            } else {
+                Alert.alert('Erro', "Erro ao enviar dados")
+            }
         } catch (error) {
             console.error('Erro ao atualizar o touro:', error)
             Alert.alert('Erro', 'Não foi possível atualizar os dados.')

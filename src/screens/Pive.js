@@ -12,8 +12,8 @@ import { IPAdress } from '../components/APIip';
 import { useFocusEffect } from '@react-navigation/native';
 
 const API_URL = `http://${IPAdress}/fiv`
-const BULLS_API_URL = `http://18.218.115.38:8080/bull`
-const DONORS_API_URL = `http://18.218.115.38:8080/donor`
+const BULLS_API_URL = `http://${IPAdress}/bull`
+const DONORS_API_URL = `http://${IPAdress}/donor`
 
 export default ({ navigation }) => {
     const [category, setCategory] = useState('ALL')
@@ -59,7 +59,7 @@ export default ({ navigation }) => {
     }
 
     const fetchFilteredFIVs = async (id, type) => {
-        const url = type === 'donor' ? `http://18.218.115.38:8080/fiv/donor?donorId=${id}` : `http://18.218.115.38:8080/fiv/bull?bullId=${id}`
+        const url = type === 'donor' ? `http://${IPAdress}/fiv/donor?donorId=${id}` : `http://${IPAdress}/fiv/bull?bullId=${id}`
         try {
             const response = await axios.get(url)
             setFilteredItems(response.data)
