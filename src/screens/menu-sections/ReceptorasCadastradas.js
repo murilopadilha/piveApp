@@ -5,6 +5,7 @@ import axios from "axios";
 import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
 import { IPAdress } from "../../components/APIip";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default ({ navigation }) => {
     const baseURL = `http://${IPAdress}`;
@@ -68,7 +69,7 @@ export default ({ navigation }) => {
     }
 
     return (
-        <View style={style.menu}>
+        <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
                     <View style={{ marginRight: 50 }}>
@@ -99,7 +100,7 @@ export default ({ navigation }) => {
                     ListFooterComponent={<FooterList load={loading} />}
                 />
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 

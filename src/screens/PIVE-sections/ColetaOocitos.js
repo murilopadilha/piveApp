@@ -6,6 +6,7 @@ import axios from "axios";
 import style from "../../components/style";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { SelectList } from 'react-native-dropdown-select-list';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IPAdress } from "../../components/APIip";
 
@@ -101,7 +102,7 @@ export default ({ route, navigation }) => {
     }
 
     return (
-        <View style={style.menu}>
+        <SafeAreaView style={style.menu}>
             <View style={[style.divTitle, {marginBottom: 0}]}>
                 <TouchableOpacity onPress={() => navigation.navigate('FivInfo', { fiv: fiv })}>
                     <View style={{ marginRight: 80 }}>
@@ -215,6 +216,6 @@ export default ({ route, navigation }) => {
                     </View>
                 </ScrollView>
             </View>
-        </View>
+        </SafeAreaView>
     )
 }

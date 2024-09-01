@@ -4,6 +4,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import style from "../../components/style";
 import { IPAdress } from "../../components/APIip";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default ({ navigation }) => {
     const [newReceiverName, setName] = useState('')
@@ -46,7 +47,7 @@ export default ({ navigation }) => {
     }
 
     return (
-        <View style={style.menu}>
+        <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
                     <View style={{ marginRight: 50 }}>
@@ -87,6 +88,6 @@ export default ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </SafeAreaView>
     )
 }

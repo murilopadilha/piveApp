@@ -4,6 +4,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IPAdress } from "../../components/APIip";
 
@@ -79,7 +80,7 @@ export default ({ route, navigation }) => {
     }
 
     return (
-        <View style={style.menu}>
+        <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
                     <View style={{ marginRight: 50 }}>
@@ -113,6 +114,6 @@ export default ({ route, navigation }) => {
                     </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </SafeAreaView>
     )
 }

@@ -4,6 +4,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from "axios";
 import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IPAdress } from "../../components/APIip";
 
@@ -75,7 +76,7 @@ export default ({ navigation }) => {
     }
 
     return (
-        <View style={style.menu}>
+        <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
                     <View style={{ marginRight: 50 }}>
@@ -106,13 +107,13 @@ export default ({ navigation }) => {
                     ListFooterComponent={<FooterList load={loading} />}
                 />
             </View>
-        </View>
+        </SafeAreaView>
     )
 }
 
 function ListItem({ data, onRemove, navigation }) {
     return (
-        <View style={style.listItem}>
+        <SafeAreaView style={style.listItem}>
             <View>
                 <Text style={style.listText}>
                     <Text style={{ fontWeight: 'bold' }}>Nome: </Text>
@@ -137,7 +138,7 @@ function ListItem({ data, onRemove, navigation }) {
                     <Octicons name="pencil" size={20} color="#908D8E" />
                 </TouchableOpacity>
             </View>
-        </View>
+        </SafeAreaView>
     )
 }
 

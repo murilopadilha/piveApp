@@ -7,6 +7,7 @@ import style from "../../components/style";
 import stylesEmbryos from "../../components/stylesEmbryos";
 import { SelectList } from 'react-native-dropdown-select-list';
 import { IPAdress } from "../../components/APIip";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default ({ route, navigation }) => {
     const { cultivationId } = route.params
@@ -216,7 +217,7 @@ export default ({ route, navigation }) => {
     }
 
     return (
-        <View style={style.menu}>
+        <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Pive')}>
                     <View style={{ marginRight: 50 }}>
@@ -303,7 +304,7 @@ export default ({ route, navigation }) => {
                     </View>
                 </View>
             </Modal>
-        </View>
+        </SafeAreaView>
     )
 }
 

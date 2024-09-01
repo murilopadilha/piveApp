@@ -5,6 +5,7 @@ import axios from "axios";
 import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
 import { IPAdress } from "../../components/APIip";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default ({ navigation }) => {
     const baseURL = `http://${IPAdress}`;
@@ -105,7 +106,7 @@ function ListItem({ data, onRemove, navigation }) {
     }
 
     return (
-        <View style={style.listItem}>
+        <SafeAreaView style={style.listItem}>
             <View>
                 <Text style={style.listText}>
                     <Text style={{ fontWeight: 'bold' }}>Nome: </Text>
@@ -134,7 +135,7 @@ function ListItem({ data, onRemove, navigation }) {
                     <Octicons name="pencil" size={20} color="#908D8E" />
                 </TouchableOpacity>
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 

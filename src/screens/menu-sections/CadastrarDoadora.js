@@ -5,6 +5,7 @@ import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
 import { Alert } from "react-native";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IPAdress } from "../../components/APIip";
 
@@ -69,7 +70,7 @@ export default ({ navigation }) => {
     }
 
     return (
-        <View style={style.menu}>
+        <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
                     <View style={{ marginRight: 50 }}>
@@ -115,6 +116,6 @@ export default ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </SafeAreaView>
     )
 }

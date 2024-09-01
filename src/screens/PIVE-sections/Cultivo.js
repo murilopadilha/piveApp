@@ -5,6 +5,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import axios from "axios";
 import style from "../../components/style";
 import { IPAdress } from "../../components/APIip";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default ({ route, navigation }) => {
     const [total, setTotal] = useState('')
@@ -31,7 +32,7 @@ export default ({ route, navigation }) => {
     };
 
     return (
-        <View style={style.menu}>
+        <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('ColetaOocitos', { fiv: fiv })}>
                     <View style={{ marginRight: 100 }}>
@@ -65,6 +66,6 @@ export default ({ route, navigation }) => {
                     <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Salvar</Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </SafeAreaView>
     )
 }

@@ -7,6 +7,7 @@ import style from "../../components/style";
 import { SelectList } from 'react-native-dropdown-select-list';
 import stylesEmbryos from "../../components/stylesEmbryos";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IPAdress } from "../../components/APIip";
 
@@ -162,7 +163,7 @@ export default ({ route, navigation }) => {
     const cultivation = data?.cultivation || {}
 
     return (
-        <View style={stylesEmbryos.container}>
+        <SafeAreaView style={stylesEmbryos.container}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Pive')}>
                     <View style={{ marginRight: 50 }}>
@@ -307,6 +308,6 @@ export default ({ route, navigation }) => {
                     </View>
                 </View>
             </Modal>
-        </View>
+        </SafeAreaView>
     )
 }
