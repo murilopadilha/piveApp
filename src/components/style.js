@@ -43,7 +43,7 @@ export default StyleSheet.create({
     fontWeight: 'bold',
   },
   input: {
-    width: 335,
+    width: '100%',
     height: 40,
     backgroundColor: '#fff',
     borderColor: 'transparent',
@@ -341,7 +341,7 @@ export default StyleSheet.create({
     flexDirection: 'row',
   },
   selectListBoxPive: {
-    width: 300, 
+    width: 280, 
     height: 40,
     borderRadius: 10,
     borderWidth: 3,
@@ -355,13 +355,11 @@ export default StyleSheet.create({
   },
   selectListDropdownPive: {
     marginTop: 0,
-    position: 'absolute',
-    zIndex: 1,
     borderRadius: 10,
     borderWidth: 3,
     borderColor: 'transparent',
     backgroundColor: '#FFFFFF',
-    width: 300,
+    width: 280,
   },
   listPive: {
     marginLeft: 20,

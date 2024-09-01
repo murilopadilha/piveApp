@@ -52,7 +52,7 @@ export default ({ navigation }) => {
     }
 
     return (
-        <View style={style.menu}>
+        <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
                     <View style={{ marginRight: 50 }}>
@@ -83,7 +83,7 @@ export default ({ navigation }) => {
                     ListFooterComponent={<FooterList load={loading} />}
                 />
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -107,7 +107,7 @@ function ListItem({ data, onRemove, navigation }) {
 
     return (
         <SafeAreaView style={style.listItem}>
-            <View>
+            <View style={{alignContent: 'center'}}>
                 <Text style={style.listText}>
                     <Text style={{ fontWeight: 'bold' }}>Nome: </Text>
                     {data.name} ({data.breed})

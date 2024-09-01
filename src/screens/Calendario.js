@@ -177,7 +177,7 @@ export default (props) => {
                 />
                 <TouchableOpacity onPress={showDatePicker} style={[style.dateInput, { marginLeft: 20, marginRight: 20, marginTop: 10 }]}>
                     <Text style={style.dateText}>{scheduleDate || "Selecione a Data"}</Text>
-                    <AntDesign style={{paddingLeft: 100}} name="calendar" size={24} color="#000" />
+                    <AntDesign style={{paddingLeft: '20%'}} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleSchedule} style={[style.scheduleButton, {display: 'flex', flexDirection: 'row', width: 90}]}>
                     <FontAwesome5 name="calendar-check" size={20} color="white" />

@@ -104,7 +104,7 @@ export default ({ navigation }) => {
                 <Text style={style.label}>Data de Nascimento:</Text>
                 <TouchableOpacity onPress={showDatePicker} style={style.dateInput}>
                     <Text style={style.dateText}>{newDonorDateOfBirth || "Selecione a data"}</Text>
-                    <AntDesign style={{paddingLeft: 90}} name="calendar" size={24} color="#000" />
+                    <AntDesign style={{paddingLeft: '20%'}} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
                 <View>
                 <TouchableOpacity

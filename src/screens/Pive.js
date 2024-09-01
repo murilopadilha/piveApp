@@ -141,14 +141,14 @@ export default ({ navigation }) => {
             setSecondaryCategory(null);
             setSecondaryOptions([]);
             setSecondaryPlaceholder('Selecione uma opção');
-            // Reset to 'ALL' to show all items
+
             setCategory('ALL');
-            setFilteredItems(items); // Ensure to reset filtered items to show all
+            setFilteredItems(items); 
         }
     };
 
     return (
-        <SafeAreaView>
+        <SafeAreaView style={{width: '100%', height: '100%'}}>
             <View style={[style.divTitleMain]}>
                 <MaterialCommunityIcons style={{ marginRight: 3 }} name="cow" size={34} color="#092955" />
                 <Text style={style.titleTextMain}>BovInA</Text>
@@ -174,7 +174,7 @@ export default ({ navigation }) => {
                         placeholder={secondaryPlaceholder}
                         boxStyles={[style.selectListBoxPive, { marginRight: 5 }]}
                         inputStyles={style.selectListInput}
-                        dropdownStyles={[style.selectListDropdownPive, {marginTop: 45}]}
+                        dropdownStyles={style.selectListDropdownPive}
                     />
                 </View>
             )}
@@ -193,10 +193,10 @@ export default ({ navigation }) => {
                         onPress={() => navigation.navigate('FivInfo', { fiv: item })}
                     >
                         <View style={{ display: 'flex', flexDirection: 'column', width: 320 }}>
-                            <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 20 }}>
+                            <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 5 }}>
                                 <Text style={{ fontWeight: 'bold' }}>FIV ID: </Text>
                                 <Text>{item.id}</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 25 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: '3%' }}>
                                     <Text style={{ fontWeight: 'bold' }}>Coleta dos Oócitos: </Text>
                                     {item.status === 'OOCYTE_COLLECTION_COMPLETED' || item.status === 'COMPLETED' ? (
                                         <MaterialIcons name="done" size={20} color="#555" />
@@ -204,7 +204,7 @@ export default ({ navigation }) => {
                                         <Feather name="x" size={20} color="#555" />
                                     )}
                                 </View>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 25 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: '3%' }}>
                                     <Text style={{ fontWeight: 'bold' }}>Cultivo: </Text>
                                     {item.status === 'COMPLETED'  ? (
                                         <MaterialIcons name="done" size={20} color="#555" />
@@ -213,20 +213,23 @@ export default ({ navigation }) => {
                                     )}
                                 </View>
                             </View>
-                            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 5}}>
                                 <Text style={{ fontWeight: 'bold' }}>Data Asp: </Text>
                                 <Text>{item.oocyteCollection ? item.oocyteCollection.date : '-'}</Text>
+                            </View>
+                            <View style={{display: 'flex', flexDirection: 'row'}}>
                                 <Text style={{ fontWeight: 'bold' }}>Total Emb: </Text>
-                                <Text>{item.cultivation ? item.cultivation.totalEmbryos : '-'}</Text>
+                                <Text style={{marginRight: '10%'}}>{item.cultivation ? item.cultivation.totalEmbryos : '-'}</Text>
                                 <Text style={{ fontWeight: 'bold' }}>Emb Via: </Text>
                                 <Text>{item.cultivation ? item.cultivation.viableEmbryos : '-'}</Text>
                             </View>
+                            
                         </View>
                     </TouchableOpacity>
                 ))}
             </ScrollView>
             <TouchableOpacity
-                style={[style.listButtonSearch, { marginTop: 650, width: 80, height: 35, marginLeft: 260, position: 'absolute', zIndex: 5 }]}
+                style={[style.listButtonSearch, { paddingTop: '2%',marginTop: '175%', width: '20%', height: '5%', marginLeft: '70%', position: 'absolute', zIndex: 5 }]}
                 onPress={handleNewFIV}
             >
                 <Text style={{ color: '#FFFFFF', textAlign: 'center', paddingTop: 3 }}>Nova FIV</Text>
