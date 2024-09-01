@@ -252,6 +252,7 @@ export default ({ route, navigation }) => {
                     showsVerticalScrollIndicator={false}
                     data={filteredItems}
                     renderItem={renderItem}
+                    contentContainerStyle={{ paddingBottom: 300 }}
                     keyExtractor={item => item.id.toString()}
                 />
             </View>

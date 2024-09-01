@@ -220,6 +220,7 @@ export default (props) => {
                 />
                 {selectedDateDetails.length > 0 && (
                     <ScrollView style={style.detailsContainer}
+                    contentContainerStyle={{ paddingBottom: 80 }}
                     showsVerticalScrollIndicator={false}>
                         {selectedDateDetails.map((detail, index) => (
                             <View key={index} style={style.detailItem}>
