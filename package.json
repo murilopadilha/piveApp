@@ -10,7 +10,7 @@
     "json-server": "json-server --watch db.json"
   },
   "dependencies": {
-    "@react-native-community/blur": "^4.4.0",
+    "@react-native-community/blur": "^4.4.1",
     "@react-native-community/datetimepicker": "^8.2.0",
     "@react-native-masked-view/masked-view": "^0.3.1",
     "@react-navigation/bottom-tabs": "^6.6.1",
@@ -22,6 +22,7 @@
     "json-server": "^1.0.0-beta.1",
     "react": "18.2.0",
     "react-native": "0.74.3",
+    "react-native-blur": "^3.2.2",
     "react-native-calendars": "^1.1306.0",
     "react-native-datepicker": "^1.7.2",
     "react-native-dropdown-select-list": "^2.0.5",
