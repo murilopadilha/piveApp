@@ -153,7 +153,7 @@ export default ({ route, navigation }) => {
         return <Text>Error: {error}</Text>;
     }
 
-    const oocyteCollection = data?.oocyteCollection || {};
+    const oocyteCollection = data || {};
     const cultivation = data?.cultivation || {};
 
     return (
@@ -221,15 +221,11 @@ export default ({ route, navigation }) => {
                         <View style={stylesEmbryos.oocytesRow}>
                             <View style={stylesEmbryos.oocytesItem}>
                                 <Text style={stylesEmbryos.label}>Total:</Text>
-                                <Text style={stylesEmbryos.value}>{oocyteCollection.totalOocytes || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{fiv.totalOocytesCollected || '-'}</Text>
                             </View>
                             <View style={stylesEmbryos.oocytesItem}>
                                 <Text style={stylesEmbryos.label}>Viáveis:</Text>
-                                <Text style={stylesEmbryos.value}>{oocyteCollection.viableOocytes || '-'}</Text>
-                            </View>
-                            <View style={stylesEmbryos.oocytesItem}>
-                                <Text style={stylesEmbryos.label}>Inviáveis:</Text>
-                                <Text style={stylesEmbryos.value}>{oocyteCollection.nonViableOocytes || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{fiv.totalViableOocytesCollected || '-'}</Text>
                             </View>
                         </View>
                     </View>
