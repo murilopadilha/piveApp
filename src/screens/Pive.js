@@ -99,7 +99,6 @@ export default ({ navigation }) => {
                 setSecondaryCategory(null);
                 setSecondaryOptions([]);
                 setSecondaryPlaceholder('Selecione uma opção');
-                // Atualize a lista de itens filtrados com base na categoria selecionada
                 setFilteredItems(items.filter(item => item.status === selectedKey));
             }
         }
@@ -196,7 +195,7 @@ export default ({ navigation }) => {
                             <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 5 }}>
                                 <Text style={{ fontWeight: 'bold' }}>FIV ID: </Text>
                                 <Text>{item.id}</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: '3%' }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: '2%' }}>
                                     <Text style={{ fontWeight: 'bold' }}>Coleta dos Oócitos: </Text>
                                     {item.status === 'OOCYTE_COLLECTION_COMPLETED' || item.status === 'COMPLETED' ? (
                                         <MaterialIcons name="done" size={20} color="#555" />
@@ -204,8 +203,8 @@ export default ({ navigation }) => {
                                         <Feather name="x" size={20} color="#555" />
                                     )}
                                 </View>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: '3%' }}>
-                                    <Text style={{ fontWeight: 'bold' }}>Cultivo: </Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: '0%' }}>
+                                    <Text style={{ fontWeight: 'bold' }}>Embriões: </Text>
                                     {item.status === 'COMPLETED'  ? (
                                         <MaterialIcons name="done" size={20} color="#555" />
                                     ) : (
@@ -215,22 +214,21 @@ export default ({ navigation }) => {
                             </View>
                             <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 5}}>
                                 <Text style={{ fontWeight: 'bold' }}>Data Asp: </Text>
-                                <Text>{item.oocyteCollection ? item.oocyteCollection.date : '-'}</Text>
+                                <Text>{item.date ? item.date : '-'}</Text>
                             </View>
                             <View style={{display: 'flex', flexDirection: 'row'}}>
-                                <Text style={{ fontWeight: 'bold' }}>Total Emb: </Text>
-                                <Text style={{marginRight: '10%'}}>{item.cultivation ? item.cultivation.totalEmbryos : '-'}</Text>
-                                <Text style={{ fontWeight: 'bold' }}>Emb Via: </Text>
-                                <Text>{item.cultivation ? item.cultivation.viableEmbryos : '-'}</Text>
-                            </View>
-                            
+                                <Text style={{ fontWeight: 'bold' }}>Cliente/Fazenda: </Text>
+                                <Text>{item.client ? item.client : '-'}</Text>
+                                <Text>/</Text>
+                                <Text style={{marginRight: '10%'}}>{item.farm ? item.farm : '-'}</Text>
+                            </View>   
                         </View>
                     </TouchableOpacity>
                 ))}
             </ScrollView>
             <TouchableOpacity
                 style={[style.listButtonSearch, { paddingTop: '2%',marginTop: '175%', width: '20%', height: '5%', marginLeft: '70%', position: 'absolute', zIndex: 5 }]}
-                onPress={handleNewFIV}
+                onPress={() => navigation.navigate('Cabecalho')}
             >
                 <Text style={{ color: '#FFFFFF', textAlign: 'center', paddingTop: 3 }}>Nova FIV</Text>
             </TouchableOpacity>

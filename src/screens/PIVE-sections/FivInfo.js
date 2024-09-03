@@ -12,155 +12,149 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { IPAdress } from "../../components/APIip";
 
 export default ({ route, navigation }) => {
-    const { fiv } = route.params
-    const [data, setData] = useState(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
-    const [modalVisible, setModalVisible] = useState(false)
-    const [viableEmbryos, setViableEmbryos] = useState([])
-    const [category, setCategory] = useState('')
-    const [receiver, setReceiver] = useState([])
-    const [selectedReceiver, setSelectedReceiver] = useState('')
-    const [cultivationId, setCultivationId] = useState(null)
-    const [embryosRegistered, setEmbryosRegistered] = useState(0)
+    const { fiv } = route.params;
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [viableEmbryos, setViableEmbryos] = useState([]);
+    const [category, setCategory] = useState('');
+    const [receiver, setReceiver] = useState([]);
+    const [selectedReceiver, setSelectedReceiver] = useState('');
+    const [cultivationId, setCultivationId] = useState(null);
+    const [embryosRegistered, setEmbryosRegistered] = useState(0);
+    const [oocyteCollections, setOocyteCollections] = useState([]);
 
     const categories = [
         { key: 'true', value: 'Sim' },
         { key: 'false', value: 'Não' },
-    ]
+    ];
 
     const categoryData = categories.map(cat => ({
         key: cat.key,
         value: cat.value
-    }))
+    }));
 
     const handleSelect = (selectedKey) => {
-        const selectedCategory = categories.find(cat => cat.key === selectedKey)
+        const selectedCategory = categories.find(cat => cat.key === selectedKey);
         if (selectedCategory) {
-            setCategory(selectedCategory.key)
+            setCategory(selectedCategory.key);
         }
-    }
+    };
 
     const handleReceiverSelect = (selectedId) => {
-        console.log("Selected Receiver ID:", selectedId)
-        const selectedReceiver = receiver.find(rec => rec.id.toString() === selectedId)
+        const selectedReceiver = receiver.find(rec => rec.id.toString() === selectedId);
         if (selectedReceiver) {
-            console.log("Selected Receiver:", selectedReceiver)
-            setSelectedReceiver(selectedReceiver.name)
+            setSelectedReceiver(selectedReceiver.name);
         } else {
-            console.log("Receiver not found for ID:", selectedId)
+            console.log("Receiver not found for ID:", selectedId);
         }
-    }
+    };
 
     const fetchEmbryosRegistered = async (cultivationId) => {
         try {
-            const response = await axios.get(`http://${IPAdress}/cultivation/${cultivationId}`)
+            const response = await axios.get(`http://${IPAdress}/cultivation/${cultivationId}`);
             if (response.data) {
-                setEmbryosRegistered(response.data.embryosRegistered)
+                setEmbryosRegistered(response.data.embryosRegistered);
             }
         } catch (err) {
-            console.error("Erro ao buscar embriões registrados:", err.message)
+            console.error("Erro ao buscar embriões registrados:", err.message);
         }
-    }
+    };
 
     const fetchReceivers = async () => {
         try {
-            const response = await axios.get(`http://${IPAdress}/receiver/available`)
-            console.log("Receivers:", response.data)
-            setReceiver(response.data)
+            const response = await axios.get(`http://${IPAdress}/receiver/available`);
+            setReceiver(response.data);
         } catch (err) {
-            console.error(err.message)
+            console.error(err.message);
         }
-    }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`)
+                const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`);
+                setOocyteCollections(response.data);
                 if (Array.isArray(response.data) && response.data.length > 0) {
-                    const fetchedData = response.data[0]
-                    setData(fetchedData)
+                    const fetchedData = response.data[0];
+                    setData(fetchedData);
                     if (fetchedData.cultivation) {
-                        setCultivationId(fetchedData.cultivation.id)
+                        setCultivationId(fetchedData.cultivation.id);
                     }
                 } else if (response.data && (response.data.oocyteCollection || response.data.cultivation)) {
-                    setData(response.data)
+                    setData(response.data);
                     if (response.data.cultivation) {
-                        setCultivationId(response.data.cultivation.id)
+                        setCultivationId(response.data.cultivation.id);
                     }
                 } else {
-                    setData(null)
+                    setData(null);
                 }
             } catch (err) {
-                setError(err.message)
+                setError(err.message);
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
-        }
+        };
 
-        fetchData()
-    }, [fiv])
+        fetchData();
+    }, [fiv]);
 
     useEffect(() => {
         if (data && data.cultivation) {
-            const embryos = Array.isArray(data.cultivation.viableEmbryos) ? data.cultivation.viableEmbryos : []
-            setViableEmbryos(embryos)
+            const embryos = Array.isArray(data.cultivation.viableEmbryos) ? data.cultivation.viableEmbryos : [];
+            setViableEmbryos(embryos);
         }
-    }, [data])
+    }, [data]);
 
     const openModal = async () => {
-        setModalVisible(true)
+        setModalVisible(true);
         if (cultivationId) {
-            fetchEmbryosRegistered(cultivationId)
+            fetchEmbryosRegistered(cultivationId);
         }
-        await fetchReceivers()
+        await fetchReceivers();
     };
 
     const handleSave = async () => {
-        console.log("Cultivation ID:", cultivationId)
-        console.log("Category:", category)
-        console.log("Selected Receiver:", selectedReceiver)
-    
         if (!cultivationId || category === '' || !selectedReceiver) {
-            alert("Por favor, preencha todos os campos.")
-            return
+            alert("Por favor, preencha todos os campos.");
+            return;
         }
-    
+
         try {
-            const receiverId = receiver.find(rec => rec.name === selectedReceiver)?.id || 0
-    
+            const receiverId = receiver.find(rec => rec.name === selectedReceiver)?.id || 0;
+
             if (embryosRegistered >= cultivation.viableEmbryos) {
-                alert("Todos os embriões desse cultivo já foram registrados.")
-                return
+                alert("Todos os embriões desse cultivo já foram registrados.");
+                return;
             }
-    
+
             const response = await axios.post(`http://${IPAdress}/embryo`, {
                 cultivationId: cultivationId,
                 frozen: category === 'true',
                 receiverCattleId: receiverId
-            })
-    
-            console.log(response)
-            await fetchEmbryosRegistered(cultivationId)
-    
-            setCategory('')
-            setSelectedReceiver('')
-            setModalVisible(false)
+            });
+
+            await fetchEmbryosRegistered(cultivationId);
+
+            setCategory('');
+            setSelectedReceiver('');
+            setModalVisible(false);
         } catch (err) {
-            console.error("Erro ao salvar os dados:", err.message)
+            console.error("Erro ao salvar os dados:", err.message);
         }
-    };    
+    };
 
     if (loading) {
-        return <ActivityIndicator size="large" color="#092955" />
+        return <ActivityIndicator size="large" color="#092955" />;
     }
 
     if (error) {
-        return <Text>Error: {error}</Text>
+        return <Text>Error: {error}</Text>;
     }
 
-    const oocyteCollection = data?.oocyteCollection || {}
-    const cultivation = data?.cultivation || {}
+    const oocyteCollection = data?.oocyteCollection || {};
+    const cultivation = data?.cultivation || {};
 
     return (
         <SafeAreaView style={stylesEmbryos.container}>
@@ -178,37 +172,50 @@ export default ({ route, navigation }) => {
                     <View style={stylesEmbryos.infoContainer}>
                         <View style={stylesEmbryos.infoRow}>
                             <Text style={stylesEmbryos.label}>Data da coleta:</Text>
-                            <Text style={stylesEmbryos.value}>{oocyteCollection.date || '-'}</Text>
+                            <Text style={stylesEmbryos.value}>{fiv.date || '-'}</Text>
                         </View>
                         <View style={stylesEmbryos.infoRow}>
                             <Text style={stylesEmbryos.label}>Fazenda:</Text>
-                            <Text style={stylesEmbryos.value}>{oocyteCollection.farm || '-'}</Text>
+                            <Text style={stylesEmbryos.value}>{fiv.farm || '-'}</Text>
+                        </View>
+                        <View style={stylesEmbryos.infoRow}>
+                            <Text style={stylesEmbryos.label}>Laboratório:</Text>
+                            <Text style={stylesEmbryos.value}>{fiv.laboratory || '-'}</Text>
                         </View>
                         <View style={stylesEmbryos.infoRow}>
                             <Text style={stylesEmbryos.label}>Cliente:</Text>
-                            <Text style={stylesEmbryos.value}>{oocyteCollection.client || '-'}</Text>
+                            <Text style={stylesEmbryos.value}>{fiv.client || '-'}</Text>
                         </View>
                         <View style={stylesEmbryos.infoRow}>
                             <Text style={stylesEmbryos.label}>Veterinário:</Text>
-                            <Text style={stylesEmbryos.value}>{oocyteCollection.veterinarian || '-'}</Text>
+                            <Text style={stylesEmbryos.value}>{fiv.veterinarian || '-'}</Text>
                         </View>
                         <View style={stylesEmbryos.infoRow}>
                             <Text style={stylesEmbryos.label}>Técnico:</Text>
-                            <Text style={stylesEmbryos.value}>{oocyteCollection.technical || '-'}</Text>
+                            <Text style={stylesEmbryos.value}>{fiv.technical || '-'}</Text>
                         </View>
                         <View style={stylesEmbryos.infoRow}>
-                            <Text style={stylesEmbryos.label}>Doadora:</Text>
-                            <Text style={stylesEmbryos.value}>
-                                {oocyteCollection.donorCattle ? `${oocyteCollection.donorCattle.name} (${oocyteCollection.donorCattle.registrationNumber})` : '-'}
-                            </Text>
-                        </View>
-                        <View style={stylesEmbryos.infoRow}>
-                            <Text style={stylesEmbryos.label}>Touro:</Text>
-                            <Text style={stylesEmbryos.value}>
-                                {oocyteCollection.bull ? `${oocyteCollection.bull.name} (${oocyteCollection.bull.registrationNumber})` : '-'}
-                            </Text>
+                            <Text style={stylesEmbryos.label}>TE:</Text>
+                            <Text style={stylesEmbryos.value}>{fiv.TE || '-'}</Text>
                         </View>
                     </View>
+                    <Text style={[stylesEmbryos.label, { marginLeft: '31%', marginBottom: '3%' }]}>Procedimentos:</Text>
+                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={stylesEmbryos.label}>N°</Text>
+                        <Text style={stylesEmbryos.label}>Doadora</Text>
+                        <Text style={stylesEmbryos.label}>Touro</Text>
+                        <Text style={stylesEmbryos.label}>Total</Text>
+                        <Text style={stylesEmbryos.label}>Viáveis</Text>
+                    </View>
+                    {oocyteCollections.oocyteCollections.map((collection, index) => (
+                            <View key={index} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                                <Text style={stylesEmbryos.value}>{index + 1}</Text>
+                                <Text style={stylesEmbryos.value}>{collection.donorCattle.registrationNumber}</Text>
+                                <Text style={stylesEmbryos.value}>{collection.bull.registrationNumber}</Text>
+                                <Text style={stylesEmbryos.value}>{collection.totalOocytes}</Text>
+                                <Text style={stylesEmbryos.value}>{collection.viableOocytes}</Text>
+                            </View>
+                        ))}
                     <Text style={[stylesEmbryos.sectionTitle, stylesEmbryos.oocytesTitle]}>Oócitos:</Text>
                     <View style={stylesEmbryos.oocytesContainer}>
                         <View style={stylesEmbryos.oocytesRow}>
@@ -240,16 +247,16 @@ export default ({ route, navigation }) => {
                             <Text style={stylesEmbryos.value}>{cultivation.viableEmbryos || '-'}</Text>
                         </TouchableOpacity>
                     </View>
-                    <View style={{display: 'flex', flexDirection: 'row'}}>
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('EmbrioesViaveis', { cultivationId: cultivationId })}
-                        style={[style.listButtonEdit, { marginTop: 0, marginLeft: 25, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
-                    >
-                        <FontAwesome6 name="clipboard-list" size={20} color="#E0E0E0" />
-                        <Text style={{ color: '#E0E0E0', paddingTop: 1, paddingLeft: 5 }}>Embriões</Text>
-                    </TouchableOpacity>
+                    <View style={{ display: 'flex', flexDirection: 'row' }}>
                         <TouchableOpacity
-                            onPress={() => navigation.navigate('ColetaOocitos', { fiv: fiv })}
+                            onPress={() => navigation.navigate('EmbrioesViaveis', { cultivationId: cultivationId })}
+                            style={[style.listButtonEdit, { marginTop: 0, marginLeft: 25, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
+                        >
+                            <FontAwesome6 name="clipboard-list" size={20} color="#E0E0E0" />
+                            <Text style={{ color: '#E0E0E0', paddingTop: 1, paddingLeft: 5 }}>Embriões</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => fiv.status === 'IN_PROCESS' ? navigation.navigate('ColetaOocitos', { fiv: fiv }) : navigation.navigate('Cultivo', { fiv: fiv })}
                             style={[style.listButtonEdit, { marginTop: 0, marginLeft: 100, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
                         >
                             <Octicons name="pencil" size={20} color="#E0E0E0" />
@@ -274,11 +281,11 @@ export default ({ route, navigation }) => {
                                 setSelected={handleSelect}
                                 data={categoryData}
                                 placeholder={"Clique"}
-                                boxStyles={[style.selectListBox, { marginBottom: 30, zIndex: 2, width: 73, paddingLeft: 4, marginLeft: 90 }]}
+                                boxStyles={[style.selectListBox, { marginBottom: 30, width: 73, paddingLeft: 4, marginLeft: 90 }]}
                                 inputStyles={style.selectListInput}
                                 dropdownStyles={[style.selectListDropdown, { zIndex: 3, zIndex: 10, elevation: 10, position: 'absolute', marginTop: 10, marginLeft: 90 }]}
                             />
-                            <Text style={{ textAlign: 'center' }}>Receptora: </Text>
+                            <Text style={{ textAlign: 'center', marginTop: '8%' }}>Receptora: </Text>
                             <SelectList
                                 setSelected={handleReceiverSelect}
                                 data={receiver.map(rec => ({
@@ -286,9 +293,9 @@ export default ({ route, navigation }) => {
                                     value: rec.name
                                 }))}
                                 placeholder={"Selecione a receptora"}
-                                boxStyles={[style.selectListBox, { marginBottom: 15, zIndex: 2, marginLeft: 15 }]}
+                                boxStyles={[style.selectListBox, { marginBottom: 1, zIndex: 2, marginLeft: 15 }]}
                                 inputStyles={style.selectListInput}
-                                dropdownStyles={[style.selectListDropdown, { zIndex: 3, zIndex: 10, elevation: 10, position: 'absolute', marginTop: 60, width: 235, marginLeft: 15 }]}
+                                dropdownStyles={[style.selectListDropdown, { width: 235, marginLeft: 15, height: 300 }]}
                             />
                         </View>
                         <View style={stylesEmbryos.buttonContainer}>
@@ -309,5 +316,5 @@ export default ({ route, navigation }) => {
                 </View>
             </Modal>
         </SafeAreaView>
-    )
+    );
 }

@@ -44,6 +44,23 @@ export default ({ route, navigation }) => {
         fetchDonorsAndBulls();
     }, [])
 
+    function confirmSave() {
+        Alert.alert(
+            "Confirmar",
+            "Você tem certeza de que deseja finalizar essa coleta?",
+            [
+                {
+                    text: "Cancelar",
+                    style: "cancel"
+                },
+                {
+                    text: "Finalizar",
+                    onPress: () => handleSaveAndFinish()
+                }
+            ]
+        )
+    }
+
     const onChangeDate = (event, selectedDate) => {
         const currentDate = selectedDate || new Date()
         const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
@@ -74,31 +91,31 @@ export default ({ route, navigation }) => {
         try {
             const response = await axios.post(`http://${IPAdress}/oocyte-collection`, {
                 fivId: fiv.id, 
-                date: newOocyteCollectionDate,
-                farm,
-                laboratory,
-                client,
-                veterinarian,
-                technical,
                 donorCattleId,
                 bullId,
                 totalOocytes: parseInt(totalOocytes) || 0,
                 viableOocytes: parseInt(viableOocytes) || 0,
             })
-
-            if(response.ok){
                 Alert.alert('Successo', 'Coleta salva com sucesso!')
-            } else if (response.status == '409') {
-                const errorMessage = await response.text()
-                Alert.alert('Erro', errorMessage);
-            } else {
-                Alert.alert('Erro', "Erro ao enviar dados")
-            }
-            
         } catch (error) {
-            console.error(error)
-            Alert.alert('Error', 'Failed to save data. Please try again.')
         }
+    }
+
+    const handleSaveAndFinish = async () => {
+        console.log(totalOocytes)
+        try {
+            const response = await axios.post(`http://${IPAdress}/oocyte-collection`, {
+                fivId: fiv.id,
+                finished: true,
+                donorCattleId,
+                bullId,
+                totalOocytes: parseInt(totalOocytes) || 0,
+                viableOocytes: parseInt(viableOocytes) || 0,
+            })
+                Alert.alert('Successo', 'Coleta salva com sucesso!')
+        } catch (error) {
+        }
+        navigation.navigate('Cultivo', { fiv: fiv })
     }
 
     return (
@@ -114,46 +131,6 @@ export default ({ route, navigation }) => {
             <View style={[style.content, {marginTop: 0, paddingTop: 0}]}>
                 <ScrollView style={{ height: '90%'}}
                 showsVerticalScrollIndicator={false}>
-                    <Text style={style.label}>Data da coleta:</Text>
-                    <TouchableOpacity onPress={showDatePicker} style={style.dateInput}>
-                        <Text style={style.dateText}>{newOocyteCollectionDate || "Selecione a Data"}</Text>
-                        <AntDesign style={{paddingLeft: '20%'}} name="calendar" size={24} color="#000" />
-                    </TouchableOpacity>
-                    <Text style={style.label}>Fazenda:</Text>
-                    <TextInput
-                        placeholder="Nome da fazenda"
-                        style={style.input}
-                        value={farm}
-                        onChangeText={setFarm}
-                    />
-                    <Text style={style.label}>Cliente:</Text>
-                    <TextInput
-                        placeholder="Nome do cliente"
-                        style={style.input}
-                        value={client}
-                        onChangeText={setClient}
-                    />
-                    <Text style={style.label}>Laboratório:</Text>
-                    <TextInput
-                        placeholder="Nome do laboratório"
-                        style={style.input}
-                        value={laboratory}
-                        onChangeText={setLaboratory}
-                    />
-                    <Text style={style.label}>Veterinário:</Text>
-                    <TextInput
-                        placeholder="Nome do veterinário"
-                        style={style.input}
-                        value={veterinarian}
-                        onChangeText={setVeterinarian}
-                    />
-                    <Text style={style.label}>Técnico:</Text>
-                    <TextInput
-                        placeholder="Nome do técnico"
-                        style={style.input}
-                        value={technical}
-                        onChangeText={setTechnical}
-                    />
                     <Text style={style.label}>Doadora:</Text>
                     <SelectList
                         setSelected={setDonorCattleId}
@@ -173,7 +150,7 @@ export default ({ route, navigation }) => {
                         dropdownStyles={[style.selectListDropdown, { marginLeft: 0, width: 300 }]}
                     />
                     <Text style={[style.label, { textAlign: 'center', marginTop: 20 }]}>Oócitos:</Text>
-                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }}>
+                    <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', marginLeft: '11%' }}>
                         <View>
                             <Text style={style.label}>Total:</Text>
                             <TextInput
@@ -195,12 +172,6 @@ export default ({ route, navigation }) => {
                             />
                         </View>
                         <View>
-                            <Text style={style.label}>Inviáveis:</Text>
-                            <TextInput
-                                keyboardType="numeric"
-                                placeholder="Inviáveis"
-                                style={[style.input, { width: 70, textAlign: 'center', paddingLeft: 0 }]}
-                            />
                         </View>
                     </View>
                     <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -208,9 +179,9 @@ export default ({ route, navigation }) => {
                             <MaterialIcons name="done" size={20} color="white" style={{ paddingLeft: 5, paddingTop: 3 }} />
                             <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Salvar</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={[style.listButtonSearch, { width: 90, height: 35, display: 'flex', flexDirection: 'row', marginTop: 20 }]}
-                        onPress={() => navigation.navigate('Cultivo', { fiv: fiv })}>
-                            <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Cultivo</Text>
+                        <TouchableOpacity style={[style.listButtonSearch, { width: '50%', height: 35, display: 'flex', flexDirection: 'row', marginTop: 20 }]}
+                        onPress={confirmSave}>
+                            <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Salvar e Finalizar</Text>
                             <AntDesign name="right" size={16} color="#FFFFFF" style={{ paddingLeft: 10, paddingTop: 5 }} />
                         </TouchableOpacity>
                     </View>

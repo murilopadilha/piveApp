@@ -34,12 +34,12 @@ export default ({ route, navigation }) => {
     return (
         <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
-                <TouchableOpacity onPress={() => navigation.navigate('ColetaOocitos', { fiv: fiv })}>
-                    <View style={{ marginRight: 100 }}>
+                <TouchableOpacity onPress={() => navigation.navigate('FivInfo', { fiv: fiv })}>
+                    <View style={{ marginRight: '10%' }}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
-                <Text style={[style.titleText, { marginRight: 100 }]}>Cultivo</Text>
+                <Text style={[style.titleText, { marginRight: '20%' }]}>Produção de Embriões</Text>
             </View>
             <View style={style.content}>
                 <Text style={style.label}>Total de Embriões:</Text>

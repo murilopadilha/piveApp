@@ -3,7 +3,7 @@ import { Text, View, SafeAreaView } from 'react-native';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { BlurView } from '@react-native-community/blur';
+// import { BlurView } from '@react-native-community/blur';
 import '../gesture-handler';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StyleSheet } from 'react-native';
@@ -33,6 +33,7 @@ import ColetaOocitos from './screens/PIVE-sections/ColetaOocitos';
 import FivInfo from './screens/PIVE-sections/FivInfo';
 import Cultivo from './screens/PIVE-sections/Cultivo';
 import EmbrioesViaveis from './screens/PIVE-sections/EmbrioesViaveis';
+import Cabecalho from './screens/PIVE-sections/Cabecalho';
 
 const MenuStack = createStackNavigator()
 
@@ -58,6 +59,7 @@ function MenuTabStack() {
       <MenuStack.Screen name="FivInfo" component={FivInfo} />
       <MenuStack.Screen name="Cultivo" component={Cultivo} />
       <MenuStack.Screen name="EmbrioesViaveis" component={EmbrioesViaveis} />
+      <MenuStack.Screen name="Cabecalho" component={Cabecalho} />
     </MenuStack.Navigator>
   )
 }
@@ -99,11 +101,11 @@ export default function App() {
               overflow: "hidden",
             }}
           >
-            <BlurView 
+            {/* <BlurView 
               style={{ flex: 1, backgroundColor: "transparent" }}
               blurType='xlight'
               blurAmount={5}
-            /> 
+            />  */}
           </View>
         )
       }}>
