@@ -209,11 +209,21 @@ export default ({ route, navigation }) => {
                     </View>
                     {oocyteCollections.oocyteCollections.map((collection, index) => (
                             <View key={index} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <Text style={stylesEmbryos.value}>{index + 1}</Text>
-                                <Text style={stylesEmbryos.value}>{collection.donorCattle.registrationNumber}</Text>
-                                <Text style={stylesEmbryos.value}>{collection.bull.registrationNumber}</Text>
-                                <Text style={stylesEmbryos.value}>{collection.totalOocytes}</Text>
-                                <Text style={stylesEmbryos.value}>{collection.viableOocytes}</Text>
+                                <View style={{width: '5%'}}>
+                                    <Text style={stylesEmbryos.value}>{index + 1}</Text>
+                                </View>
+                                <View style={{width: '5%'}}>
+                                    <Text style={stylesEmbryos.value}>{collection.donorCattle.registrationNumber}</Text>
+                                </View>
+                                <View>
+                                    <Text style={stylesEmbryos.value}>{collection.bull.registrationNumber}</Text>
+                                </View>
+                                <View style={{width: '5%'}}>
+                                    <Text style={stylesEmbryos.value}>{collection.totalOocytes}</Text>
+                                </View>
+                                <View style={{width: '5%'}}>
+                                    <Text style={stylesEmbryos.value}>{collection.viableOocytes}</Text>
+                                </View>   
                             </View>
                         ))}
                     <Text style={[stylesEmbryos.sectionTitle, stylesEmbryos.oocytesTitle]}>Oócitos:</Text>
