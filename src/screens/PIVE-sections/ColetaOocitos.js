@@ -11,12 +11,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { IPAdress } from "../../components/APIip";
 
 export default ({ route, navigation }) => {
-    const [newOocyteCollectionDate, setDateOfOocyteCollection] = useState('')
-    const [farm, setFarm] = useState('')
-    const [client, setClient] = useState('')
-    const [laboratory, setLaboratory] = useState('')
-    const [veterinarian, setVeterinarian] = useState('')
-    const [technical, setTechnical] = useState('')
     const [donorCattleId, setDonorCattleId] = useState(null)
     const [bullId, setBullId] = useState(null)
     const [totalOocytes, setTotalOocytes] = useState('')
@@ -96,8 +90,15 @@ export default ({ route, navigation }) => {
                 totalOocytes: parseInt(totalOocytes) || 0,
                 viableOocytes: parseInt(viableOocytes) || 0,
             })
+                setDonorCattleId('')
+                setBullId('')
+                setTotalOocytes('')
+                setViableOocytes('')
                 Alert.alert('Successo', 'Coleta salva com sucesso!')
+                const errorMessage = await response.text()
+                Alert.alert('Erro', errorMessage);
         } catch (error) {
+            Alert.alert(`${error.response.data}`)
         }
     }
 

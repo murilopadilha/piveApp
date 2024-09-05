@@ -207,25 +207,29 @@ export default ({ route, navigation }) => {
                         <Text style={stylesEmbryos.label}>Total</Text>
                         <Text style={stylesEmbryos.label}>Viáveis</Text>
                     </View>
-                    {oocyteCollections.oocyteCollections.map((collection, index) => (
-                            <View key={index} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                                <View style={{width: '5%'}}>
+                    {oocyteCollections.oocyteCollections.map((collection, index) => {
+                        const backgroundColor = index % 2 == 0 ? '#fff' : 'transparent'
+
+                        return (
+                            <View key={index} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', backgroundColor }}>
+                                <View style={{width: '15%'}}>
                                     <Text style={stylesEmbryos.value}>{index + 1}</Text>
                                 </View>
-                                <View style={{width: '5%'}}>
+                                <View style={{width: '30%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.donorCattle.registrationNumber}</Text>
                                 </View>
-                                <View>
+                                <View style={{width: '20%', marginRight: '2%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.bull.registrationNumber}</Text>
                                 </View>
-                                <View style={{width: '5%'}}>
+                                <View style={{width: '20%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.totalOocytes}</Text>
                                 </View>
-                                <View style={{width: '5%'}}>
+                                <View style={{width: '15%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.viableOocytes}</Text>
                                 </View>   
                             </View>
-                        ))}
+                        )
+                    })}
                     <Text style={[stylesEmbryos.sectionTitle, stylesEmbryos.oocytesTitle]}>Oócitos:</Text>
                     <View style={stylesEmbryos.oocytesContainer}>
                         <View style={stylesEmbryos.oocytesRow}>
