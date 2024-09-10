@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, TouchableOpacity, StyleSheet, Alert, ScrollView } from "react-native";
+import { Text, View, TouchableOpacity, StyleSheet, Alert, ScrollView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar } from 'react-native-calendars';
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { SelectList } from 'react-native-dropdown-select-list';
 import { useNavigation } from '@react-navigation/native';
 import Octicons from '@expo/vector-icons/Octicons';
@@ -12,55 +12,55 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import style from "../components/style"; 
-
 import { IPAdress } from "../components/APIip";
 
 export default (props) => {
-    const [scheduleDate, setScheduleDate] = useState('')
-    const [category, setCategory] = useState('')
-    const [markedDates, setMarkedDates] = useState({})
-    const [selectedDateDetails, setSelectedDateDetails] = useState([])
+    const [scheduleDate, setScheduleDate] = useState('');
+    const [category, setCategory] = useState('');
+    const [markedDates, setMarkedDates] = useState({});
+    const [selectedDateDetails, setSelectedDateDetails] = useState([]);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [datePickerMode, setDatePickerMode] = useState('date');
 
-    const navigation = useNavigation()
+    const navigation = useNavigation();
 
     const categories = [
         { key: 'OOCYTE_COLLECTION', value: 'Coleta de Oócito' },
         { key: 'IN_VITRO_MATURATION', value: 'Maturação In Vitro' },
         { key: 'IN_VITRO_FERTILIZATION', value: 'Fertilização In Vitro' },
         { key: 'EMBRYO_TRANSFER', value: 'Transferência de Embrião' },
-    ]
+    ];
 
     const categoryData = categories.map(cat => ({
         key: cat.key,
         value: cat.value
-    }))
+    }));
 
     const handleSelect = (selectedKey) => {
-        const selectedCategory = categories.find(cat => cat.key === selectedKey)
+        const selectedCategory = categories.find(cat => cat.key === selectedKey);
         if (selectedCategory) {
-            setCategory(selectedCategory.key)
+            setCategory(selectedCategory.key);
         }
-    }
+    };
 
     const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || new Date()
-        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
-        setScheduleDate(formattedDate)
-    }
+        setShowDatePicker(false);
+        if (event.type === 'set' && selectedDate) {
+            const currentDate = selectedDate || new Date();
+            const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`;
+            setScheduleDate(formattedDate);
+        }
+    };
 
-    const showDatePicker = () => {
-        DateTimePickerAndroid.open({
-            value: new Date(),
-            mode: 'date',
-            is24Hour: true,
-            onChange: onChangeDate,
-        })
-    }
+    const showDatePickerDialog = () => {
+        setShowDatePicker(true);
+        setDatePickerMode('date');
+    };
 
     const handleSchedule = async () => {
         if (!scheduleDate || !category) {
-            Alert.alert("Erro", "Por favor, selecione a data e a categoria.")
-            return
+            Alert.alert("Erro", "Por favor, selecione a data e a categoria.");
+            return;
         }
 
         try {
@@ -73,95 +73,95 @@ export default (props) => {
                     procedureType: category,
                     date: scheduleDate,
                 }),
-            })
+            });
 
             if (!response.ok) {
-                throw new Error('Falha na solicitação')
+                throw new Error('Falha na solicitação');
             }
 
             const result = await response.json();
-            Alert.alert("Sucesso", "Agendamento realizado com sucesso!")
-            console.log(result)
+            Alert.alert("Sucesso", "Agendamento realizado com sucesso!");
+            console.log(result);
 
-            fetchScheduledDates()
+            fetchScheduledDates();
 
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro: ${error.message}`)
+            Alert.alert("Erro", `Ocorreu um erro: ${error.message}`);
         }
-    }
+    };
 
     const fetchScheduledDates = async () => {
         try {
-            const response = await fetch(`http://${IPAdress}/schedule`)
+            const response = await fetch(`http://${IPAdress}/schedule`);
             if (!response.ok) {
-                throw new Error('Falha na solicitação')
+                throw new Error('Falha na solicitação');
             }
-            const data = await response.json()
+            const data = await response.json();
 
-            const dates = {}
+            const dates = {};
             data.forEach(item => {
                 dates[item.date] = {
                     selected: true,
                     marked: true,
                     selectedColor: '#092955',
-                }
-            })
+                };
+            });
 
-            setMarkedDates(dates)
+            setMarkedDates(dates);
 
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao buscar datas agendadas: ${error.message}`)
+            Alert.alert("Erro", `Ocorreu um erro ao buscar datas agendadas: ${error.message}`);
         }
-    }
+    };
 
     const fetchDateDetails = async (date) => {
         try {
-            const response = await fetch(`http://${IPAdress}/schedule/search?date=${date}`)
+            const response = await fetch(`http://${IPAdress}/schedule/search?date=${date}`);
             if (!response.ok) {
-                throw new Error('Falha na solicitação')
+                throw new Error('Falha na solicitação');
             }
-            const data = await response.json()
-            
+            const data = await response.json();
+
             if (data.length > 0) {
                 const details = data.map(item => ({
-                    id: item.id, 
+                    id: item.id,
                     procedureType: categories.find(cat => cat.key === item.procedureType)?.value || item.procedureType,
                     date: item.date
-                }))
-                setSelectedDateDetails(details)
+                }));
+                setSelectedDateDetails(details);
             } else {
-                setSelectedDateDetails([])
+                setSelectedDateDetails([]);
             }
         } catch (error) {
-            
+            Alert.alert("Erro", `Ocorreu um erro ao buscar detalhes: ${error.message}`);
         }
-    }
+    };
 
     const handleDelete = async (id) => {
         try {
             const response = await fetch(`http://${IPAdress}/schedule/${id}`, {
                 method: 'DELETE',
-            })
+            });
 
             if (!response.ok) {
-                throw new Error('Falha na solicitação')
+                throw new Error('Falha na solicitação');
             }
 
-            Alert.alert("Sucesso", "Agendamento excluído com sucesso!")
-            fetchScheduledDates()
-            fetchDateDetails(scheduleDate)
+            Alert.alert("Sucesso", "Agendamento excluído com sucesso!");
+            fetchScheduledDates();
+            fetchDateDetails(scheduleDate);
 
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao excluir o agendamento: ${error.message}`)
+            Alert.alert("Erro", `Ocorreu um erro ao excluir o agendamento: ${error.message}`);
         }
-    }
+    };
 
     useEffect(() => {
-        fetchScheduledDates()
-    }, [])
+        fetchScheduledDates();
+    }, []);
 
     return (
-        <SafeAreaView style={[style.safeAreaView, {backgroundColor: '#F1F2F4'}]}>
+        <SafeAreaView style={[style.safeAreaView, { backgroundColor: '#F1F2F4' }]}>
             <View style={style.divTitleMain}>
                 <MaterialCommunityIcons style={{ marginRight: 3 }} name="cow" size={34} color="#092955" />
                 <Text style={style.titleTextMain}>BovInA</Text>
@@ -175,13 +175,13 @@ export default (props) => {
                     inputStyles={style.selectListInput}
                     dropdownStyles={style.selectListDropdown}
                 />
-                <TouchableOpacity onPress={showDatePicker} style={[style.dateInput, { marginLeft: 20, marginRight: 20, marginTop: 10 }]}>
+                <TouchableOpacity onPress={showDatePickerDialog} style={[style.dateInput, { marginLeft: 20, marginRight: 20, marginTop: 10 }]}>
                     <Text style={style.dateText}>{scheduleDate || "Selecione a Data"}</Text>
-                    <AntDesign style={{paddingLeft: '20%'}} name="calendar" size={24} color="#000" />
+                    <AntDesign style={{ paddingLeft: '20%' }} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleSchedule} style={[style.scheduleButton, {display: 'flex', flexDirection: 'row', width: 90}]}>
+                <TouchableOpacity onPress={handleSchedule} style={[style.scheduleButton, { display: 'flex', flexDirection: 'row', width: 90 }]}>
                     <FontAwesome5 name="calendar-check" size={20} color="white" />
-                    <Text style={[style.scheduleText, {paddingLeft: 5}]}>Agendar</Text>
+                    <Text style={[style.scheduleText, { paddingLeft: 5 }]}>Agendar</Text>
                 </TouchableOpacity>
             </View>
             <View style={style.calendarContainer}>
@@ -203,13 +203,6 @@ export default (props) => {
                         calendarBackground: '#E0E0E0',
                         textSectionTitleColor: '#000',
                         arrowColor: '#092955',
-                        monthTextColor: '#000',
-                        textDayHeaderFontSize: 16,
-                        textDayFontSize: 16,
-                        textMonthFontSize: 20,
-                        textDayHeaderFontFamily: 'Arial',
-                        textDayFontFamily: 'Arial',
-                        textMonthFontFamily: 'Arial',
                     }}
                     monthFormat={'yyyy MMMM'}
                     firstDay={1}
@@ -220,8 +213,8 @@ export default (props) => {
                 />
                 {selectedDateDetails.length > 0 && (
                     <ScrollView style={style.detailsContainer}
-                    contentContainerStyle={{ paddingBottom: 80 }}
-                    showsVerticalScrollIndicator={false}>
+                        contentContainerStyle={{ paddingBottom: 80 }}
+                        showsVerticalScrollIndicator={false}>
                         {selectedDateDetails.map((detail, index) => (
                             <View key={index} style={style.detailItem}>
                                 <Text style={style.detailsText}>
@@ -251,6 +244,14 @@ export default (props) => {
                     </ScrollView>
                 )}
             </View>
+            {showDatePicker && (
+                <DateTimePicker
+                    value={new Date()}
+                    mode={datePickerMode}
+                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                    onChange={onChangeDate}
+                />
+            )}
         </SafeAreaView>
-    )
-}
+    );
+};
