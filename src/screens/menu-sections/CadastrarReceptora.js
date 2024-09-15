@@ -50,7 +50,7 @@ export default ({ navigation }) => {
         <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-                    <View style={{ marginRight: 50 }}>
+                    <View style={{ marginRight: '5%' }}>
                         <AntDesign name="arrowleft" size={24} color="#092955" />
                     </View>
                 </TouchableOpacity>
@@ -60,6 +60,7 @@ export default ({ navigation }) => {
                 <Text style={style.label}>Nome:</Text>
                 <TextInput
                     placeholder="Nome da receptora"
+                    placeholderTextColor="#888"
                     value={newReceiverName}
                     style={style.input}
                     onChangeText={setName}
@@ -67,6 +68,7 @@ export default ({ navigation }) => {
                 <Text style={style.label}>Raça:</Text>
                 <TextInput
                     placeholder="Raça da receptora"
+                    placeholderTextColor="#888"
                     value={newReceiverBreed}
                     style={style.input}
                     onChangeText={setBreed}
@@ -74,6 +76,7 @@ export default ({ navigation }) => {
                 <Text style={style.label}>Identificação:</Text>
                 <TextInput
                     placeholder="Identificação da receptora"
+                    placeholderTextColor="#888"
                     value={newReceiverIdentification}
                     style={style.input}
                     onChangeText={setIdentification}

@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native'
+import { StyleSheet, Platform } from 'react-native'
 
 export default StyleSheet.create({
     container: {
@@ -7,7 +7,7 @@ export default StyleSheet.create({
     },
     title: {
         color: '#fff',
-        fontSize: 20,
+        fontSize: Platform.OS === 'ios' ? 20 : 9,
         fontWeight: 'bold',
         marginLeft: 20,
         flex: 1,
@@ -80,12 +80,12 @@ export default StyleSheet.create({
         backgroundColor: '#F1F2F4',
     },
     modalTitle: {
-        fontSize: 18,
+        fontSize: Platform.OS === 'ios' ? 18 : 9,
         fontWeight: 'bold',
         marginBottom: 10,
     },
     modalSubtitle: {
-        fontSize: 14,
+        fontSize: Platform.OS === 'ios' ? 14 : 9,
         color: '#555',
         marginBottom: 20,
     },

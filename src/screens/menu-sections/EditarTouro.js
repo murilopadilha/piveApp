@@ -83,8 +83,8 @@ export default ({ route, navigation }) => {
         <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-                    <View style={{ marginRight: 50 }}>
-                        <AntDesign name="arrowleft" size={24} color="#fff" />
+                    <View style={{ marginRight: '5%' }}>
+                        <AntDesign name="arrowleft" size={24} color="#092955" />
                     </View>
                 </TouchableOpacity>
                 <Text style={style.titleText}>Editar touro</Text>
@@ -93,6 +93,7 @@ export default ({ route, navigation }) => {
                 <Text style={style.label}>Nome:</Text>
                 <TextInput
                     placeholder="Nome do touro"
+                    placeholderTextColor="#888"
                     value={newDonorName}
                     style={style.input}
                     onChangeText={setName}
@@ -100,6 +101,7 @@ export default ({ route, navigation }) => {
                 <Text style={style.label}>Identificação:</Text>
                 <TextInput
                     placeholder="Identificação do touro"
+                    placeholderTextColor="#888"
                     value={newDonorIndentification}
                     style={style.input}
                     onChangeText={setNumber}

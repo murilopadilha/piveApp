@@ -79,7 +79,7 @@ export default ({ navigation }) => {
         <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-                    <View style={{ marginRight: 50 }}>
+                    <View style={{ marginRight: '5%' }}>
                         <AntDesign name="arrowleft" size={24} color="#092955" />
                     </View>
                 </TouchableOpacity>
@@ -113,8 +113,8 @@ export default ({ navigation }) => {
 
 function ListItem({ data, onRemove, navigation }) {
     return (
-        <SafeAreaView style={style.listItem}>
-            <View>
+        <View style={style.listItem}>
+            <View style={{alignSelf: 'center'}}>
                 <Text style={style.listText}>
                     <Text style={{ fontWeight: 'bold' }}>Nome: </Text>
                     {data.name}
@@ -138,7 +138,7 @@ function ListItem({ data, onRemove, navigation }) {
                     <Octicons name="pencil" size={20} color="#908D8E" />
                 </TouchableOpacity>
             </View>
-        </SafeAreaView>
+        </View>
     )
 }
 

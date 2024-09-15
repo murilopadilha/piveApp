@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native'
+import { Platform, StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
   app:{
@@ -21,8 +21,9 @@ export default StyleSheet.create({
   },
   divTitleMain:{
     backgroundColor: "#F1F2F4",
-    padding: 25,
-    paddingBottom: 20,
+    padding: '5%',
+    paddingBottom: '5%',
+    marginLeft: '1%',
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
@@ -33,13 +34,11 @@ export default StyleSheet.create({
     marginLeft: 20,
     marginRight: 80,
     color: '#092955',
-    fontFamily: 'Kanit-',
   },
   titleTextMain:{
     fontSize: 24,
-    marginRight: 230,
+    marginRight: '55%',
     color: '#092955',
-    fontFamily: 'Kanit-',
     fontWeight: 'bold',
   },
   input: {
@@ -52,13 +51,14 @@ export default StyleSheet.create({
     marginBottom: 5,
     paddingLeft: 15,
     fontWeight: 'bold',
+    fontSize: Platform.OS === 'ios' ? 14 : 10,
   },
   label: {
     margin: 10,
   },
   text: {
     color: '#000',
-    marginBottom: 10
+    marginBottom: 10,
   },
   content: {
     margin: 30
@@ -81,7 +81,7 @@ export default StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    margin: 20,
+    margin: '5%',
     marginTop: 0,
     alignItems: 'center',
     justifyContent: 'space-evenly',
@@ -89,8 +89,8 @@ export default StyleSheet.create({
   },
   menuContentButton: {
     backgroundColor: '#FFFFFF',
-    marginTop: 20,
-    margin: 5,
+    marginTop: '10%',
+    margin: '1%',
     width: 150,
     height: 150,
     borderRadius: 25,
@@ -104,6 +104,7 @@ export default StyleSheet.create({
   },
   textButtonMenu: {
     textAlign: 'center',
+    fontSize: Platform.OS === 'ios' ? 12 : 10,
   },
   imgsMenu: {
     width: 125,
@@ -130,6 +131,7 @@ export default StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold',
     paddingLeft: 100,
+    fontSize: Platform.OS === 'ios' ? 14 : 10,
   },
   listItem: {
     backgroundColor: '#FFFFFF',
@@ -155,7 +157,7 @@ export default StyleSheet.create({
     justifyContent: 'space-between',
   },
   listText: {
-    fontSize: 16,
+    fontSize: Platform.OS === 'ios' ? 14 : 10,
     color: '#000'
   }, contentList: {
     margin: 5
@@ -189,7 +191,7 @@ export default StyleSheet.create({
   },
   listButtonDelete: {
     borderColor: '#ccc',
-    padding: 3,
+    padding: '1%',
     width: 30,
     borderRadius: 8,
     marginLeft: 5,
@@ -252,6 +254,7 @@ export default StyleSheet.create({
     marginLeft: 20,
     marginRight: 20,
     marginTop: 10,
+    fontSize: Platform.OS === 'ios' ? 14 : 10,
   },
   scheduleButton: {
     backgroundColor: '#092955',
@@ -301,9 +304,11 @@ export default StyleSheet.create({
     marginHorizontal: 20,
     marginTop: 10,
     paddingTop: 9,
+    fontSize: Platform.OS === 'ios' ? 14 : 10,
   },
   selectListInput: {
-    fontSize: 14,
+    fontSize: Platform.OS === 'ios' ? 14 : 10,
+    paddingTop: '1.5%',
     color: '#000',
   },
   selectListDropdown: {
@@ -312,6 +317,7 @@ export default StyleSheet.create({
     borderColor: 'transparent',
     backgroundColor: '#FFFFFF',
     marginHorizontal: 20,
+    fontSize: Platform.OS === 'ios' ? 14 : 10,
   },
   detailsContainer: {
     marginBottom: 10,
@@ -331,7 +337,7 @@ export default StyleSheet.create({
   detailsText: {
     paddingLeft: 5,
     paddingBottom: 3,
-    fontSize: 16,
+    fontSize: Platform.OS === 'ios' ? 14 : 10,
     color: '#333',
   },
   searchPive: {

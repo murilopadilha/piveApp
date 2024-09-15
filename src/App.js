@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { Text, View, SafeAreaView } from 'react-native';
+import { Text, View, SafeAreaView, Platform } from 'react-native';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-// import { BlurView } from '@react-native-community/blur';
+import { BlurView } from 'expo-blur';
 import '../gesture-handler';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StyleSheet } from 'react-native';
@@ -81,7 +81,8 @@ export default function App() {
           borderRadius: 25
         },
         tabBarLabelStyle: {
-          fontSize: 13
+          fontSize: Platform.OS === 'ios' ? 12 : 6,
+          paddingBottom: '5%'
         },
         tabBarStyle: {
           position: 'absolute',
@@ -101,11 +102,11 @@ export default function App() {
               overflow: "hidden",
             }}
           >
-            {/* <BlurView 
+            <BlurView 
               style={{ flex: 1, backgroundColor: "transparent" }}
               blurType='xlight'
               blurAmount={5}
-            />  */}
+            /> 
           </View>
         )
       }}>

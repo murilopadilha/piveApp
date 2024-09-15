@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Text, View, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { SelectList } from 'react-native-dropdown-select-list';
@@ -66,7 +66,7 @@ export default ({ navigation }) => {
         } catch (error) {
             console.error(error);
         }
-    };
+    }
 
     useFocusEffect(
         React.useCallback(() => {
@@ -192,11 +192,11 @@ export default ({ navigation }) => {
                         onPress={() => navigation.navigate('FivInfo', { fiv: item })}
                     >
                         <View style={{ display: 'flex', flexDirection: 'column', width: 320 }}>
-                            <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 5 }}>
-                                <Text style={{ fontWeight: 'bold' }}>FIV ID: </Text>
-                                <Text>{item.id}</Text>
+                            <View style={{ display: 'flex', flexDirection: 'row', marginBottom: '1%' }}>
+                                <Text style={{ fontWeight: 'bold', fontSize: Platform.OS === 'ios' ? 13 : 10, marginTop: '0.5%'}}>FIV ID: </Text>
+                                <Text style={{fontSize: Platform.OS === 'ios' ? 13 : 10, marginTop: '0.5%'}}>{item.id}</Text>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: '2%' }}>
-                                    <Text style={{ fontWeight: 'bold' }}>Coleta dos Oócitos: </Text>
+                                    <Text style={{ fontWeight: 'bold', fontSize: Platform.OS === 'ios' ? 13 : 10, }}>Coleta dos Oócitos: </Text>
                                     {item.status === 'OOCYTE_COLLECTION_COMPLETED' || item.status === 'COMPLETED' ? (
                                         <MaterialIcons name="done" size={20} color="#555" />
                                     ) : (
@@ -204,7 +204,7 @@ export default ({ navigation }) => {
                                     )}
                                 </View>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: '0%' }}>
-                                    <Text style={{ fontWeight: 'bold' }}>Embriões: </Text>
+                                    <Text style={{ fontWeight: 'bold', fontSize: Platform.OS === 'ios' ? 13 : 10, }}>Embriões: </Text>
                                     {item.status === 'COMPLETED'  ? (
                                         <MaterialIcons name="done" size={20} color="#555" />
                                     ) : (
@@ -213,14 +213,14 @@ export default ({ navigation }) => {
                                 </View>
                             </View>
                             <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 5}}>
-                                <Text style={{ fontWeight: 'bold' }}>Data Asp: </Text>
-                                <Text>{item.date ? item.date : '-'}</Text>
+                                <Text style={{ fontWeight: 'bold', fontSize: Platform.OS === 'ios' ? 13 : 10, }}>Data Asp: </Text>
+                                <Text style={{fontSize: Platform.OS === 'ios' ? 13 : 10,}}>{item.date ? item.date : '-'}</Text>
                             </View>
                             <View style={{display: 'flex', flexDirection: 'row'}}>
-                                <Text style={{ fontWeight: 'bold' }}>Cliente/Fazenda: </Text>
-                                <Text>{item.client ? item.client : '-'}</Text>
-                                <Text>/</Text>
-                                <Text style={{marginRight: '10%'}}>{item.farm ? item.farm : '-'}</Text>
+                                <Text style={{ fontWeight: 'bold', fontSize: Platform.OS === 'ios' ? 13 : 10, }}>Cliente/Fazenda: </Text>
+                                <Text style={{fontSize: Platform.OS === 'ios' ? 13 : 10}}>{item.client ? item.client : '-'}</Text>
+                                <Text style={{fontSize: Platform.OS === 'ios' ? 13 : 10}}>/</Text>
+                                <Text style={{fontSize: Platform.OS === 'ios' ? 13 : 10,}}>{item.farm ? item.farm : '-'}</Text>
                             </View>   
                         </View>
                     </TouchableOpacity>
@@ -230,7 +230,7 @@ export default ({ navigation }) => {
                 style={[style.listButtonSearch, { paddingTop: '2%',marginTop: '175%', width: '20%', height: '5%', marginLeft: '70%', position: 'absolute', zIndex: 5 }]}
                 onPress={() => navigation.navigate('Cabecalho')}
             >
-                <Text style={{ color: '#FFFFFF', textAlign: 'center', paddingTop: 3 }}>Nova FIV</Text>
+                <Text style={{ fontSize: Platform.OS === 'ios' ? 13 : 10, color: '#FFFFFF', textAlign: 'center', paddingTop: 3 }}>Nova FIV</Text>
             </TouchableOpacity>
         </SafeAreaView>
     );

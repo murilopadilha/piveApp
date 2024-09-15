@@ -179,9 +179,17 @@ export default (props) => {
                     <Text style={style.dateText}>{scheduleDate || "Selecione a Data"}</Text>
                     <AntDesign style={{ paddingLeft: '20%' }} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
+                {showDatePicker && (
+                    <DateTimePicker
+                        value={new Date()}
+                        mode={datePickerMode}
+                        display={Platform.OS === 'ios' ? 'default' : 'default'}
+                        onChange={onChangeDate}
+                    />
+                )}
                 <TouchableOpacity onPress={handleSchedule} style={[style.scheduleButton, { display: 'flex', flexDirection: 'row', width: 90 }]}>
                     <FontAwesome5 name="calendar-check" size={20} color="white" />
-                    <Text style={[style.scheduleText, { paddingLeft: 5 }]}>Agendar</Text>
+                    <Text style={[style.scheduleText, { fontSize: Platform.OS === 'ios' ? 13 : 10, paddingLeft: 5 }]}>Agendar</Text>
                 </TouchableOpacity>
             </View>
             <View style={style.calendarContainer}>
@@ -194,12 +202,9 @@ export default (props) => {
                         selectedDayBackgroundColor: '#092955',
                         selectedDayTextColor: '#FFFFFF',
                         dayTextColor: '#000',
-                        textDayFontFamily: 'Arial',
-                        textMonthFontFamily: 'Arial',
-                        textDayHeaderFontFamily: 'Arial',
-                        textDayFontSize: 16,
-                        textMonthFontSize: 20,
-                        textDayHeaderFontSize: 14,
+                        fontSize: Platform.OS === 'ios' ? 16 : 9,
+                        fontSize: Platform.OS === 'ios' ? 20 : 9,
+                        fontSize: Platform.OS === 'ios' ? 14 : 9,
                         calendarBackground: '#E0E0E0',
                         textSectionTitleColor: '#000',
                         arrowColor: '#092955',
@@ -244,14 +249,6 @@ export default (props) => {
                     </ScrollView>
                 )}
             </View>
-            {showDatePicker && (
-                <DateTimePicker
-                    value={new Date()}
-                    mode={datePickerMode}
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onChange={onChangeDate}
-                />
-            )}
         </SafeAreaView>
     );
 };

@@ -63,7 +63,7 @@ export default ({ navigation }) => {
         <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-                    <View style={{ marginRight: 50 }}>
+                    <View style={{ marginRight: '5%' }}>
                         <AntDesign name="arrowleft" size={24} color="#092955" />
                     </View>
                 </TouchableOpacity>
@@ -73,6 +73,7 @@ export default ({ navigation }) => {
                 <Text style={style.label}>Nome:</Text>
                 <TextInput
                     placeholder="Nome da doadora"
+                    placeholderTextColor="#888"
                     value={newDonorName}
                     style={style.input}
                     onChangeText={(text) => setName(text)}
@@ -80,6 +81,7 @@ export default ({ navigation }) => {
                 <Text style={style.label}>Raça:</Text>
                 <TextInput
                     placeholder="Raça da doadora"
+                    placeholderTextColor="#888"
                     value={newDonorBreed}
                     style={style.input}
                     onChangeText={(text) => setBreed(text)}
@@ -87,6 +89,7 @@ export default ({ navigation }) => {
                 <Text style={style.label}>Identificação:</Text>
                 <TextInput
                     placeholder="Identificação da doadora"
+                    placeholderTextColor="#888"
                     value={newDonorIndentification}
                     style={style.input}
                     onChangeText={(text) => setNumber(text)}
@@ -100,7 +103,7 @@ export default ({ navigation }) => {
                     <DateTimePicker
                         value={new Date()}
                         mode='date'
-                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        display={Platform.OS === 'ios' ? 'default' : 'default'}
                         onChange={onChangeDate}
                     />
                 )}

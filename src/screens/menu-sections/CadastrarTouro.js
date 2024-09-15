@@ -51,7 +51,7 @@ export default ({ navigation }) => {
         <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-                    <View style={{ marginRight: 50 }}>
+                    <View style={{ marginRight: '5%' }}>
                         <AntDesign name="arrowleft" size={24} color="#092955" />
                     </View>
                 </TouchableOpacity>
@@ -61,6 +61,7 @@ export default ({ navigation }) => {
                 <Text style={style.label}>Nome:</Text>
                 <TextInput
                     placeholder="Nome do touro"
+                    placeholderTextColor="#888"
                     value={newBullName}
                     style={style.input}
                     onChangeText={setName}
@@ -68,6 +69,7 @@ export default ({ navigation }) => {
                 <Text style={style.label}>Identificação:</Text>
                 <TextInput
                     placeholder="Identificação do touro"
+                    placeholderTextColor="#888"
                     value={newBullIndentification}
                     style={style.input}
                     onChangeText={setNumber}

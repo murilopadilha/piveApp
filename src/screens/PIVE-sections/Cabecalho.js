@@ -67,13 +67,14 @@ export default ({ route, navigation }) => {
                         <DateTimePicker
                             value={new Date()}
                             mode='date'
-                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                            display={Platform.OS === 'ios' ? 'default' : 'default'}
                             onChange={onChangeDate}
                         />
                     )}
                     <Text style={style.label}>Fazenda:</Text>
                     <TextInput
                         placeholder="Nome da fazenda"
+                        placeholderTextColor="#888"
                         style={style.input}
                         value={farm}
                         onChangeText={setFarm}
@@ -81,6 +82,7 @@ export default ({ route, navigation }) => {
                     <Text style={style.label}>Cliente:</Text>
                     <TextInput
                         placeholder="Nome do cliente"
+                        placeholderTextColor="#888"
                         style={style.input}
                         value={client}
                         onChangeText={setClient}
@@ -88,6 +90,7 @@ export default ({ route, navigation }) => {
                     <Text style={style.label}>Laboratório:</Text>
                     <TextInput
                         placeholder="Nome do laboratório"
+                        placeholderTextColor="#888"
                         style={style.input}
                         value={laboratory}
                         onChangeText={setLaboratory}
@@ -95,6 +98,7 @@ export default ({ route, navigation }) => {
                     <Text style={style.label}>Veterinário:</Text>
                     <TextInput
                         placeholder="Nome do veterinário"
+                        placeholderTextColor="#888"
                         style={style.input}
                         value={veterinarian}
                         onChangeText={setVeterinarian}
@@ -102,6 +106,7 @@ export default ({ route, navigation }) => {
                     <Text style={style.label}>Técnico:</Text>
                     <TextInput
                         placeholder="Nome do técnico"
+                        placeholderTextColor="#888"
                         style={style.input}
                         value={technical}
                         onChangeText={setTechnical}
@@ -109,6 +114,7 @@ export default ({ route, navigation }) => {
                     <Text style={style.label}>TE:</Text>
                     <TextInput
                         placeholder="Nome do TE"
+                        placeholderTextColor="#888"
                         style={style.input}
                         value={TE}
                         onChangeText={setTE}
