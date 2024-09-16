@@ -160,7 +160,7 @@ export default ({ route, navigation }) => {
         <SafeAreaView style={stylesEmbryos.container}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Pive')}>
-                    <View style={{ marginRight: 50 }}>
+                    <View style={{ marginRight: '15%' }}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
@@ -168,7 +168,7 @@ export default ({ route, navigation }) => {
             </View>
             <ScrollView style={[stylesEmbryos.scrollContainer, { marginHorizontal: 20 }]}>
                 <View style={stylesEmbryos.section}>
-                    <Text style={stylesEmbryos.sectionTitle}>Coleta dos Oócitos</Text>
+                    <Text style={stylesEmbryos.sectionTitle}>Procedimento</Text>
                     <View style={stylesEmbryos.infoContainer}>
                         <View style={stylesEmbryos.infoRow}>
                             <Text style={stylesEmbryos.label}>Data da coleta:</Text>
@@ -199,7 +199,7 @@ export default ({ route, navigation }) => {
                             <Text style={stylesEmbryos.value}>{fiv.TE || '-'}</Text>
                         </View>
                     </View>
-                    <Text style={[stylesEmbryos.label, { marginLeft: '31%', marginBottom: '3%' }]}>Procedimentos:</Text>
+                    <Text style={[stylesEmbryos.label, { marginLeft: '31%', marginBottom: '3%' }]}>Coleta dos Oócitos:</Text>
                     <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
                         <Text style={stylesEmbryos.label}>N°</Text>
                         <Text style={stylesEmbryos.label}>Doadora</Text>
@@ -215,16 +215,16 @@ export default ({ route, navigation }) => {
                                 <View style={{width: '15%'}}>
                                     <Text style={stylesEmbryos.value}>{index + 1}</Text>
                                 </View>
-                                <View style={{width: '30%'}}>
+                                <View style={{width: '24%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.donorCattle.registrationNumber}</Text>
                                 </View>
-                                <View style={{width: '20%', marginRight: '2%'}}>
+                                <View style={{width: '20%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.bull.registrationNumber}</Text>
                                 </View>
-                                <View style={{width: '20%'}}>
+                                <View style={{width: '20%', marginLeft: '8%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.totalOocytes}</Text>
                                 </View>
-                                <View style={{width: '15%'}}>
+                                <View style={{width: '15%', marginLeft: '2%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.viableOocytes}</Text>
                                 </View>   
                             </View>
@@ -243,23 +243,23 @@ export default ({ route, navigation }) => {
                             </View>
                         </View>
                     </View>
-                    <Text style={[stylesEmbryos.sectionTitle, stylesEmbryos.cultivationTitle]}>Cultivo</Text>
+                    <Text style={[stylesEmbryos.sectionTitle, stylesEmbryos.cultivationTitle]}>Produção de Embriões</Text>
                     <View style={stylesEmbryos.cultivationContainer}>
                         <View style={stylesEmbryos.cultivationItem}>
                             <Text style={stylesEmbryos.label}>Total de Embriões:</Text>
                             <Text style={stylesEmbryos.value}>{cultivation.totalEmbryos || '-'}</Text>
                         </View>
-                        <TouchableOpacity
+                        <View
                             style={stylesEmbryos.cultivationItem}
                             onPress={openModal}
                         >
-                            <Text style={[stylesEmbryos.label, { textDecorationLine: 'underline' }]}>Embriões Viáveis:</Text>
+                            <Text style={stylesEmbryos.label}>Porcentual Embriões:</Text>
                             <Text style={stylesEmbryos.value}>{cultivation.viableEmbryos || '-'}</Text>
-                        </TouchableOpacity>
+                        </View>
                     </View>
                     <View style={{ display: 'flex', flexDirection: 'row' }}>
                         <TouchableOpacity
-                            onPress={() => navigation.navigate('EmbrioesViaveis', { cultivationId: cultivationId })}
+                            onPress={() => navigation.navigate('Embrioes', { fiv: fiv })}
                             style={[style.listButtonEdit, { marginTop: 0, marginLeft: 25, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
                         >
                             <FontAwesome6 name="clipboard-list" size={20} color="#E0E0E0" />
