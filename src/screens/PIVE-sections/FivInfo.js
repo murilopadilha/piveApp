@@ -201,19 +201,20 @@ export default ({ route, navigation }) => {
                     </View>
                     <Text style={[stylesEmbryos.label, { marginLeft: '31%', marginBottom: '3%' }]}>Coleta dos Oócitos:</Text>
                     <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Text style={stylesEmbryos.label}>N°</Text>
+                        <Text style={[stylesEmbryos.label, {fontSize: 10}]}>N°</Text>
                         <Text style={stylesEmbryos.label}>Doadora</Text>
                         <Text style={stylesEmbryos.label}>Touro</Text>
                         <Text style={stylesEmbryos.label}>Total</Text>
                         <Text style={stylesEmbryos.label}>Viáveis</Text>
+                        <Text style={stylesEmbryos.label}>Emb%</Text>
                     </View>
                     {oocyteCollections.oocyteCollections.map((collection, index) => {
                         const backgroundColor = index % 2 == 0 ? '#fff' : 'transparent'
 
                         return (
                             <View key={index} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', backgroundColor }}>
-                                <View style={{width: '15%'}}>
-                                    <Text style={stylesEmbryos.value}>{index + 1}</Text>
+                                <View style={{width: '3%'}}>
+                                    <Text style={[stylesEmbryos.value, {fontSize: 10}]}>{index + 1}</Text>
                                 </View>
                                 <View style={{width: '24%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.donorCattle.registrationNumber}</Text>
@@ -221,11 +222,17 @@ export default ({ route, navigation }) => {
                                 <View style={{width: '20%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.bull.registrationNumber}</Text>
                                 </View>
-                                <View style={{width: '20%', marginLeft: '8%'}}>
+                                <View style={{width: '10%', marginLeft: '3%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.totalOocytes}</Text>
                                 </View>
-                                <View style={{width: '15%', marginLeft: '2%'}}>
+                                <View style={{width: '10%', marginLeft: '5%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.viableOocytes}</Text>
+                                </View>
+                                <View style={{width: '10%', marginLeft: '8%'}}>
+                                {collection.embryoProduction
+                                    ? <Text style={stylesEmbryos.value}>{collection.embryoProduction.embryosPercentage || '-'}%</Text>
+                                    : <Text style={stylesEmbryos.value}>-</Text>
+                                }
                                 </View>   
                             </View>
                         )
