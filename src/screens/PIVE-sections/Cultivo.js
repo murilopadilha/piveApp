@@ -13,14 +13,28 @@ export default ({ route, navigation }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [totalEmbryos, setTotalEmbryos] = useState('');
-    const [isEditing, setIsEditing] = useState(false);
+    const [fivData, setFivData] = useState(null);
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchFivData = async () => {
             try {
-                const response = await axios.get(`http://18.218.115.38:8080/oocyte-collection/${oocyteCollectionId}`);
-                setData(response.data);
-                setTotalEmbryos(response.data.embryoProduction?.totalEmbryos || '');
+                // Fetch the list of FIVs
+                const fivResponse = await axios.get(`http://${IPAdress}/fiv`);
+                const fivList = fivResponse.data;
+
+                // Find the FIV that contains the oocyteCollectionId
+                const foundFiv = fivList.find(fiv => 
+                    fiv.oocyteCollections.some(oocyteCollection => oocyteCollection.id === oocyteCollectionId)
+                );
+
+                setFivData(foundFiv);
+
+                // Fetch the specific oocyte collection data
+                if (foundFiv) {
+                    const response = await axios.get(`http://${IPAdress}/oocyte-collection/${oocyteCollectionId}`);
+                    setData(response.data);
+                    setTotalEmbryos(response.data.embryoProduction?.totalEmbryos || '');
+                }
             } catch (err) {
                 setError(err);
             } finally {
@@ -28,19 +42,18 @@ export default ({ route, navigation }) => {
             }
         };
 
-        fetchData();
+        fetchFivData();
     }, [oocyteCollectionId]);
 
     const handleSave = async () => {
         try {
-            await axios.post(`http://18.218.115.38:8080/production`, {
+            await axios.post(`http://${IPAdress}/production`, {
                 oocyteCollectionId,
-                totalEmbryos: Number(totalEmbryos),
+                totalEmbryos: totalEmbryos,
             });
-            Alert.alert('Successo', 'Total de embriões salvo com sucesso!');
-            setIsEditing(false);
-        } catch (err) {
-            Alert.alert('Error', 'Não foi possível salvar os dados.');
+            Alert.alert('Sucesso', 'Total de embriões salvo com sucesso!');
+        } catch (error) {
+            Alert.alert('Erro', error.response?.data || 'Ocorreu um erro');
         }
     };
 
@@ -63,7 +76,7 @@ export default ({ route, navigation }) => {
     return (
         <SafeAreaView style={style.menu}>
             <View style={[style.divTitle, { marginBottom: 0 }]}>
-                <TouchableOpacity onPress={() => navigation.navigate('Embrioes', { fiv: data })}>
+                <TouchableOpacity onPress={() => navigation.navigate('Embrioes', { fiv: fivData })}>
                     <View style={{ marginRight: '15%' }}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
@@ -84,21 +97,19 @@ export default ({ route, navigation }) => {
                     </View>
                 ) : (
                     <View>
-                            <View>
-                                <TextInput
-                                    style={style.input}
-                                    value={totalEmbryos}
-                                    placeholderTextColor={"#888"}
-                                    onChangeText={setTotalEmbryos}
-                                    keyboardType="numeric"
-                                    placeholder="Digite o total de embriões"
-                                />
-                                <TouchableOpacity onPress={handleSave}
-                                style={[style.listButtonSearch, { width: '30%', height: '30%', display: 'flex', flexDirection: 'row', marginTop: '5%', marginLeft: '60%' }]}>
-                                    <MaterialIcons name="done" size={20} color="white" style={{ paddingLeft: 5, paddingTop: 3 }} />
-                                    <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Salvar</Text>
-                                </TouchableOpacity>
-                            </View>
+                        <TextInput
+                            style={style.input}
+                            value={totalEmbryos}
+                            placeholderTextColor={"#888"}
+                            onChangeText={setTotalEmbryos}
+                            keyboardType="numeric"
+                            placeholder="Digite o total de embriões"
+                        />
+                        <TouchableOpacity onPress={handleSave}
+                            style={[style.listButtonSearch, { width: '30%', height: '24%', display: 'flex', flexDirection: 'row', marginTop: '5%', marginLeft: '60%' }]}>
+                            <MaterialIcons name="done" size={20} color="white" style={{ paddingLeft: 5, paddingTop: 3 }} />
+                            <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Salvar</Text>
+                        </TouchableOpacity>
                     </View>
                 )}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginTop: '20%' }}>

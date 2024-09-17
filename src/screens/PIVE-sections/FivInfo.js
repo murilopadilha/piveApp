@@ -157,7 +157,7 @@ export default ({ route, navigation }) => {
     const cultivation = data?.cultivation || {};
 
     return (
-        <SafeAreaView style={stylesEmbryos.container}>
+        <SafeAreaView style={stylesEmbryos.container} >
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Pive')}>
                     <View style={{ marginRight: '15%' }}>
@@ -166,7 +166,7 @@ export default ({ route, navigation }) => {
                 </TouchableOpacity>
                 <Text style={style.titleText}>Informação da FIV</Text>
             </View>
-            <ScrollView style={[stylesEmbryos.scrollContainer, { marginHorizontal: 20 }]}>
+            <ScrollView style={[stylesEmbryos.scrollContainer, { marginHorizontal: 20 }]} contentContainerStyle={{ paddingBottom: '30%' }}>
                 <View style={stylesEmbryos.section}>
                     <Text style={stylesEmbryos.sectionTitle}>Procedimento</Text>
                     <View style={stylesEmbryos.infoContainer}>

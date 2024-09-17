@@ -4,6 +4,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from "axios";
 import { SafeAreaView } from "react-native-safe-area-context";
 import style from "../../components/style";
+import { IPAdress } from "../../components/APIip";
 
 export default ({ route, navigation }) => {
     const { fiv } = route.params;
@@ -14,7 +15,7 @@ export default ({ route, navigation }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`http://18.218.115.38:8080/fiv/${fiv.id}`);
+                const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`);
                 setOocyteCollections(response.data.oocyteCollections);
                 setLoading(false);
             } catch (err) {
