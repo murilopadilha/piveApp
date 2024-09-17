@@ -42,9 +42,13 @@ export default ({ route, navigation }) => {
         );
     }
 
+    const handlePress = (id) => {
+        navigation.navigate('Cultivo', { oocyteCollectionId: id });
+    };
+
     const renderItem = ({ item }) => (
         <View style={styles.itemContainer}>
-            <TouchableOpacity style={styles.item}>
+            <TouchableOpacity style={styles.item} onPress={() => handlePress(item.id)}>
                 <View style={styles.row}>
                     <Text style={styles.label}>Doadora:</Text>
                     <Text style={styles.value}>{item.donorCattle.registrationNumber}</Text>

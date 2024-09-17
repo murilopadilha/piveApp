@@ -7,6 +7,7 @@ import style from "../../components/style";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { SelectList } from 'react-native-dropdown-select-list';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from '@react-navigation/native';
 
 import { IPAdress } from "../../components/APIip";
 
@@ -30,7 +31,6 @@ export default ({ route, navigation }) => {
                 setDonors(donorsResponse.data)
                 setBulls(bullsResponse.data)
             } catch (error) {
-                console.error('Failed to fetch donors or bulls', error)
                 Alert.alert('Error', 'Failed to load data. Please try again.')
             }
         }
@@ -95,8 +95,6 @@ export default ({ route, navigation }) => {
                 setTotalOocytes('')
                 setViableOocytes('')
                 Alert.alert('Successo', 'Coleta salva com sucesso!')
-                const errorMessage = await response.text()
-                Alert.alert('Erro', errorMessage);
         } catch (error) {
             Alert.alert(`${error.response.data}`)
         }

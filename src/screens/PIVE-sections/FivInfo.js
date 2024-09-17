@@ -210,7 +210,6 @@ export default ({ route, navigation }) => {
                     </View>
                     {oocyteCollections.oocyteCollections.map((collection, index) => {
                         const backgroundColor = index % 2 == 0 ? '#fff' : 'transparent'
-
                         return (
                             <View key={index} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', backgroundColor }}>
                                 <View style={{width: '3%'}}>
@@ -225,10 +224,10 @@ export default ({ route, navigation }) => {
                                 <View style={{width: '10%', marginLeft: '3%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.totalOocytes}</Text>
                                 </View>
-                                <View style={{width: '10%', marginLeft: '5%'}}>
+                                <View style={{width: '7%', marginLeft: '5%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.viableOocytes}</Text>
                                 </View>
-                                <View style={{width: '10%', marginLeft: '8%'}}>
+                                <View style={{width: '15%', marginLeft: '8%'}}>
                                 {collection.embryoProduction
                                     ? <Text style={stylesEmbryos.value}>{collection.embryoProduction.embryosPercentage || '-'}%</Text>
                                     : <Text style={stylesEmbryos.value}>-</Text>
