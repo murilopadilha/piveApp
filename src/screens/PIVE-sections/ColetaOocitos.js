@@ -120,7 +120,7 @@ export default ({ route, navigation }) => {
     return (
         <SafeAreaView style={style.menu}>
             <View style={[style.divTitle, {marginBottom: 0}]}>
-                <TouchableOpacity onPress={() => navigation.navigate('FivInfo', { fiv: fiv })}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
                     <View style={{ marginRight: 80 }}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>

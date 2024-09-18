@@ -18,32 +18,29 @@ export default ({ route, navigation }) => {
     useEffect(() => {
         const fetchFivData = async () => {
             try {
-                // Fetch the list of FIVs
-                const fivResponse = await axios.get(`http://${IPAdress}/fiv`);
-                const fivList = fivResponse.data;
+                const fivResponse = await axios.get(`http://${IPAdress}/fiv`)
+                const fivList = fivResponse.data
 
-                // Find the FIV that contains the oocyteCollectionId
                 const foundFiv = fivList.find(fiv => 
                     fiv.oocyteCollections.some(oocyteCollection => oocyteCollection.id === oocyteCollectionId)
-                );
+                )
 
-                setFivData(foundFiv);
+                setFivData(foundFiv)
 
-                // Fetch the specific oocyte collection data
                 if (foundFiv) {
-                    const response = await axios.get(`http://${IPAdress}/oocyte-collection/${oocyteCollectionId}`);
-                    setData(response.data);
-                    setTotalEmbryos(response.data.embryoProduction?.totalEmbryos || '');
+                    const response = await axios.get(`http://${IPAdress}/oocyte-collection/${oocyteCollectionId}`)
+                    setData(response.data)
+                    setTotalEmbryos(response.data.embryoProduction?.totalEmbryos || '')
                 }
             } catch (err) {
-                setError(err);
+                setError(err)
             } finally {
-                setLoading(false);
+                setLoading(false)
             }
-        };
+        }
 
-        fetchFivData();
-    }, [oocyteCollectionId]);
+        fetchFivData()
+    }, [oocyteCollectionId])
 
     const handleSave = async () => {
         try {
@@ -55,14 +52,14 @@ export default ({ route, navigation }) => {
         } catch (error) {
             Alert.alert('Erro', error.response?.data || 'Ocorreu um erro');
         }
-    };
+    }
 
     if (loading) {
         return (
             <SafeAreaView style={style.menu}>
                 <ActivityIndicator size="small" color="#092955" />
             </SafeAreaView>
-        );
+        )
     }
 
     if (error) {
@@ -70,7 +67,7 @@ export default ({ route, navigation }) => {
             <SafeAreaView style={style.menu}>
                 <Text>Error: {error.message}</Text>
             </SafeAreaView>
-        );
+        )
     }
 
     return (
@@ -92,7 +89,7 @@ export default ({ route, navigation }) => {
                         </View>
                         <View>
                             <Text style={[style.text, {fontWeight: 'bold'}]}>Embriões registrados:</Text>
-                            <Text style={{alignSelf: 'center', marginRight: '3%'}}>-/{data.embryoProduction.totalEmbryos}</Text>
+                            <Text style={{alignSelf: 'center', marginRight: '3%'}}>{data.embryoProduction.embryosRegistered}/{data.embryoProduction.totalEmbryos}</Text>
                         </View>
                     </View>
                 ) : (
@@ -113,17 +110,20 @@ export default ({ route, navigation }) => {
                     </View>
                 )}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginTop: '20%' }}>
-                    <TouchableOpacity style={[style.listButtonSearch, {width: '30%', paddingLeft: '0%', paddingBottom: '2%'}]}>
+                    <TouchableOpacity onPress={() => navigation.navigate('Descartados', { id: oocyteCollectionId })}
+                    style={[style.listButtonSearch, {width: '30%', paddingLeft: '0%', paddingBottom: '2%'}]}>
                         <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Descartados</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[style.listButtonSearch, {width: '30%'}]}>
+                    <TouchableOpacity onPress={() => navigation.navigate('Congelados', { id: oocyteCollectionId })}
+                    style={[style.listButtonSearch, {width: '30%'}]}>
                         <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Congelados</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[style.listButtonSearch, {width: '30%', paddingLeft: '0%', paddingBottom: '2%'}]}>
+                    <TouchableOpacity onPress={() => navigation.navigate('Transferidos', { fiv: fivData })}
+                    style={[style.listButtonSearch, {width: '30%', paddingLeft: '0%', paddingBottom: '2%'}]}>
                         <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Transferidos</Text>
                     </TouchableOpacity>
                 </View>
             </View>
         </SafeAreaView>
-    );
-};
+    )
+}

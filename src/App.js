@@ -34,6 +34,10 @@ import FivInfo from './screens/PIVE-sections/FivInfo';
 import Cultivo from './screens/PIVE-sections/Cultivo';
 import Embrioes from './screens/PIVE-sections/Embrioes';
 import Cabecalho from './screens/PIVE-sections/Cabecalho';
+import Descartados from './screens/PIVE-sections/Descartados';
+import Congelados from './screens/PIVE-sections/Congelados';
+import Transferencia from './screens/PIVE-sections/Transferencia';
+import Transferidos from './screens/PIVE-sections/Transferidos';
 
 const MenuStack = createStackNavigator()
 
@@ -60,6 +64,10 @@ function MenuTabStack() {
       <MenuStack.Screen name="Cultivo" component={Cultivo} />
       <MenuStack.Screen name="Embrioes" component={Embrioes} />
       <MenuStack.Screen name="Cabecalho" component={Cabecalho} />
+      <MenuStack.Screen name="Descartados" component={Descartados} />
+      <MenuStack.Screen name="Congelados" component={Congelados} />
+      <MenuStack.Screen name="Transferencia" component={Transferencia} />
+      <MenuStack.Screen name="Transferidos" component={Transferidos} />
     </MenuStack.Navigator>
   )
 }

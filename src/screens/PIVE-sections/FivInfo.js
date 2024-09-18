@@ -221,15 +221,15 @@ export default ({ route, navigation }) => {
                                 <View style={{width: '20%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.bull.registrationNumber}</Text>
                                 </View>
-                                <View style={{width: '10%', marginLeft: '3%'}}>
+                                <View style={{width: '10%', marginLeft: '5%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.totalOocytes}</Text>
                                 </View>
-                                <View style={{width: '7%', marginLeft: '5%'}}>
+                                <View style={{width: '7%', marginLeft: '8%'}}>
                                     <Text style={stylesEmbryos.value}>{collection.viableOocytes}</Text>
                                 </View>
-                                <View style={{width: '15%', marginLeft: '8%'}}>
+                                <View style={{width: '17%', marginLeft: '8%'}}>
                                 {collection.embryoProduction
-                                    ? <Text style={stylesEmbryos.value}>{collection.embryoProduction.embryosPercentage || '-'}%</Text>
+                                    ? <Text style={stylesEmbryos.value}>{collection.embryoProduction.embryosPercentage || '-'}</Text>
                                     : <Text style={stylesEmbryos.value}>-</Text>
                                 }
                                 </View>   
@@ -281,56 +281,6 @@ export default ({ route, navigation }) => {
                     </View>
                 </View>
             </ScrollView>
-            <Modal
-                transparent={true}
-                animationType="slide"
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={stylesEmbryos.modalContainer}>
-                    <View style={stylesEmbryos.modalContent}>
-                        <Text style={stylesEmbryos.modalTitle}>Gerenciar Embriões Viáveis</Text>
-                        <Text style={stylesEmbryos.modalSubtitle}>Registro {embryosRegistered}/{cultivation.viableEmbryos || '-'}</Text>
-                        <View style={stylesEmbryos.optionContainer}>
-                            <Text style={{ textAlign: 'center' }}>Congelado: </Text>
-                            <SelectList
-                                setSelected={handleSelect}
-                                data={categoryData}
-                                placeholder={"Clique"}
-                                boxStyles={[style.selectListBox, { marginBottom: 30, width: 73, paddingLeft: 4, marginLeft: 90 }]}
-                                inputStyles={style.selectListInput}
-                                dropdownStyles={[style.selectListDropdown, { zIndex: 3, zIndex: 10, elevation: 10, position: 'absolute', marginTop: 10, marginLeft: 90 }]}
-                            />
-                            <Text style={{ textAlign: 'center', marginTop: '8%' }}>Receptora: </Text>
-                            <SelectList
-                                setSelected={handleReceiverSelect}
-                                data={receiver.map(rec => ({
-                                    key: rec.id.toString(),
-                                    value: rec.name
-                                }))}
-                                placeholder={"Selecione a receptora"}
-                                boxStyles={[style.selectListBox, { marginBottom: 1, zIndex: 2, marginLeft: 15 }]}
-                                inputStyles={style.selectListInput}
-                                dropdownStyles={[style.selectListDropdown, { width: 235, marginLeft: 15, height: 300 }]}
-                            />
-                        </View>
-                        <View style={stylesEmbryos.buttonContainer}>
-                            <TouchableOpacity
-                                style={stylesEmbryos.closeButton}
-                                onPress={() => setModalVisible(false)}
-                            >
-                                <Text style={stylesEmbryos.closeButtonText}>Fechar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={stylesEmbryos.navigationButton}
-                                onPress={handleSave}
-                            >
-                                <Text style={stylesEmbryos.navigationButtonText}>Salvar</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
         </SafeAreaView>
     );
 }

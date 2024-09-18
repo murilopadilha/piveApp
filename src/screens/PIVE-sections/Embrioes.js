@@ -69,7 +69,7 @@ export default ({ route, navigation }) => {
                 <View style={styles.row}>
                     <Text style={styles.label}>Aproveitamento Embriões:</Text>
                     {item.embryoProduction
-                        ? <Text style={styles.value}>{item.embryoProduction.embryosPercentage || '-'}%</Text>
+                        ? <Text style={styles.value}>{item.embryoProduction.embryosPercentage || '-'}</Text>
                         : <Text style={styles.value}>-</Text>
                     }
                 </View>
