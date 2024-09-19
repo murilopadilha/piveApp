@@ -118,7 +118,7 @@ export default ({ route, navigation }) => {
                     style={[style.listButtonSearch, {width: '30%'}]}>
                         <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Congelados</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('Transferidos', { fiv: fivData })}
+                    <TouchableOpacity onPress={() => navigation.navigate('Transferidos', { fiv: fivData, id: oocyteCollectionId })}
                     style={[style.listButtonSearch, {width: '30%', paddingLeft: '0%', paddingBottom: '2%'}]}>
                         <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Transferidos</Text>
                     </TouchableOpacity>

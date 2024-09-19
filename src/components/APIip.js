@@ -1,4 +1,4 @@
-export const IPAdress = '18.218.115.38:8080'
+export const IPAdress = '192.168.1.163:8080'
 // AWS: 18.218.115.38
 // Alunos: 172.20.1.161
 // SABOR_PERFEITO_CLIENTES: 192.168.1.219

@@ -24,7 +24,7 @@ export default ({ route, navigation }) => {
         const fetchDonorsAndBulls = async () => {
             try {
                 const [donorsResponse, bullsResponse] = await Promise.all([
-                    axios.get(`http://${IPAdress}/donor`),
+                    axios.get(`http://${IPAdress}/donor/${fiv.id}/available`),
                     axios.get(`http://${IPAdress}/bull`)
                 ])
 

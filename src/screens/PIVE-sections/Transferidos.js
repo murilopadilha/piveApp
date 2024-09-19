@@ -11,9 +11,9 @@ import { SelectList } from 'react-native-dropdown-select-list';
 
 export default ({ route, navigation }) => {
     const { fiv } = route.params; 
-    const [newNumber, setNumber] = useState('');
-    const [newDate, setDate] = useState('');
-    const [newFarmName, setFarmName] = useState('');
+    const { id } = route.params;
+    const [newFarm, setFarm] = useState('');
+    const [oocyteCollection, setOocyteCollection] = useState([]);
     const [transfers, setTransfers] = useState([]); 
     const [recipients, setRecipients] = useState([]); 
     const [selectedTransfer, setSelectedTransfer] = useState(null); 
@@ -30,6 +30,16 @@ export default ({ route, navigation }) => {
             }
         };
 
+        const fetchOocyteCollection = async () => {
+            try {
+                const response = await axios.get(`http://${IPAdress}/oocyte-collection/${id}`);
+                setOocyteCollection(response.data);
+            } catch (error) {
+                Alert.alert("Error", error.response.data);
+                console.error(error);
+            }
+        }
+
         const fetchRecipients = async () => {
             try {
                 const response = await axios.get(`http://${IPAdress}/receiver/available`); 
@@ -42,24 +52,19 @@ export default ({ route, navigation }) => {
 
         fetchTransfers();
         fetchRecipients();
+        fetchOocyteCollection();
     }, []);
 
     const postTransfer = async () => {
         const transferData = {
-            fivId: fiv.id,
-            date: newDate,
-            responsible: newNumber,
-            farm: newFarmName,
-            recipientId: selectedRecipient 
+            productionId: oocyteCollection.embryoProduction.id,
+            tansferId: selectedTransfer.id,
+            receiverId: selectedRecipient.id
         };
 
         try {
-            const response = await axios.post(`http://${IPAdress}/transfer`, transferData);
+            const response = await axios.post(`http://${IPAdress}/embryo/transfer`, transferData);
             Alert.alert("Success", "Transferência salva com sucesso.");
-            setNumber('');
-            setDate('');
-            setFarmName('');
-            setSelectedRecipient(null);
         } catch (error) {
             Alert.alert("Error", error.response?.data || "Ocorreu um erro");
             console.error(error);
@@ -98,9 +103,7 @@ export default ({ route, navigation }) => {
                     onSelect={(selected) => {
                         const selectedData = transfers.find(item => item.fivId === selected);
                         if (selectedData) {
-                            setFarmName(selectedData.farm);
-                            setDate(selectedData.date);
-                            setNumber(selectedData.responsible);
+                            setFarm(selectedData.farm);
                         }
                     }}
                 />
