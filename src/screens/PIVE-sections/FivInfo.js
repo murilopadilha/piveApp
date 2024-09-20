@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet, Modal } from "react-native";
+import { Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Octicons from '@expo/vector-icons/Octicons';
 import axios from "axios";
 import style from "../../components/style";
-import { SelectList } from 'react-native-dropdown-select-list';
 import stylesEmbryos from "../../components/stylesEmbryos";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { IPAdress } from "../../components/APIip";
 
 export default ({ route, navigation }) => {
@@ -30,74 +28,34 @@ export default ({ route, navigation }) => {
         { key: 'false', value: 'Não' },
     ]
 
-    const categoryData = categories.map(cat => ({
-        key: cat.key,
-        value: cat.value
-    }))
-
-    const handleSelect = (selectedKey) => {
-        const selectedCategory = categories.find(cat => cat.key === selectedKey)
-        if (selectedCategory) {
-            setCategory(selectedCategory.key)
-        }
-    }
-
-    const handleReceiverSelect = (selectedId) => {
-        const selectedReceiver = receiver.find(rec => rec.id.toString() === selectedId)
-        if (selectedReceiver) {
-            setSelectedReceiver(selectedReceiver.name)
-        } else {
-            console.log("Receiver not found for ID:", selectedId)
-        }
-    }
-
-    const fetchEmbryosRegistered = async (cultivationId) => {
+    const fetchData = async () => {
         try {
-            const response = await axios.get(`http://${IPAdress}/cultivation/${cultivationId}`)
-            if (response.data) {
-                setEmbryosRegistered(response.data.embryosRegistered)
+            const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`)
+            setOocyteCollections(response.data)
+            if (Array.isArray(response.data) && response.data.length > 0) {
+                const fetchedData = response.data[0]
+                setData(fetchedData)
+                if (fetchedData.cultivation) {
+                    setCultivationId(fetchedData.cultivation.id)
+                }
+            } else {
+                setData(null)
             }
         } catch (err) {
-            console.error("Erro ao buscar embriões registrados:", err.message)
-        }
-    }
-
-    const fetchReceivers = async () => {
-        try {
-            const response = await axios.get(`http://${IPAdress}/receiver/available`)
-            setReceiver(response.data)
-        } catch (err) {
-            console.error(err.message)
+            setError(err.message)
+        } finally {
+            setLoading(false)
         }
     }
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`)
-                setOocyteCollections(response.data)
-                if (Array.isArray(response.data) && response.data.length > 0) {
-                    const fetchedData = response.data[0]
-                    setData(fetchedData)
-                    if (fetchedData.cultivation) {
-                        setCultivationId(fetchedData.cultivation.id)
-                    }
-                } else if (response.data && (response.data.oocyteCollection || response.data.cultivation)) {
-                    setData(response.data)
-                    if (response.data.cultivation) {
-                        setCultivationId(response.data.cultivation.id)
-                    }
-                } else {
-                    setData(null)
-                }
-            } catch (err) {
-                setError(err.message)
-            } finally {
-                setLoading(false)
-            }
-        }
-
         fetchData()
+
+        const intervalId = setInterval(() => {
+            fetchData()
+        }, 3000)
+
+        return () => clearInterval(intervalId)
     }, [fiv])
 
     useEffect(() => {
@@ -109,23 +67,19 @@ export default ({ route, navigation }) => {
 
     const openModal = async () => {
         setModalVisible(true)
-        if (cultivationId) {
-            fetchEmbryosRegistered(cultivationId)
-        }
-        await fetchReceivers()
     }
 
     const handleSave = async () => {
         if (!cultivationId || category === '' || !selectedReceiver) {
-            alert("Por favor, preencha todos os campos.")
+            Alert.alert("Por favor, preencha todos os campos.")
             return
         }
 
         try {
             const receiverId = receiver.find(rec => rec.name === selectedReceiver)?.id || 0
 
-            if (embryosRegistered >= cultivation.viableEmbryos) {
-                alert("Todos os embriões desse cultivo já foram registrados.")
+            if (embryosRegistered >= (data.cultivation.viableEmbryos || 0)) {
+                Alert.alert("Todos os embriões desse cultivo já foram registrados.")
                 return;
             }
 
@@ -136,7 +90,6 @@ export default ({ route, navigation }) => {
             })
 
             await fetchEmbryosRegistered(cultivationId)
-
             setCategory('')
             setSelectedReceiver('')
             setModalVisible(false)
@@ -157,7 +110,7 @@ export default ({ route, navigation }) => {
     const cultivation = data?.cultivation || {}
 
     return (
-        <SafeAreaView style={stylesEmbryos.container} >
+        <SafeAreaView style={stylesEmbryos.container}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Pive')}>
                     <View style={{ marginRight: '15%' }}>
@@ -201,7 +154,7 @@ export default ({ route, navigation }) => {
                     </View>
                     <Text style={[stylesEmbryos.label, { marginLeft: '31%', marginBottom: '3%' }]}>Coleta dos Oócitos:</Text>
                     <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Text style={[stylesEmbryos.label, {fontSize: 10}]}>N°</Text>
+                        <Text style={[stylesEmbryos.label, { fontSize: 10 }]}>N°</Text>
                         <Text style={stylesEmbryos.label}>Doadora</Text>
                         <Text style={stylesEmbryos.label}>Touro</Text>
                         <Text style={stylesEmbryos.label}>Total</Text>
@@ -209,32 +162,32 @@ export default ({ route, navigation }) => {
                         <Text style={stylesEmbryos.label}>Emb%</Text>
                     </View>
                     {oocyteCollections.oocyteCollections.map((collection, index) => {
-                        const backgroundColor = index % 2 == 0 ? '#fff' : 'transparent'
+                        const backgroundColor = index % 2 === 0 ? '#fff' : 'transparent';
                         return (
                             <View key={index} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', backgroundColor }}>
-                                <View style={{width: '3%'}}>
-                                    <Text style={[stylesEmbryos.value, {fontSize: 10}]}>{index + 1}</Text>
+                                <View style={{ width: '3%' }}>
+                                    <Text style={[stylesEmbryos.value, { fontSize: 10 }]}>{index + 1}</Text>
                                 </View>
-                                <View style={{width: '24%'}}>
+                                <View style={{ width: '24%' }}>
                                     <Text style={stylesEmbryos.value}>{collection.donorCattle.registrationNumber}</Text>
                                 </View>
-                                <View style={{width: '20%'}}>
+                                <View style={{ width: '20%' }}>
                                     <Text style={stylesEmbryos.value}>{collection.bull.registrationNumber}</Text>
                                 </View>
-                                <View style={{width: '10%', marginLeft: '5%'}}>
+                                <View style={{ width: '10%', marginLeft: '5%' }}>
                                     <Text style={stylesEmbryos.value}>{collection.totalOocytes}</Text>
                                 </View>
-                                <View style={{width: '7%', marginLeft: '8%'}}>
+                                <View style={{ width: '7%', marginLeft: '8%' }}>
                                     <Text style={stylesEmbryos.value}>{collection.viableOocytes}</Text>
                                 </View>
-                                <View style={{width: '17%', marginLeft: '8%'}}>
-                                {collection.embryoProduction
-                                    ? <Text style={stylesEmbryos.value}>{collection.embryoProduction.embryosPercentage || '-'}</Text>
-                                    : <Text style={stylesEmbryos.value}>-</Text>
-                                }
-                                </View>   
+                                <View style={{ width: '17%', marginLeft: '8%' }}>
+                                    {collection.embryoProduction
+                                        ? <Text style={stylesEmbryos.value}>{collection.embryoProduction.embryosPercentage || '-'}</Text>
+                                        : <Text style={stylesEmbryos.value}>-</Text>
+                                    }
+                                </View>
                             </View>
-                        )
+                        );
                     })}
                     <Text style={[stylesEmbryos.sectionTitle, stylesEmbryos.oocytesTitle]}>Oócitos:</Text>
                     <View style={stylesEmbryos.oocytesContainer}>
@@ -255,13 +208,13 @@ export default ({ route, navigation }) => {
                             <Text style={stylesEmbryos.label}>Total de Embriões:</Text>
                             <Text style={stylesEmbryos.value}>{cultivation.totalEmbryos || '-'}</Text>
                         </View>
-                        <View
-                            style={stylesEmbryos.cultivationItem}
+                        <TouchableOpacity
                             onPress={openModal}
+                            style={stylesEmbryos.cultivationItem}
                         >
                             <Text style={stylesEmbryos.label}>Porcentual Embriões:</Text>
                             <Text style={stylesEmbryos.value}>{cultivation.viableEmbryos || '-'}</Text>
-                        </View>
+                        </TouchableOpacity>
                     </View>
                     <View style={{ display: 'flex', flexDirection: 'row' }}>
                         <TouchableOpacity

@@ -36,7 +36,7 @@ export default ({ navigation }) => {
                 setData(response.data)
             }
         } catch (error) {
-            console.error(error)
+            console.error(error.response.data)
         } finally {
             setLoading(false)
         }

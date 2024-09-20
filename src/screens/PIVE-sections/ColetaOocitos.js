@@ -90,11 +90,11 @@ export default ({ route, navigation }) => {
                 totalOocytes: parseInt(totalOocytes) || 0,
                 viableOocytes: parseInt(viableOocytes) || 0,
             })
-                setDonorCattleId('')
-                setBullId('')
+                Alert.alert('Successo', 'Coleta salva com sucesso!')
+                setDonorCattleId(null)
+                setBullId(null)
                 setTotalOocytes('')
                 setViableOocytes('')
-                Alert.alert('Successo', 'Coleta salva com sucesso!')
         } catch (error) {
             Alert.alert(`${error.response.data}`)
         }
@@ -111,10 +111,14 @@ export default ({ route, navigation }) => {
                 totalOocytes: parseInt(totalOocytes) || 0,
                 viableOocytes: parseInt(viableOocytes) || 0,
             })
-                Alert.alert('Successo', 'Coleta salva com sucesso!')
+                Alert.alert('Successo', 'Coleta salva e concluída com sucesso!')
+                setDonorCattleId(null)
+                setBullId(null)
+                setTotalOocytes('')
+                setViableOocytes('')
         } catch (error) {
+                Alert.alert('Erro', error.response.data)
         }
-        navigation.navigate('Cultivo', { fiv: fiv })
     }
 
     return (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, TouchableOpacity, StyleSheet, Alert, ScrollView, Platform } from "react-native";
+import { Text, View, TouchableOpacity, StyleSheet, Alert, ScrollView, Platform, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar } from 'react-native-calendars';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -163,7 +163,7 @@ export default (props) => {
     return (
         <SafeAreaView style={[style.safeAreaView, { backgroundColor: '#F1F2F4' }]}>
             <View style={style.divTitleMain}>
-                <MaterialCommunityIcons style={{ marginRight: 3 }} name="cow" size={34} color="#092955" />
+                <Image source={require('../images/menu/logo.png')} style={{width: 40, height: 40, marginRight: '2%'}}/>
                 <Text style={style.titleTextMain}>BovInA</Text>
             </View>
             <View>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
+import { Text, View, TouchableOpacity, ScrollView, Alert, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 import { SelectList } from 'react-native-dropdown-select-list';
@@ -41,7 +41,7 @@ export default ({ navigation }) => {
             const response = await axios.get(API_URL)
             setItems(response.data)
         } catch (error) {
-            console.error(error)
+            Alert.alert('Erro', error.message)
         }
     }
 
@@ -54,7 +54,7 @@ export default ({ navigation }) => {
             }));
             setSecondaryOptions(options);
         } catch (error) {
-            console.error(error);
+            Alert.alert('Erro', error.message)
         }
     }
 
@@ -64,7 +64,7 @@ export default ({ navigation }) => {
             const response = await axios.get(url)
             setFilteredItems(response.data)
         } catch (error) {
-            console.error(error)
+            Alert.alert('Erro', error.message)
         }
     }
 
@@ -149,7 +149,7 @@ export default ({ navigation }) => {
     return (
         <SafeAreaView style={{width: '100%', height: '100%'}}>
             <View style={[style.divTitleMain]}>
-                <MaterialCommunityIcons style={{ marginRight: 3 }} name="cow" size={34} color="#092955" />
+                <Image source={require('../images/menu/logo.png')} style={{width: 40, height: 40, marginRight: '2%'}}/>
                 <Text style={style.titleTextMain}>BovInA</Text>
             </View>
             <View style={style.searchPive}>

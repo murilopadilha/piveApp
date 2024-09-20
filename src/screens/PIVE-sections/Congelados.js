@@ -19,7 +19,7 @@ export default ({ route, navigation }) => {
                 const response = await axios.get(`http://${IPAdress}/oocyte-collection/${id}`)
                 setProductionId(response.data.embryoProduction.id)
             } catch (error) {
-                Alert.alert("Error fetching data", error.message)
+                Alert.alert("Erro", error.response.data)
             } finally {
                 setLoading(false)
             }
@@ -42,7 +42,7 @@ export default ({ route, navigation }) => {
             Alert.alert("Successo", "Embriões descartados com sucesso!")
             navigation.goBack()
         } catch (error) {
-            Alert.alert("Error posting data", error.message)
+            Alert.alert("Erro", error.response.data)
         }
     }
 

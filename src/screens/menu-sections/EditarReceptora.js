@@ -44,7 +44,6 @@ export default ({ route, navigation }) => {
                 Alert.alert('Erro', "Erro ao enviar dados")
             }
         } catch (error) {
-            console.error('Erro ao atualizar o doador:', error)
             Alert.alert('Erro', 'Não foi possível atualizar os dados.')
         }
     }

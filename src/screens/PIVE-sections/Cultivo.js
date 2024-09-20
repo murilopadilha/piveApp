@@ -15,42 +15,48 @@ export default ({ route, navigation }) => {
     const [totalEmbryos, setTotalEmbryos] = useState('')
     const [fivData, setFivData] = useState(null)
 
-    useEffect(() => {
-        const fetchFivData = async () => {
-            try {
-                const fivResponse = await axios.get(`http://${IPAdress}/fiv`)
-                const fivList = fivResponse.data
+    const fetchFivData = async () => {
+        try {
+            const fivResponse = await axios.get(`http://${IPAdress}/fiv`)
+            const fivList = fivResponse.data
 
-                const foundFiv = fivList.find(fiv => 
-                    fiv.oocyteCollections.some(oocyteCollection => oocyteCollection.id === oocyteCollectionId)
-                )
+            const foundFiv = fivList.find(fiv => 
+                fiv.oocyteCollections.some(oocyteCollection => oocyteCollection.id === oocyteCollectionId)
+            )
 
-                setFivData(foundFiv)
+            setFivData(foundFiv)
 
-                if (foundFiv) {
-                    const response = await axios.get(`http://${IPAdress}/oocyte-collection/${oocyteCollectionId}`)
-                    setData(response.data)
-                    setTotalEmbryos(response.data.embryoProduction?.totalEmbryos || '')
-                }
-            } catch (err) {
-                setError(err)
-            } finally {
-                setLoading(false)
+            if (foundFiv) {
+                const response = await axios.get(`http://${IPAdress}/oocyte-collection/${oocyteCollectionId}`)
+                setData(response.data)
+                setTotalEmbryos(response.data.embryoProduction?.totalEmbryos || '')
             }
+        } catch (error) {
+            setError(error);
+        } finally {
+            setLoading(false);
         }
+    }
 
+    useEffect(() => {
         fetchFivData()
+
+        const intervalId = setInterval(() => {
+            fetchFivData()
+        }, 3000)
+
+        return () => clearInterval(intervalId)
     }, [oocyteCollectionId])
 
     const handleSave = async () => {
         try {
             await axios.post(`http://${IPAdress}/production`, {
                 oocyteCollectionId,
-                totalEmbryos: totalEmbryos,
-            });
-            Alert.alert('Sucesso', 'Total de embriões salvo com sucesso!');
+                totalEmbryos,
+            })
+            Alert.alert('Sucesso', 'Total de embriões salvo com sucesso!')
         } catch (error) {
-            Alert.alert('Erro', error.response?.data || 'Ocorreu um erro');
+            Alert.alert('Erro', error.response?.data || 'Ocorreu um erro')
         }
     }
 
@@ -82,15 +88,31 @@ export default ({ route, navigation }) => {
             </View>
             <View style={{ padding: 20 }}>
                 {data?.embryoProduction?.totalEmbryos !== undefined ? (
-                    <View style={{display:'flex', flexDirection: 'row', justifyContent:'space-between'}}>
-                        <View>
-                            <Text style={[style.text, {fontWeight: 'bold'}]}>Total de Embriões:</Text>
-                            <Text style={{alignSelf: 'center', marginRight: '3%'}}>{data.embryoProduction.totalEmbryos}</Text>
+                    <View style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+                            <View>
+                                <Text style={[style.text, { fontWeight: 'bold' }]}>Total de Embriões:</Text>
+                                <Text style={{ alignSelf: 'center', marginRight: '3%' }}>{data.embryoProduction.totalEmbryos}</Text>
+                            </View>
+                            <View>
+                                <Text style={[style.text, { fontWeight: 'bold' }]}>Embriões registrados:</Text>
+                                <Text style={{ alignSelf: 'center', marginRight: '3%' }}>{data.embryoProduction.embryosRegistered}/{data.embryoProduction.totalEmbryos}</Text>
+                            </View>
                         </View>
-                        <View>
-                            <Text style={[style.text, {fontWeight: 'bold'}]}>Embriões registrados:</Text>
-                            <Text style={{alignSelf: 'center', marginRight: '3%'}}>{data.embryoProduction.embryosRegistered}/{data.embryoProduction.totalEmbryos}</Text>
-                        </View>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginTop: '20%' }}>
+                    <TouchableOpacity onPress={() => navigation.navigate('Descartados', { id: oocyteCollectionId })}
+                        style={[style.listButtonSearch, { width: '30%', paddingLeft: '0%', paddingBottom: '2%' }]}>
+                        <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Descartados</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('Congelados', { id: oocyteCollectionId })}
+                        style={[style.listButtonSearch, { width: '30%' }]}>
+                        <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Congelados</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigation.navigate('Transferidos', { fiv: fivData, id: oocyteCollectionId })}
+                        style={[style.listButtonSearch, { width: '30%', paddingLeft: '0%', paddingBottom: '2%' }]}>
+                        <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Transferidos</Text>
+                    </TouchableOpacity>
+                </View>
                     </View>
                 ) : (
                     <View>
@@ -103,26 +125,12 @@ export default ({ route, navigation }) => {
                             placeholder="Digite o total de embriões"
                         />
                         <TouchableOpacity onPress={handleSave}
-                            style={[style.listButtonSearch, { width: '30%', height: '24%', display: 'flex', flexDirection: 'row', marginTop: '5%', marginLeft: '60%' }]}>
+                            style={[style.listButtonSearch, { width: '30%', height: '28%', display: 'flex', flexDirection: 'row', marginTop: '5%', marginLeft: '60%' }]}>
                             <MaterialIcons name="done" size={20} color="white" style={{ paddingLeft: 5, paddingTop: 3 }} />
                             <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Salvar</Text>
                         </TouchableOpacity>
                     </View>
                 )}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginTop: '20%' }}>
-                    <TouchableOpacity onPress={() => navigation.navigate('Descartados', { id: oocyteCollectionId })}
-                    style={[style.listButtonSearch, {width: '30%', paddingLeft: '0%', paddingBottom: '2%'}]}>
-                        <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Descartados</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('Congelados', { id: oocyteCollectionId })}
-                    style={[style.listButtonSearch, {width: '30%'}]}>
-                        <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Congelados</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('Transferidos', { fiv: fivData, id: oocyteCollectionId })}
-                    style={[style.listButtonSearch, {width: '30%', paddingLeft: '0%', paddingBottom: '2%'}]}>
-                        <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Transferidos</Text>
-                    </TouchableOpacity>
-                </View>
             </View>
         </SafeAreaView>
     )

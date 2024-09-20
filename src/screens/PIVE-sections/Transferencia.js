@@ -32,13 +32,12 @@ export default ({ route, navigation }) => {
 
         try {
             const response = await axios.post(`http://${IPAdress}/transfer`, transferData)
-            Alert.alert("Success", "Transferência salva com sucesso.")
+            Alert.alert("Successo", "Transferência salva com sucesso.")
             setNumber('')
             setDate('')
             setFarmName('')
         } catch (error) {
-            Alert.alert("Error", error.response?.data || "Ocorreu um erro")
-            console.error(error)
+            Alert.alert("Erro", error.response?.data || "Ocorreu um erro")
         }
     }
 

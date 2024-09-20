@@ -18,8 +18,8 @@ export default ({ route, navigation }) => {
                 const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`)
                 setOocyteCollections(response.data.oocyteCollections)
                 setLoading(false)
-            } catch (err) {
-                setError(err)
+            } catch (error) {
+                setError(error)
                 setLoading(false)
             }
         }

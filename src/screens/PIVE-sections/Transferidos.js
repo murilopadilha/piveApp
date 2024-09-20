@@ -25,7 +25,7 @@ export default ({ route, navigation }) => {
                 console.log("Transferências recebidas:", response.data)
                 setTransfers(response.data)
             } catch (error) {
-                Alert.alert("Error", error.response?.data || "Erro ao buscar transferências")
+                Alert.alert("Erro", error.response?.data || "Erro ao buscar transferências")
                 console.error(error)
             }
         }
@@ -35,7 +35,7 @@ export default ({ route, navigation }) => {
                 const response = await axios.get(`http://${IPAdress}/oocyte-collection/${id}`)
                 setOocyteCollection(response.data)
             } catch (error) {
-                Alert.alert("Error", error.response?.data || "Erro ao buscar coleta de óvulos")
+                Alert.alert("Erro", error.response?.data || "Erro ao buscar coleta de oócitos")
                 console.error(error)
             }
         }
@@ -45,8 +45,7 @@ export default ({ route, navigation }) => {
                 const response = await axios.get(`http://${IPAdress}/receiver/available`)
                 setRecipients(response.data)
             } catch (error) {
-                Alert.alert("Error", "Unable to fetch recipients")
-                console.error(error)
+                Alert.alert("Erro", "Não foi possível buscar as receptoras")
             }
         }
 
@@ -57,7 +56,7 @@ export default ({ route, navigation }) => {
 
     const postTransfer = async () => {
         if (!oocyteCollection || !selectedTransfer || !selectedReceiver) {
-            Alert.alert("Error", "Por favor, selecione todos os campos.")
+            Alert.alert("Erro", "Por favor, selecione todos os campos.")
             return;
         }
 
@@ -69,9 +68,9 @@ export default ({ route, navigation }) => {
 
         try {
             const response = await axios.post(`http://${IPAdress}/embryo/transfer`, transferData)
-            Alert.alert("Success", "Transferência salva com sucesso.")
+            Alert.alert("Successo", "Transferência salva com sucesso.")
         } catch (error) {
-            Alert.alert("Error", error.response?.data || "Ocorreu um erro")
+            Alert.alert("Erro", error.response?.data || "Ocorreu um erro")
             console.error(error)
         }
     }

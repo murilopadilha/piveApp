@@ -47,7 +47,6 @@ export default ({ navigation }) => {
             }
             
         } catch (error) {
-            console.error('Erro ao salvar o doador:', error)
             Alert.alert('Erro', error.message)
         }
     }

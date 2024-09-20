@@ -39,8 +39,15 @@ export default ({ route, navigation }) => {
                 TE,
             })
             Alert.alert('Sucesso', 'FIV salva com sucesso!')
+            setDateOfOocyteCollection('');
+            setFarm('');
+            setClient('');
+            setLaboratory('');
+            setVeterinarian('');
+            setTechnical('');
+            setTE('');
         } catch (error) {
-            Alert.alert('Erro', 'Erro ao salvar FIV')
+            Alert.alert('Erro', error.response.data)
         }
     }
 
