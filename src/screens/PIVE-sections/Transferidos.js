@@ -10,76 +10,81 @@ import { IPAdress } from "../../components/APIip";
 import { SelectList } from 'react-native-dropdown-select-list'; 
 
 export default ({ route, navigation }) => {
-    const { fiv } = route.params; 
-    const { id } = route.params;
-    const [newFarm, setFarm] = useState('');
-    const [oocyteCollection, setOocyteCollection] = useState([]);
-    const [transfers, setTransfers] = useState([]); 
-    const [recipients, setRecipients] = useState([]); 
-    const [selectedTransfer, setSelectedTransfer] = useState(null); 
-    const [selectedRecipient, setSelectedRecipient] = useState(null); 
+    const { fiv, id } = route.params
+    const [newFarm, setFarm] = useState('')
+    const [oocyteCollection, setOocyteCollection] = useState(null)
+    const [transfers, setTransfers] = useState([])
+    const [recipients, setRecipients] = useState([]) 
+    const [selectedTransfer, setSelectedTransfer] = useState(null) 
+    const [selectedReceiver, setSelectedReceiver] = useState(null)  
 
     useEffect(() => {
         const fetchTransfers = async () => {
             try {
-                const response = await axios.get(`http://${IPAdress}/transfer?fivId=${fiv.id}`);
-                setTransfers(response.data);
+                const response = await axios.get(`http://${IPAdress}/transfer?fivId=${fiv.id}`)
+                console.log("Transferências recebidas:", response.data)
+                setTransfers(response.data)
             } catch (error) {
-                Alert.alert("Error", error.response.data);
-                console.error(error);
+                Alert.alert("Error", error.response?.data || "Erro ao buscar transferências")
+                console.error(error)
             }
-        };
+        }
 
         const fetchOocyteCollection = async () => {
             try {
-                const response = await axios.get(`http://${IPAdress}/oocyte-collection/${id}`);
-                setOocyteCollection(response.data);
+                const response = await axios.get(`http://${IPAdress}/oocyte-collection/${id}`)
+                setOocyteCollection(response.data)
             } catch (error) {
-                Alert.alert("Error", error.response.data);
-                console.error(error);
+                Alert.alert("Error", error.response?.data || "Erro ao buscar coleta de óvulos")
+                console.error(error)
             }
         }
 
         const fetchRecipients = async () => {
             try {
-                const response = await axios.get(`http://${IPAdress}/receiver/available`); 
-                setRecipients(response.data);
+                const response = await axios.get(`http://${IPAdress}/receiver/available`)
+                setRecipients(response.data)
             } catch (error) {
-                Alert.alert("Error", "Unable to fetch recipients");
-                console.error(error);
+                Alert.alert("Error", "Unable to fetch recipients")
+                console.error(error)
             }
-        };
+        }
 
-        fetchTransfers();
-        fetchRecipients();
-        fetchOocyteCollection();
-    }, []);
+        fetchTransfers()
+        fetchRecipients()
+        fetchOocyteCollection()
+    }, [fiv.id, id])
 
     const postTransfer = async () => {
+        if (!oocyteCollection || !selectedTransfer || !selectedReceiver) {
+            Alert.alert("Error", "Por favor, selecione todos os campos.")
+            return;
+        }
+
         const transferData = {
             productionId: oocyteCollection.embryoProduction.id,
-            tansferId: selectedTransfer.id,
-            receiverId: selectedRecipient.id
-        };
+            transferId: selectedTransfer, 
+            receiverId: selectedReceiver
+        }
 
         try {
-            const response = await axios.post(`http://${IPAdress}/embryo/transfer`, transferData);
-            Alert.alert("Success", "Transferência salva com sucesso.");
+            const response = await axios.post(`http://${IPAdress}/embryo/transfer`, transferData)
+            Alert.alert("Success", "Transferência salva com sucesso.")
         } catch (error) {
-            Alert.alert("Error", error.response?.data || "Ocorreu um erro");
-            console.error(error);
+            Alert.alert("Error", error.response?.data || "Ocorreu um erro")
+            console.error(error)
         }
-    };
+    }
 
     const transferOptions = transfers.map(transfer => ({
-        key: transfer.fivId,
+        key: transfer.id.toString(), 
         value: `${transfer.farm} (${transfer.date})`
-    }));
-
+    }))
+    
     const recipientOptions = recipients.map(recipient => ({
-        key: recipient.id, 
+        key: recipient.id.toString(),
         value: `${recipient.name} (${recipient.registrationNumber})`
-    }));
+    }))
 
     return (
         <SafeAreaView style={style.menu}>
@@ -94,23 +99,35 @@ export default ({ route, navigation }) => {
             <View style={style.content}>
                 <Text style={{ marginBottom: 10 }}>Selecionar Transferência:</Text>
                 <SelectList 
-                    setSelected={setSelectedTransfer}
+                    setSelected={selected => {
+                        console.log("Transferência selecionada:", selected);
+                        setSelectedTransfer(selected);
+
+                        const selectedData = transfers.find(item => item.id.toString() === selected)
+                        console.log("Dados da transferência selecionada:", selectedData)
+
+                        if (selectedData) {
+                            setFarm(selectedData.farm);
+                        } else {
+                            console.log("Transferência não encontrada.");
+                        }
+                    }}
                     data={transferOptions}
                     placeholder="Selecione uma transferência"
                     boxStyles={[style.selectListBox, { height: 45, marginLeft: 0 }]}
                     inputStyles={style.selectListInput}
                     dropdownStyles={[style.selectListDropdown, { marginLeft: 0, width: 300 }]}
-                    onSelect={(selected) => {
-                        const selectedData = transfers.find(item => item.fivId === selected);
-                        if (selectedData) {
-                            setFarm(selectedData.farm);
-                        }
-                    }}
                 />
                 
                 <Text style={{ marginVertical: 10 }}>Selecionar Receptora:</Text>
                 <SelectList 
-                    setSelected={setSelectedRecipient}
+                    setSelected={selected => {
+                        console.log("Receptora selecionada:", selected);
+                        const selectedData = recipients.find(item => item.id.toString() === selected);
+                        if (selectedData) {
+                            setSelectedReceiver(selectedData.id);
+                        }
+                    }}
                     data={recipientOptions}
                     placeholder="Selecione uma receptora"
                     boxStyles={[style.selectListBox, { height: 45, marginLeft: 0 }]}
@@ -135,5 +152,5 @@ export default ({ route, navigation }) => {
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
-    );
-};
+    )
+}

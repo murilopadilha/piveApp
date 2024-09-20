@@ -8,46 +8,46 @@ import { IPAdress } from "../../components/APIip";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default ({ navigation }) => {
-    const baseURL = `http://${IPAdress}`;
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [registrationNumber, setRegistrationNumber] = useState('');
+    const baseURL = `http://${IPAdress}`
+    const [data, setData] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [registrationNumber, setRegistrationNumber] = useState('')
 
     useEffect(() => {
         const debounceTimer = setTimeout(() => {
             loadApi(registrationNumber);
-        }, 500);
+        }, 500)
 
-        return () => clearTimeout(debounceTimer);
-    }, [registrationNumber]);
+        return () => clearTimeout(debounceTimer)
+    }, [registrationNumber])
 
     async function loadApi(query = '') {
-        if (loading) return;
+        if (loading) return
 
-        setLoading(true);
+        setLoading(true)
 
         try {
             let response;
             if (query) {
-                response = await axios.get(`${baseURL}/donor/search?registrationNumber=${query}`);
-                setData(response.data);
+                response = await axios.get(`${baseURL}/donor/search?registrationNumber=${query}`)
+                setData(response.data)
             } else {
-                response = await axios.get(`${baseURL}/donor`);
-                setData(response.data);
+                response = await axios.get(`${baseURL}/donor`)
+                setData(response.data)
             }
         } catch (error) {
-            console.error(error);
+            console.error(error)
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
     }
 
     async function removeItem(id) {
         try {
-            await axios.delete(`${baseURL}/donor/${id}`);
-            setData(data.filter(item => item.id !== id));
+            await axios.delete(`${baseURL}/donor/${id}`)
+            setData(data.filter(item => item.id !== id))
         } catch (error) {
-            console.error("Erro ao deletar o item:", error);
+            console.error("Erro ao deletar o item:", error)
         }
     }
 
@@ -84,7 +84,7 @@ export default ({ navigation }) => {
                 />
             </View>
         </SafeAreaView>
-    );
+    )
 }
 
 function ListItem({ data, onRemove, navigation }) {
@@ -102,7 +102,7 @@ function ListItem({ data, onRemove, navigation }) {
                     onPress: () => onRemove(id)
                 }
             ]
-        );
+        )
     }
 
     return (
@@ -136,7 +136,7 @@ function ListItem({ data, onRemove, navigation }) {
                 </TouchableOpacity>
             </View>
         </View>
-    );
+    )
 }
 
 function FooterList({ load }) {
@@ -146,5 +146,5 @@ function FooterList({ load }) {
         <View>
             <ActivityIndicator size={25} color="#092955" />
         </View>
-    );
+    )
 }

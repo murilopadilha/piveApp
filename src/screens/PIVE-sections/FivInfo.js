@@ -12,120 +12,120 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { IPAdress } from "../../components/APIip";
 
 export default ({ route, navigation }) => {
-    const { fiv } = route.params;
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [modalVisible, setModalVisible] = useState(false);
-    const [viableEmbryos, setViableEmbryos] = useState([]);
-    const [category, setCategory] = useState('');
-    const [receiver, setReceiver] = useState([]);
-    const [selectedReceiver, setSelectedReceiver] = useState('');
-    const [cultivationId, setCultivationId] = useState(null);
-    const [embryosRegistered, setEmbryosRegistered] = useState(0);
-    const [oocyteCollections, setOocyteCollections] = useState([]);
+    const { fiv } = route.params
+    const [data, setData] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const [modalVisible, setModalVisible] = useState(false)
+    const [viableEmbryos, setViableEmbryos] = useState([])
+    const [category, setCategory] = useState('')
+    const [receiver, setReceiver] = useState([])
+    const [selectedReceiver, setSelectedReceiver] = useState('')
+    const [cultivationId, setCultivationId] = useState(null)
+    const [embryosRegistered, setEmbryosRegistered] = useState(0)
+    const [oocyteCollections, setOocyteCollections] = useState([])
 
     const categories = [
         { key: 'true', value: 'Sim' },
         { key: 'false', value: 'Não' },
-    ];
+    ]
 
     const categoryData = categories.map(cat => ({
         key: cat.key,
         value: cat.value
-    }));
+    }))
 
     const handleSelect = (selectedKey) => {
-        const selectedCategory = categories.find(cat => cat.key === selectedKey);
+        const selectedCategory = categories.find(cat => cat.key === selectedKey)
         if (selectedCategory) {
-            setCategory(selectedCategory.key);
+            setCategory(selectedCategory.key)
         }
-    };
+    }
 
     const handleReceiverSelect = (selectedId) => {
-        const selectedReceiver = receiver.find(rec => rec.id.toString() === selectedId);
+        const selectedReceiver = receiver.find(rec => rec.id.toString() === selectedId)
         if (selectedReceiver) {
-            setSelectedReceiver(selectedReceiver.name);
+            setSelectedReceiver(selectedReceiver.name)
         } else {
-            console.log("Receiver not found for ID:", selectedId);
+            console.log("Receiver not found for ID:", selectedId)
         }
-    };
+    }
 
     const fetchEmbryosRegistered = async (cultivationId) => {
         try {
-            const response = await axios.get(`http://${IPAdress}/cultivation/${cultivationId}`);
+            const response = await axios.get(`http://${IPAdress}/cultivation/${cultivationId}`)
             if (response.data) {
-                setEmbryosRegistered(response.data.embryosRegistered);
+                setEmbryosRegistered(response.data.embryosRegistered)
             }
         } catch (err) {
-            console.error("Erro ao buscar embriões registrados:", err.message);
+            console.error("Erro ao buscar embriões registrados:", err.message)
         }
-    };
+    }
 
     const fetchReceivers = async () => {
         try {
-            const response = await axios.get(`http://${IPAdress}/receiver/available`);
-            setReceiver(response.data);
+            const response = await axios.get(`http://${IPAdress}/receiver/available`)
+            setReceiver(response.data)
         } catch (err) {
-            console.error(err.message);
+            console.error(err.message)
         }
-    };
+    }
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`);
-                setOocyteCollections(response.data);
+                const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`)
+                setOocyteCollections(response.data)
                 if (Array.isArray(response.data) && response.data.length > 0) {
-                    const fetchedData = response.data[0];
-                    setData(fetchedData);
+                    const fetchedData = response.data[0]
+                    setData(fetchedData)
                     if (fetchedData.cultivation) {
-                        setCultivationId(fetchedData.cultivation.id);
+                        setCultivationId(fetchedData.cultivation.id)
                     }
                 } else if (response.data && (response.data.oocyteCollection || response.data.cultivation)) {
-                    setData(response.data);
+                    setData(response.data)
                     if (response.data.cultivation) {
-                        setCultivationId(response.data.cultivation.id);
+                        setCultivationId(response.data.cultivation.id)
                     }
                 } else {
-                    setData(null);
+                    setData(null)
                 }
             } catch (err) {
-                setError(err.message);
+                setError(err.message)
             } finally {
-                setLoading(false);
+                setLoading(false)
             }
-        };
+        }
 
-        fetchData();
-    }, [fiv]);
+        fetchData()
+    }, [fiv])
 
     useEffect(() => {
         if (data && data.cultivation) {
-            const embryos = Array.isArray(data.cultivation.viableEmbryos) ? data.cultivation.viableEmbryos : [];
-            setViableEmbryos(embryos);
+            const embryos = Array.isArray(data.cultivation.viableEmbryos) ? data.cultivation.viableEmbryos : []
+            setViableEmbryos(embryos)
         }
-    }, [data]);
+    }, [data])
 
     const openModal = async () => {
-        setModalVisible(true);
+        setModalVisible(true)
         if (cultivationId) {
-            fetchEmbryosRegistered(cultivationId);
+            fetchEmbryosRegistered(cultivationId)
         }
-        await fetchReceivers();
-    };
+        await fetchReceivers()
+    }
 
     const handleSave = async () => {
         if (!cultivationId || category === '' || !selectedReceiver) {
-            alert("Por favor, preencha todos os campos.");
-            return;
+            alert("Por favor, preencha todos os campos.")
+            return
         }
 
         try {
-            const receiverId = receiver.find(rec => rec.name === selectedReceiver)?.id || 0;
+            const receiverId = receiver.find(rec => rec.name === selectedReceiver)?.id || 0
 
             if (embryosRegistered >= cultivation.viableEmbryos) {
-                alert("Todos os embriões desse cultivo já foram registrados.");
+                alert("Todos os embriões desse cultivo já foram registrados.")
                 return;
             }
 
@@ -133,28 +133,28 @@ export default ({ route, navigation }) => {
                 cultivationId: cultivationId,
                 frozen: category === 'true',
                 receiverCattleId: receiverId
-            });
+            })
 
-            await fetchEmbryosRegistered(cultivationId);
+            await fetchEmbryosRegistered(cultivationId)
 
-            setCategory('');
-            setSelectedReceiver('');
-            setModalVisible(false);
+            setCategory('')
+            setSelectedReceiver('')
+            setModalVisible(false)
         } catch (err) {
-            console.error("Erro ao salvar os dados:", err.message);
+            console.error("Erro ao salvar os dados:", err.message)
         }
-    };
+    }
 
     if (loading) {
-        return <ActivityIndicator size="large" color="#092955" />;
+        return <ActivityIndicator size="large" color="#092955" />
     }
 
     if (error) {
-        return <Text>Error: {error}</Text>;
+        return <Text>Error: {error}</Text>
     }
 
-    const oocyteCollection = data || {};
-    const cultivation = data?.cultivation || {};
+    const oocyteCollection = data || {}
+    const cultivation = data?.cultivation || {}
 
     return (
         <SafeAreaView style={stylesEmbryos.container} >
@@ -272,7 +272,7 @@ export default ({ route, navigation }) => {
                             <Text style={{ color: '#E0E0E0', paddingTop: 1, paddingLeft: 5 }}>Embriões</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            onPress={() => fiv.status === 'IN_PROCESS' ? navigation.navigate('ColetaOocitos', { fiv: fiv }) : navigation.navigate('Cultivo', { fiv: fiv })}
+                            onPress={() => navigation.navigate('ColetaOocitos', { fiv: fiv })}
                             style={[style.listButtonEdit, { marginTop: 0, marginLeft: 100, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
                         >
                             <Octicons name="pencil" size={20} color="#E0E0E0" />
@@ -282,5 +282,5 @@ export default ({ route, navigation }) => {
                 </View>
             </ScrollView>
         </SafeAreaView>
-    );
+    )
 }

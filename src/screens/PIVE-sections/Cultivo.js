@@ -8,12 +8,12 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { IPAdress } from "../../components/APIip";
 
 export default ({ route, navigation }) => {
-    const { oocyteCollectionId } = route.params;
-    const [data, setData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [totalEmbryos, setTotalEmbryos] = useState('');
-    const [fivData, setFivData] = useState(null);
+    const { oocyteCollectionId } = route.params
+    const [data, setData] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const [totalEmbryos, setTotalEmbryos] = useState('')
+    const [fivData, setFivData] = useState(null)
 
     useEffect(() => {
         const fetchFivData = async () => {

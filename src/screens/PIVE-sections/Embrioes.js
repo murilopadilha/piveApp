@@ -7,32 +7,32 @@ import style from "../../components/style";
 import { IPAdress } from "../../components/APIip";
 
 export default ({ route, navigation }) => {
-    const { fiv } = route.params;
-    const [oocyteCollections, setOocyteCollections] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const { fiv } = route.params
+    const [oocyteCollections, setOocyteCollections] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`);
-                setOocyteCollections(response.data.oocyteCollections);
-                setLoading(false);
+                const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`)
+                setOocyteCollections(response.data.oocyteCollections)
+                setLoading(false)
             } catch (err) {
-                setError(err);
-                setLoading(false);
+                setError(err)
+                setLoading(false)
             }
-        };
+        }
 
-        fetchData();
-    }, [fiv.id]);
+        fetchData()
+    }, [fiv.id])
 
     if (loading) {
         return (
             <SafeAreaView style={style.menu}>
                 <ActivityIndicator size="small" color="#092955" />
             </SafeAreaView>
-        );
+        )
     }
 
     if (error) {
@@ -40,12 +40,12 @@ export default ({ route, navigation }) => {
             <SafeAreaView style={style.menu}>
                 <Text>Error: {error.message}</Text>
             </SafeAreaView>
-        );
+        )
     }
 
     const handlePress = (id) => {
-        navigation.navigate('Cultivo', { oocyteCollectionId: id });
-    };
+        navigation.navigate('Cultivo', { oocyteCollectionId: id })
+    }
 
     const renderItem = ({ item }) => (
         <View style={styles.itemContainer}>
@@ -75,7 +75,7 @@ export default ({ route, navigation }) => {
                 </View>
             </TouchableOpacity>
         </View>
-    );
+    )
 
     return (
         <SafeAreaView style={style.menu}>
@@ -94,8 +94,8 @@ export default ({ route, navigation }) => {
                 contentContainerStyle={styles.listContainer}
             />
         </SafeAreaView>
-    );
-};
+    )
+}
 
 const styles = StyleSheet.create({
     listContainer: {
@@ -126,4 +126,4 @@ const styles = StyleSheet.create({
     value: {
         fontSize: Platform.OS === 'ios' ? 13 : 10,
     },
-});
+})

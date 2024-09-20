@@ -16,38 +16,38 @@ const BULLS_API_URL = `http://${IPAdress}/bull`
 const DONORS_API_URL = `http://${IPAdress}/donor`
 
 export default ({ navigation }) => {
-    const [category, setCategory] = useState('ALL');
-    const [items, setItems] = useState([]);
-    const [filteredItems, setFilteredItems] = useState([]);
+    const [category, setCategory] = useState('ALL')
+    const [items, setItems] = useState([])
+    const [filteredItems, setFilteredItems] = useState([])
     const [categories, setCategories] = useState([
         { key: 'ALL', value: 'Todas as FIVs'},
         { key: 'IN_PROCESS', value: 'Em processo' },
         { key: 'OOCYTE_COLLECTION_COMPLETED', value: 'Coleta de oócitos completa' },
         { key: 'COMPLETED', value: 'FIV completa' },
-    ]);
-    const [icon, setIcon] = useState('list-status');
-    const [secondaryOptions, setSecondaryOptions] = useState([]);
-    const [secondaryCategory, setSecondaryCategory] = useState(null);
-    const [secondaryPlaceholder, setSecondaryPlaceholder] = useState('Selecione uma opção');
-    const [selectedSecondary, setSelectedSecondary] = useState(null);
+    ])
+    const [icon, setIcon] = useState('list-status')
+    const [secondaryOptions, setSecondaryOptions] = useState([])
+    const [secondaryCategory, setSecondaryCategory] = useState(null)
+    const [secondaryPlaceholder, setSecondaryPlaceholder] = useState('Selecione uma opção')
+    const [selectedSecondary, setSelectedSecondary] = useState(null)
 
     const categoryData = categories.map(cat => ({
         key: cat.key,
         value: cat.value
-    }));
+    }))
 
     const fetchItems = async () => {
         try {
-            const response = await axios.get(API_URL);
-            setItems(response.data);
+            const response = await axios.get(API_URL)
+            setItems(response.data)
         } catch (error) {
-            console.error(error);
+            console.error(error)
         }
-    };
+    }
 
     const fetchSecondaryOptions = async (url) => {
         try {
-            const response = await axios.get(url);
+            const response = await axios.get(url)
             const options = response.data.map(item => ({
                 key: item.id.toString(),
                 value: `${item.name} (${item.registrationNumber || item.breed || item.birth})`
@@ -56,79 +56,79 @@ export default ({ navigation }) => {
         } catch (error) {
             console.error(error);
         }
-    };
+    }
 
     const fetchFilteredFIVs = async (id, type) => {
-        const url = type === 'donor' ? `http://${IPAdress}/fiv/donor?donorId=${id}` : `http://${IPAdress}/fiv/bull?bullId=${id}`;
+        const url = type === 'donor' ? `http://${IPAdress}/fiv/donor?donorId=${id}` : `http://${IPAdress}/fiv/bull?bullId=${id}`
         try {
-            const response = await axios.get(url);
-            setFilteredItems(response.data);
+            const response = await axios.get(url)
+            setFilteredItems(response.data)
         } catch (error) {
-            console.error(error);
+            console.error(error)
         }
     }
 
     useFocusEffect(
         React.useCallback(() => {
-            fetchItems();
-            return () => {};
+            fetchItems()
+            return () => {}
         }, [])
-    );
+    )
 
     useEffect(() => {
         if (category === 'ALL') {
-            setFilteredItems(items);
+            setFilteredItems(items)
         } else {
-            setFilteredItems(items.filter(item => item.status === category));
+            setFilteredItems(items.filter(item => item.status === category))
         }
-    }, [category, items]);
+    }, [category, items])
 
     const handleSelect = async (selectedKey) => {
-        const selectedCategory = categories.find(cat => cat.key === selectedKey);
+        const selectedCategory = categories.find(cat => cat.key === selectedKey)
         if (selectedCategory) {
-            setCategory(selectedCategory.key);
+            setCategory(selectedCategory.key)
             if (selectedKey === 'donor') {
-                fetchSecondaryOptions(DONORS_API_URL);
-                setSecondaryCategory('donor');
-                setSecondaryPlaceholder('Selecione uma doadora');
+                fetchSecondaryOptions(DONORS_API_URL)
+                setSecondaryCategory('donor')
+                setSecondaryPlaceholder('Selecione uma doadora')
             } else if (selectedKey === 'bull') {
-                fetchSecondaryOptions(BULLS_API_URL);
-                setSecondaryCategory('bull');
-                setSecondaryPlaceholder('Selecione um touro');
+                fetchSecondaryOptions(BULLS_API_URL)
+                setSecondaryCategory('bull')
+                setSecondaryPlaceholder('Selecione um touro')
             } else {
-                setSecondaryCategory(null);
-                setSecondaryOptions([]);
-                setSecondaryPlaceholder('Selecione uma opção');
-                setFilteredItems(items.filter(item => item.status === selectedKey));
+                setSecondaryCategory(null)
+                setSecondaryOptions([])
+                setSecondaryPlaceholder('Selecione uma opção')
+                setFilteredItems(items.filter(item => item.status === selectedKey))
             }
         }
-    };
+    }
 
     const handleSecondarySelect = (selectedKey) => {
-        const selected = secondaryOptions.find(option => option.key === selectedKey);
+        const selected = secondaryOptions.find(option => option.key === selectedKey)
         if (selected) {
-            setSelectedSecondary(selectedKey);
-            fetchFilteredFIVs(selectedKey, secondaryCategory);
+            setSelectedSecondary(selectedKey)
+            fetchFilteredFIVs(selectedKey, secondaryCategory)
         }
-    };
+    }
 
     const handleNewFIV = async () => {
         try {
             await axios.post(API_URL);
-            Alert.alert("Sucesso", "FIV criada com sucesso!", [{ text: "OK" }]);
+            Alert.alert("Sucesso", "FIV criada com sucesso!", [{ text: "OK" }])
         } catch (error) {
-            console.error(error);
-            Alert.alert('Erro', 'Ocorreu um erro ao processar sua requisição.');
+            console.error(error)
+            Alert.alert('Erro', 'Ocorreu um erro ao processar sua requisição.')
         }
-    };
+    }
 
     const toggleCategory = () => {
         if (icon === 'list-status') {
             setCategories([
                 { key: 'donor', value: 'Doadoras' },
                 { key: 'bull', value: 'Touros' },
-            ]);
-            setIcon('cow');
+            ])
+            setIcon('cow')
         } else {
             setCategories([
                 { key: 'ALL', value: 'Todas as FIVs' },
@@ -136,15 +136,15 @@ export default ({ navigation }) => {
                 { key: 'OOCYTE_COLLECTION_COMPLETED', value: 'Coleta de oócitos completa' },
                 { key: 'COMPLETED', value: 'FIV completa' },
             ]);
-            setIcon('list-status');
-            setSecondaryCategory(null);
-            setSecondaryOptions([]);
-            setSecondaryPlaceholder('Selecione uma opção');
+            setIcon('list-status')
+            setSecondaryCategory(null)
+            setSecondaryOptions([])
+            setSecondaryPlaceholder('Selecione uma opção')
 
-            setCategory('ALL');
-            setFilteredItems(items); 
+            setCategory('ALL')
+            setFilteredItems(items)
         }
-    };
+    }
 
     return (
         <SafeAreaView style={{width: '100%', height: '100%'}}>
@@ -233,5 +233,5 @@ export default ({ navigation }) => {
                 <Text style={{ fontSize: Platform.OS === 'ios' ? 13 : 10, color: '#FFFFFF', textAlign: 'center', paddingTop: 3 }}>Nova FIV</Text>
             </TouchableOpacity>
         </SafeAreaView>
-    );
+    )
 }

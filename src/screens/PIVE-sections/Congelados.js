@@ -8,46 +8,46 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { IPAdress } from "../../components/APIip";
 
 export default ({ route, navigation }) => {
-    const { id } = route.params;
-    const [newNumber, setNumber] = useState('');
-    const [productionId, setProductionId] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { id } = route.params
+    const [newNumber, setNumber] = useState('')
+    const [productionId, setProductionId] = useState(null)
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`http://${IPAdress}/oocyte-collection/${id}`);
-                setProductionId(response.data.embryoProduction.id);
+                const response = await axios.get(`http://${IPAdress}/oocyte-collection/${id}`)
+                setProductionId(response.data.embryoProduction.id)
             } catch (error) {
-                Alert.alert("Error fetching data", error.message);
+                Alert.alert("Error fetching data", error.message)
             } finally {
-                setLoading(false);
+                setLoading(false)
             }
-        };
+        }
 
-        fetchData();
-    }, [id]);
+        fetchData()
+    }, [id])
 
     const postDiscardedEmbryos = async () => {
         if (!productionId || !newNumber) {
-            Alert.alert("Error", "Please fill in all fields.");
-            return;
+            Alert.alert("Error", "Please fill in all fields.")
+            return
         }
 
         try {
             await axios.post(`http://${IPAdress}/embryo/frozen`, {
                 productionId,
                 embryosQuantity: parseInt(newNumber),
-            });
-            Alert.alert("Successo", "Embriões descartados com sucesso!");
-            navigation.goBack();
+            })
+            Alert.alert("Successo", "Embriões descartados com sucesso!")
+            navigation.goBack()
         } catch (error) {
-            Alert.alert("Error posting data", error.message);
+            Alert.alert("Error posting data", error.message)
         }
-    };
+    }
 
     if (loading) {
-        return <ActivityIndicator size="small" color="#092955" />;
+        return <ActivityIndicator size="small" color="#092955" />
     }
 
     return (
@@ -81,5 +81,5 @@ export default ({ route, navigation }) => {
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
-    );
+    )
 }

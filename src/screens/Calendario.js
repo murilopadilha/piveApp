@@ -15,47 +15,47 @@ import style from "../components/style";
 import { IPAdress } from "../components/APIip";
 
 export default (props) => {
-    const [scheduleDate, setScheduleDate] = useState('');
-    const [category, setCategory] = useState('');
-    const [markedDates, setMarkedDates] = useState({});
-    const [selectedDateDetails, setSelectedDateDetails] = useState([]);
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [datePickerMode, setDatePickerMode] = useState('date');
+    const [scheduleDate, setScheduleDate] = useState('')
+    const [category, setCategory] = useState('')
+    const [markedDates, setMarkedDates] = useState({})
+    const [selectedDateDetails, setSelectedDateDetails] = useState([])
+    const [showDatePicker, setShowDatePicker] = useState(false)
+    const [datePickerMode, setDatePickerMode] = useState('date')
 
-    const navigation = useNavigation();
+    const navigation = useNavigation()
 
     const categories = [
         { key: 'OOCYTE_COLLECTION', value: 'Coleta de Oócito' },
         { key: 'IN_VITRO_MATURATION', value: 'Maturação In Vitro' },
         { key: 'IN_VITRO_FERTILIZATION', value: 'Fertilização In Vitro' },
         { key: 'EMBRYO_TRANSFER', value: 'Transferência de Embrião' },
-    ];
+    ]
 
     const categoryData = categories.map(cat => ({
         key: cat.key,
         value: cat.value
-    }));
+    }))
 
     const handleSelect = (selectedKey) => {
-        const selectedCategory = categories.find(cat => cat.key === selectedKey);
+        const selectedCategory = categories.find(cat => cat.key === selectedKey)
         if (selectedCategory) {
-            setCategory(selectedCategory.key);
+            setCategory(selectedCategory.key)
         }
-    };
+    }
 
     const onChangeDate = (event, selectedDate) => {
         setShowDatePicker(false);
         if (event.type === 'set' && selectedDate) {
             const currentDate = selectedDate || new Date();
-            const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`;
-            setScheduleDate(formattedDate);
+            const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
+            setScheduleDate(formattedDate)
         }
-    };
+    }
 
     const showDatePickerDialog = () => {
         setShowDatePicker(true);
         setDatePickerMode('date');
-    };
+    }
 
     const handleSchedule = async () => {
         if (!scheduleDate || !category) {
@@ -73,30 +73,30 @@ export default (props) => {
                     procedureType: category,
                     date: scheduleDate,
                 }),
-            });
+            })
 
             if (!response.ok) {
-                throw new Error('Falha na solicitação');
+                throw new Error('Falha na solicitação')
             }
 
             const result = await response.json();
-            Alert.alert("Sucesso", "Agendamento realizado com sucesso!");
-            console.log(result);
+            Alert.alert("Sucesso", "Agendamento realizado com sucesso!")
+            console.log(result)
 
-            fetchScheduledDates();
+            fetchScheduledDates()
 
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro: ${error.message}`);
+            Alert.alert("Erro", `Ocorreu um erro: ${error.message}`)
         }
-    };
+    }
 
     const fetchScheduledDates = async () => {
         try {
-            const response = await fetch(`http://${IPAdress}/schedule`);
+            const response = await fetch(`http://${IPAdress}/schedule`)
             if (!response.ok) {
-                throw new Error('Falha na solicitação');
+                throw new Error('Falha na solicitação')
             }
-            const data = await response.json();
+            const data = await response.json()
 
             const dates = {};
             data.forEach(item => {
@@ -104,61 +104,61 @@ export default (props) => {
                     selected: true,
                     marked: true,
                     selectedColor: '#092955',
-                };
-            });
+                }
+            })
 
-            setMarkedDates(dates);
+            setMarkedDates(dates)
 
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao buscar datas agendadas: ${error.message}`);
+            Alert.alert("Erro", `Ocorreu um erro ao buscar datas agendadas: ${error.message}`)
         }
-    };
+    }
 
     const fetchDateDetails = async (date) => {
         try {
-            const response = await fetch(`http://${IPAdress}/schedule/search?date=${date}`);
+            const response = await fetch(`http://${IPAdress}/schedule/search?date=${date}`)
             if (!response.ok) {
-                throw new Error('Falha na solicitação');
+                throw new Error('Falha na solicitação')
             }
-            const data = await response.json();
+            const data = await response.json()
 
             if (data.length > 0) {
                 const details = data.map(item => ({
                     id: item.id,
                     procedureType: categories.find(cat => cat.key === item.procedureType)?.value || item.procedureType,
                     date: item.date
-                }));
+                }))
                 setSelectedDateDetails(details);
             } else {
                 setSelectedDateDetails([]);
             }
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao buscar detalhes: ${error.message}`);
+            Alert.alert("Erro", `Ocorreu um erro ao buscar detalhes: ${error.message}`)
         }
-    };
+    }
 
     const handleDelete = async (id) => {
         try {
             const response = await fetch(`http://${IPAdress}/schedule/${id}`, {
                 method: 'DELETE',
-            });
+            })
 
             if (!response.ok) {
-                throw new Error('Falha na solicitação');
+                throw new Error('Falha na solicitação')
             }
 
-            Alert.alert("Sucesso", "Agendamento excluído com sucesso!");
+            Alert.alert("Sucesso", "Agendamento excluído com sucesso!")
             fetchScheduledDates();
             fetchDateDetails(scheduleDate);
 
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao excluir o agendamento: ${error.message}`);
+            Alert.alert("Erro", `Ocorreu um erro ao excluir o agendamento: ${error.message}`)
         }
-    };
+    }
 
     useEffect(() => {
-        fetchScheduledDates();
-    }, []);
+        fetchScheduledDates()
+    }, [])
 
     return (
         <SafeAreaView style={[style.safeAreaView, { backgroundColor: '#F1F2F4' }]}>
@@ -250,5 +250,5 @@ export default (props) => {
                 )}
             </View>
         </SafeAreaView>
-    );
-};
+    )
+}

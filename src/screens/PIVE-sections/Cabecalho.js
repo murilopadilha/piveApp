@@ -9,23 +9,23 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { IPAdress } from "../../components/APIip";
 
 export default ({ route, navigation }) => {
-    const [newOocyteCollectionDate, setDateOfOocyteCollection] = useState('');
-    const [farm, setFarm] = useState('');
-    const [client, setClient] = useState('');
-    const [laboratory, setLaboratory] = useState('');
-    const [veterinarian, setVeterinarian] = useState('');
-    const [technical, setTechnical] = useState('');
-    const [TE, setTE] = useState('');
-    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [newOocyteCollectionDate, setDateOfOocyteCollection] = useState('')
+    const [farm, setFarm] = useState('')
+    const [client, setClient] = useState('')
+    const [laboratory, setLaboratory] = useState('')
+    const [veterinarian, setVeterinarian] = useState('')
+    const [technical, setTechnical] = useState('')
+    const [TE, setTE] = useState('')
+    const [showDatePicker, setShowDatePicker] = useState(false)
 
     const onChangeDate = (event, selectedDate) => {
-        setShowDatePicker(false);
+        setShowDatePicker(false)
         if (event.type === 'set') {
-            const currentDate = selectedDate || new Date();
-            const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`;
-            setDateOfOocyteCollection(formattedDate);
+            const currentDate = selectedDate || new Date()
+            const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
+            setDateOfOocyteCollection(formattedDate)
         }
-    };
+    }
 
     const handleSave = async () => {
         try {
@@ -37,12 +37,12 @@ export default ({ route, navigation }) => {
                 veterinarian,
                 technical,
                 TE,
-            });
-            Alert.alert('Sucesso', 'FIV salva com sucesso!');
+            })
+            Alert.alert('Sucesso', 'FIV salva com sucesso!')
         } catch (error) {
-            Alert.alert('Erro', 'Erro ao salvar FIV');
+            Alert.alert('Erro', 'Erro ao salvar FIV')
         }
-    };
+    }
 
     return (
         <SafeAreaView style={style.menu}>
@@ -129,5 +129,5 @@ export default ({ route, navigation }) => {
                 </ScrollView>
             </View>
         </SafeAreaView>
-    );
-};
+    )
+}

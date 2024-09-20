@@ -8,11 +8,11 @@ import style from "../../components/style";
 import { IPAdress } from "../../components/APIip";
 
 export default ({ navigation }) => {
-    const [newDonorName, setName] = useState('');
-    const [newDonorBreed, setBreed] = useState('');
-    const [newDonorIndentification, setNumber] = useState('');
-    const [newDonorDateOfBirth, setDateOfBirth] = useState('');
-    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [newDonorName, setName] = useState('')
+    const [newDonorBreed, setBreed] = useState('')
+    const [newDonorIndentification, setNumber] = useState('')
+    const [newDonorDateOfBirth, setDateOfBirth] = useState('')
+    const [showDatePicker, setShowDatePicker] = useState(false)
 
     async function postDonors(name, breed, registrationNumber, birth) {
         const receiverData = {
@@ -20,7 +20,7 @@ export default ({ navigation }) => {
             "breed": breed,
             "birth": birth,
             "registrationNumber": registrationNumber
-        };
+        }
 
         try {
             const response = await fetch(`http://${IPAdress}/donor`, {
@@ -29,35 +29,35 @@ export default ({ navigation }) => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(receiverData)
-            });
+            })
 
             if(response.ok) {
-                const receivers = await response.json();
-                console.log(receivers);
-                Alert.alert('Sucesso', 'Doadora cadastrada com sucesso!');
-                setName('');
-                setBreed('');
-                setNumber('');
-                setDateOfBirth('');
+                const receivers = await response.json()
+                console.log(receivers)
+                Alert.alert('Sucesso', 'Doadora cadastrada com sucesso!')
+                setName('')
+                setBreed('')
+                setNumber('')
+                setDateOfBirth('')
             } else if(response.status == '409') {
-                const errorMessage = await response.text();
-                Alert.alert('Erro', errorMessage);
+                const errorMessage = await response.text()
+                Alert.alert('Erro', errorMessage)
             } else {
-                Alert.alert('Erro', "Erro ao enviar dados");
+                Alert.alert('Erro', "Erro ao enviar dados")
             }
             
         } catch (error) {
-            console.error('Erro ao salvar o doador:', error);
-            Alert.alert('Erro', error.message);
+            console.error('Erro ao salvar o doador:', error)
+            Alert.alert('Erro', error.message)
         }
     }
 
     const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || new Date();
-        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`;
-        setDateOfBirth(formattedDate);
-        setShowDatePicker(false);
-    };
+        const currentDate = selectedDate || new Date()
+        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
+        setDateOfBirth(formattedDate)
+        setShowDatePicker(false)
+    }
 
     return (
         <SafeAreaView style={style.menu}>
@@ -118,5 +118,5 @@ export default ({ navigation }) => {
                 </View>
             </View>
         </SafeAreaView>
-    );
+    )
 }

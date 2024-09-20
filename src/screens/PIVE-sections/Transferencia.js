@@ -9,18 +9,18 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { IPAdress } from "../../components/APIip";
 
 export default ({ route, navigation }) => {
-    const { fiv } = route.params; 
-    const [newNumber, setNumber] = useState('');
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [newDate, setDate] = useState('');
-    const [newFarmName, setFarmName] = useState('');
+    const { fiv } = route.params 
+    const [newNumber, setNumber] = useState('')
+    const [showDatePicker, setShowDatePicker] = useState(false)
+    const [newDate, setDate] = useState('')
+    const [newFarmName, setFarmName] = useState('')
 
     const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || new Date();
-        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`;
-        setDate(formattedDate);
-        setShowDatePicker(false);
-    };
+        const currentDate = selectedDate || new Date()
+        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
+        setDate(formattedDate)
+        setShowDatePicker(false)
+    }
 
     const postTransfer = async () => {
         const transferData = {
@@ -28,11 +28,11 @@ export default ({ route, navigation }) => {
             date: newDate,
             responsible: newNumber,
             farm: newFarmName
-        };
+        }
 
         try {
-            const response = await axios.post(`http://${IPAdress}/transfer`, transferData);
-            Alert.alert("Success", "Transferência salva com sucesso.");
+            const response = await axios.post(`http://${IPAdress}/transfer`, transferData)
+            Alert.alert("Success", "Transferência salva com sucesso.")
             setNumber('')
             setDate('')
             setFarmName('')
@@ -40,7 +40,7 @@ export default ({ route, navigation }) => {
             Alert.alert("Error", error.response?.data || "Ocorreu um erro")
             console.error(error)
         }
-    };
+    }
 
     return (
         <SafeAreaView style={style.menu}>
@@ -93,5 +93,5 @@ export default ({ route, navigation }) => {
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
-    );
+    )
 }
