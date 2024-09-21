@@ -194,11 +194,11 @@ export default ({ route, navigation }) => {
                         <View style={stylesEmbryos.oocytesRow}>
                             <View style={stylesEmbryos.oocytesItem}>
                                 <Text style={stylesEmbryos.label}>Total:</Text>
-                                <Text style={stylesEmbryos.value}>{fiv.totalOocytesCollected || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{fiv.fivTotalOocytesCollected || '-'}</Text>
                             </View>
                             <View style={stylesEmbryos.oocytesItem}>
                                 <Text style={stylesEmbryos.label}>Viáveis:</Text>
-                                <Text style={stylesEmbryos.value}>{fiv.totalViableOocytesCollected || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{fiv.fivTotalViableOocytesCollected || '-'}</Text>
                             </View>
                         </View>
                     </View>
