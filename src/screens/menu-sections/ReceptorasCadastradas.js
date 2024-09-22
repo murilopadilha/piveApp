@@ -82,7 +82,7 @@ export default ({ navigation }) => {
                 <View style={style.search}>
                     <TextInput
                         placeholder="Número de registro"
-                        keyboardType="numeric"
+                        placeholderTextColor="#888"
                         value={registrationNumber}
                         style={[style.input, {width: 340}]}
                         onChangeText={setRegistrationNumber}

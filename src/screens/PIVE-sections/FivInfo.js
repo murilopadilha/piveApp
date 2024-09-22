@@ -208,13 +208,10 @@ export default ({ route, navigation }) => {
                             <Text style={stylesEmbryos.label}>Total de Embriões:</Text>
                             <Text style={stylesEmbryos.value}>{cultivation.totalEmbryos || '-'}</Text>
                         </View>
-                        <TouchableOpacity
-                            onPress={openModal}
-                            style={stylesEmbryos.cultivationItem}
-                        >
+                        <View style={stylesEmbryos.cultivationItem} >
                             <Text style={stylesEmbryos.label}>Porcentual Embriões:</Text>
                             <Text style={stylesEmbryos.value}>{cultivation.viableEmbryos || '-'}</Text>
-                        </TouchableOpacity>
+                        </View>
                     </View>
                     <View style={{ display: 'flex', flexDirection: 'row' }}>
                         <TouchableOpacity
