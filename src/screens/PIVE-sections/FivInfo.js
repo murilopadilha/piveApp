@@ -119,7 +119,8 @@ export default ({ route, navigation }) => {
                 </TouchableOpacity>
                 <Text style={style.titleText}>Informação da FIV</Text>
             </View>
-            <ScrollView style={[stylesEmbryos.scrollContainer, { marginHorizontal: 20 }]} contentContainerStyle={{ paddingBottom: '30%' }}>
+            <ScrollView style={[stylesEmbryos.scrollContainer, { marginHorizontal: 20 }]} contentContainerStyle={{ paddingBottom: '30%' }}
+            showsVerticalScrollIndicator={false}>
                 <View style={stylesEmbryos.section}>
                     <Text style={stylesEmbryos.sectionTitle}>Procedimento</Text>
                     <View style={stylesEmbryos.infoContainer}>
@@ -171,7 +172,7 @@ export default ({ route, navigation }) => {
                                 <View style={{ width: '24%' }}>
                                     <Text style={stylesEmbryos.value}>{collection.donorCattle.registrationNumber}</Text>
                                 </View>
-                                <View style={{ width: '20%' }}>
+                                <View style={{ width: '22%' }}>
                                     <Text style={stylesEmbryos.value}>{collection.bull.registrationNumber}</Text>
                                 </View>
                                 <View style={{ width: '10%', marginLeft: '5%' }}>
@@ -194,11 +195,11 @@ export default ({ route, navigation }) => {
                         <View style={stylesEmbryos.oocytesRow}>
                             <View style={stylesEmbryos.oocytesItem}>
                                 <Text style={stylesEmbryos.label}>Total:</Text>
-                                <Text style={stylesEmbryos.value}>{fiv.fivTotalOocytesCollected || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivTotalOocytesCollected || '-'}</Text>
                             </View>
                             <View style={stylesEmbryos.oocytesItem}>
                                 <Text style={stylesEmbryos.label}>Viáveis:</Text>
-                                <Text style={stylesEmbryos.value}>{fiv.fivTotalViableOocytesCollected || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivTotalViableOocytesCollected || '-'}</Text>
                             </View>
                         </View>
                     </View>

@@ -41,7 +41,6 @@ export default ({ navigation }) => {
                 Alert.alert('Erro', "Erro ao enviar dados")
             }
         } catch (error) {
-            console.error('Erro dnv:', error)
             Alert.alert('Erro', 'Ocorreu um erro')
         }
     }
@@ -50,7 +49,7 @@ export default ({ navigation }) => {
         <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-                    <View style={{ marginRight: '5%' }}>
+                    <View style={{ marginRight: '8%' }}>
                         <AntDesign name="arrowleft" size={24} color="#092955" />
                     </View>
                 </TouchableOpacity>

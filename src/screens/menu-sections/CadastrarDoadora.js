@@ -1,26 +1,26 @@
 import React, { useState } from "react";
-import { Text, TextInput, View, TouchableOpacity, StyleSheet, Platform, Alert } from "react-native";
+import { Text, TextInput, View, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-native-safe-area-context";
 import style from "../../components/style";
 import { IPAdress } from "../../components/APIip";
 
 export default ({ navigation }) => {
-    const [newDonorName, setName] = useState('')
-    const [newDonorBreed, setBreed] = useState('')
-    const [newDonorIndentification, setNumber] = useState('')
-    const [newDonorDateOfBirth, setDateOfBirth] = useState('')
-    const [showDatePicker, setShowDatePicker] = useState(false)
+    const [newDonorName, setName] = useState('');
+    const [newDonorBreed, setBreed] = useState('');
+    const [newDonorIdentification, setIdentification] = useState('');
+    const [newDonorDateOfBirth, setDateOfBirth] = useState('');
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-    async function postDonors(name, breed, registrationNumber, birth) {
+    const postDonors = async (name, breed, registrationNumber, birth) => {
         const receiverData = {
             "name": name,
             "breed": breed,
             "birth": birth,
             "registrationNumber": registrationNumber
-        }
+        };
 
         try {
             const response = await fetch(`http://${IPAdress}/donor`, {
@@ -29,40 +29,46 @@ export default ({ navigation }) => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(receiverData)
-            })
+            });
 
-            if(response.ok) {
-                const receivers = await response.json()
-                console.log(receivers)
-                Alert.alert('Sucesso', 'Doadora cadastrada com sucesso!')
-                setName('')
-                setBreed('')
-                setNumber('')
-                setDateOfBirth('')
-            } else if(response.status == '409') {
-                const errorMessage = await response.text()
-                Alert.alert('Erro', errorMessage)
+            if (response.ok) {
+                const receivers = await response.json();
+                console.log(receivers);
+                Alert.alert('Sucesso', 'Doadora cadastrada com sucesso!');
+                setName('');
+                setBreed('');
+                setIdentification('');
+                setDateOfBirth('');
+            } else if (response.status === 409) {
+                const errorMessage = await response.text();
+                Alert.alert('Erro', errorMessage);
             } else {
-                Alert.alert('Erro', "Erro ao enviar dados")
+                Alert.alert('Erro', "Erro ao enviar dados");
             }
-            
         } catch (error) {
-            Alert.alert('Erro', error.message)
+            Alert.alert('Erro', error.message);
         }
-    }
+    };
 
-    const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || new Date()
-        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
-        setDateOfBirth(formattedDate)
-        setShowDatePicker(false)
-    }
+    const showDatePicker = () => {
+        setDatePickerVisibility(true);
+    };
+
+    const hideDatePicker = () => {
+        setDatePickerVisibility(false);
+    };
+
+    const handleConfirm = (date) => {
+        const formattedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`;
+        setDateOfBirth(formattedDate);
+        hideDatePicker();
+    };
 
     return (
         <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-                    <View style={{ marginRight: '5%' }}>
+                    <View style={{ marginRight: '9%' }}>
                         <AntDesign name="arrowleft" size={24} color="#092955" />
                     </View>
                 </TouchableOpacity>
@@ -75,7 +81,7 @@ export default ({ navigation }) => {
                     placeholderTextColor="#888"
                     value={newDonorName}
                     style={style.input}
-                    onChangeText={(text) => setName(text)}
+                    onChangeText={setName}
                 />
                 <Text style={style.label}>Raça:</Text>
                 <TextInput
@@ -83,33 +89,31 @@ export default ({ navigation }) => {
                     placeholderTextColor="#888"
                     value={newDonorBreed}
                     style={style.input}
-                    onChangeText={(text) => setBreed(text)}
+                    onChangeText={setBreed}
                 />
                 <Text style={style.label}>Identificação:</Text>
                 <TextInput
                     placeholder="Identificação da doadora"
                     placeholderTextColor="#888"
-                    value={newDonorIndentification}
+                    value={newDonorIdentification}
                     style={style.input}
-                    onChangeText={(text) => setNumber(text)}
+                    onChangeText={setIdentification}
                 />
                 <Text style={style.label}>Data de Nascimento:</Text>
-                <TouchableOpacity onPress={() => setShowDatePicker(true)} style={style.dateInput}>
+                <TouchableOpacity onPress={showDatePicker} style={style.dateInput}>
                     <Text style={style.dateText}>{newDonorDateOfBirth || "Selecione a data"}</Text>
                     <AntDesign style={{ paddingLeft: '20%' }} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
-                {showDatePicker && (
-                    <DateTimePicker
-                        value={new Date()}
-                        mode='date'
-                        display={Platform.OS === 'ios' ? 'default' : 'default'}
-                        onChange={onChangeDate}
-                    />
-                )}
+                <DateTimePickerModal
+                    isVisible={isDatePickerVisible}
+                    mode="date"
+                    onConfirm={handleConfirm}
+                    onCancel={hideDatePicker}
+                />
                 <View>
                     <TouchableOpacity
                         style={[style.button, { display: 'flex', flexDirection: 'row' }]}
-                        onPress={() => postDonors(newDonorName, newDonorBreed, newDonorIndentification, newDonorDateOfBirth)}
+                        onPress={() => postDonors(newDonorName, newDonorBreed, newDonorIdentification, newDonorDateOfBirth)}
                     >
                         <MaterialIcons name="done" size={20} color="#fff" />
                         <Text style={[style.buttonText, { marginLeft: 5, paddingBottom: 2 }]}>Salvar</Text>
@@ -117,5 +121,5 @@ export default ({ navigation }) => {
                 </View>
             </View>
         </SafeAreaView>
-    )
-}
+    );
+};

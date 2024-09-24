@@ -102,7 +102,7 @@ export default ({ navigation }) => {
         <SafeAreaView style={style.menu}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-                    <View style={{ marginRight: '5%' }}>
+                    <View style={{ marginRight: '8%' }}>
                         <AntDesign name="arrowleft" size={24} color="#092955" />
                     </View>
                 </TouchableOpacity>
@@ -121,9 +121,10 @@ export default ({ navigation }) => {
                 <SelectList
                     setSelected={setFilterOption}
                     data={filterOptions}
+                    searchPlaceholder={"Filtros"}
                     placeholder={"Filtrar doadoras"}
                     boxStyles={[style.selectListBox, { paddingBottom: '1%' }]}
-                    inputStyles={style.selectListInput}
+                    inputStyles={[style.selectListInput, { color: '#000' }]}
                     dropdownStyles={style.selectListDropdown}
                 />
                 <FlatList

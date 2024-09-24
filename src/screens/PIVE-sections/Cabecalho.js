@@ -1,31 +1,36 @@
 import React, { useState } from "react";
-import { Text, TextInput, View, TouchableOpacity, Alert, ScrollView, Platform } from "react-native";
+import { Text, TextInput, View, TouchableOpacity, Alert, ScrollView } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import axios from "axios";
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import style from "../../components/style";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { IPAdress } from "../../components/APIip";
 
 export default ({ route, navigation }) => {
-    const [newOocyteCollectionDate, setDateOfOocyteCollection] = useState('')
-    const [farm, setFarm] = useState('')
-    const [client, setClient] = useState('')
-    const [laboratory, setLaboratory] = useState('')
-    const [veterinarian, setVeterinarian] = useState('')
-    const [technical, setTechnical] = useState('')
-    const [TE, setTE] = useState('')
-    const [showDatePicker, setShowDatePicker] = useState(false)
+    const [newOocyteCollectionDate, setDateOfOocyteCollection] = useState('');
+    const [farm, setFarm] = useState('');
+    const [client, setClient] = useState('');
+    const [laboratory, setLaboratory] = useState('');
+    const [veterinarian, setVeterinarian] = useState('');
+    const [technical, setTechnical] = useState('');
+    const [TE, setTE] = useState('');
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-    const onChangeDate = (event, selectedDate) => {
-        setShowDatePicker(false)
-        if (event.type === 'set') {
-            const currentDate = selectedDate || new Date()
-            const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
-            setDateOfOocyteCollection(formattedDate)
-        }
-    }
+    const showDatePicker = () => {
+        setDatePickerVisibility(true);
+    };
+
+    const hideDatePicker = () => {
+        setDatePickerVisibility(false);
+    };
+
+    const handleConfirm = (date) => {
+        const formattedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`;
+        setDateOfOocyteCollection(formattedDate);
+        hideDatePicker();
+    };
 
     const handleSave = async () => {
         try {
@@ -37,8 +42,8 @@ export default ({ route, navigation }) => {
                 veterinarian,
                 technical,
                 TE,
-            })
-            Alert.alert('Sucesso', 'FIV salva com sucesso!')
+            });
+            Alert.alert('Sucesso', 'FIV salva com sucesso!');
             setDateOfOocyteCollection('');
             setFarm('');
             setClient('');
@@ -47,9 +52,9 @@ export default ({ route, navigation }) => {
             setTechnical('');
             setTE('');
         } catch (error) {
-            Alert.alert('Erro', error.response.data)
+            Alert.alert('Erro', error.response.data);
         }
-    }
+    };
 
     return (
         <SafeAreaView style={style.menu}>
@@ -66,18 +71,16 @@ export default ({ route, navigation }) => {
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 250 }}>
                     <Text style={style.label}>Data da coleta:</Text>
-                    <TouchableOpacity onPress={() => setShowDatePicker(true)} style={style.dateInput}>
+                    <TouchableOpacity onPress={showDatePicker} style={style.dateInput}>
                         <Text style={style.dateText}>{newOocyteCollectionDate || "Selecione a Data"}</Text>
                         <AntDesign style={{ paddingLeft: '20%' }} name="calendar" size={24} color="#000" />
                     </TouchableOpacity>
-                    {showDatePicker && (
-                        <DateTimePicker
-                            value={new Date()}
-                            mode='date'
-                            display={Platform.OS === 'ios' ? 'default' : 'default'}
-                            onChange={onChangeDate}
-                        />
-                    )}
+                    <DateTimePickerModal
+                        isVisible={isDatePickerVisible}
+                        mode="date"
+                        onConfirm={handleConfirm}
+                        onCancel={hideDatePicker}
+                    />
                     <Text style={style.label}>Fazenda:</Text>
                     <TextInput
                         placeholder="Nome da fazenda"
@@ -136,5 +139,5 @@ export default ({ route, navigation }) => {
                 </ScrollView>
             </View>
         </SafeAreaView>
-    )
+    );
 }
