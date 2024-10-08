@@ -207,11 +207,11 @@ export default ({ route, navigation }) => {
                     <View style={stylesEmbryos.cultivationContainer}>
                         <View style={stylesEmbryos.cultivationItem}>
                             <Text style={stylesEmbryos.label}>Total de Embriões:</Text>
-                            <Text style={stylesEmbryos.value}>{cultivation.totalEmbryos || '-'}</Text>
+                            <Text style={stylesEmbryos.value}>{oocyteCollections.fivTotalEmbryos || '-'}</Text>
                         </View>
                         <View style={stylesEmbryos.cultivationItem} >
                             <Text style={stylesEmbryos.label}>Porcentual Embriões:</Text>
-                            <Text style={stylesEmbryos.value}>{cultivation.viableEmbryos || '-'}</Text>
+                            <Text style={stylesEmbryos.value}>{oocyteCollections.fivEmbryosPercentage || '-'}</Text>
                         </View>
                     </View>
                     <View style={{ display: 'flex', flexDirection: 'row' }}>
