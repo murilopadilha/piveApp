@@ -181,7 +181,7 @@ export default ({ route, navigation }) => {
                                 <View style={{ width: '7%', marginLeft: '8%' }}>
                                     <Text style={stylesEmbryos.value}>{collection.viableOocytes}</Text>
                                 </View>
-                                <View style={{ width: '17%', marginLeft: '8%' }}>
+                                <View style={{ width: '20%', marginLeft: '8%' }}>
                                     {collection.embryoProduction
                                         ? <Text style={stylesEmbryos.value}>{collection.embryoProduction.embryosPercentage || '-'}</Text>
                                         : <Text style={stylesEmbryos.value}>-</Text>
@@ -217,14 +217,21 @@ export default ({ route, navigation }) => {
                     <View style={{ display: 'flex', flexDirection: 'row' }}>
                         <TouchableOpacity
                             onPress={() => navigation.navigate('Embrioes', { fiv: fiv })}
-                            style={[style.listButtonEdit, { marginTop: 0, marginLeft: 25, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
+                            style={[style.listButtonEdit, { marginTop: 0, marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
                         >
                             <FontAwesome6 name="clipboard-list" size={20} color="#E0E0E0" />
                             <Text style={{ color: '#E0E0E0', paddingTop: 1, paddingLeft: 5 }}>Embriões</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
+                            onPress={() => navigation.navigate('Prenhez', { fiv: fiv })}
+                            style={[style.listButtonEdit, { marginTop: 0, marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
+                        >
+                            <FontAwesome6 name="cow" size={20} color="#E0E0E0" />
+                            <Text style={{ color: '#E0E0E0', paddingTop: 1, paddingLeft: 3, paddingRight: 3 }}>Prenhez</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
                             onPress={() => navigation.navigate('ColetaOocitos', { fiv: fiv })}
-                            style={[style.listButtonEdit, { marginTop: 0, marginLeft: 100, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
+                            style={[style.listButtonEdit, { marginTop: 0, marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
                         >
                             <Octicons name="pencil" size={20} color="#E0E0E0" />
                             <Text style={{ color: '#E0E0E0', paddingTop: 1 }}>Registrar</Text>
