@@ -39,6 +39,7 @@ import Congelados from './screens/PIVE-sections/Congelados';
 import Transferencia from './screens/PIVE-sections/Transferencia';
 import Transferidos from './screens/PIVE-sections/Transferidos';
 import Prenhez from './screens/PIVE-sections/Prenhez';
+import ReceptorasPrenhaz from './screens/PIVE-sections/ReceptorasPrenhaz.js';
 
 const MenuStack = createStackNavigator()
 
@@ -70,6 +71,7 @@ function MenuTabStack() {
       <MenuStack.Screen name="Transferencia" component={Transferencia} />
       <MenuStack.Screen name="Transferidos" component={Transferidos} />
       <MenuStack.Screen name="Prenhez" component={Prenhez} />
+      <MenuStack.Screen name="ReceptorasPrenhaz" component={ReceptorasPrenhaz} />
     </MenuStack.Navigator>
   )
 }
