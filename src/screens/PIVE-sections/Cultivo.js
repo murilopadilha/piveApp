@@ -99,6 +99,20 @@ export default ({ route, navigation }) => {
                                 <Text style={{ alignSelf: 'center', marginRight: '3%' }}>{data.embryoProduction.embryosRegistered}/{data.embryoProduction.totalEmbryos}</Text>
                             </View>
                         </View>
+                        <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginTop: '10%' }}>
+                            <View>
+                                <Text style={[style.text, { fontWeight: 'bold' }]}>Transferidos:</Text>
+                                <Text style={{ alignSelf: 'center', marginRight: '3%' }}>{data.embryoProduction.numberTransferredEmbryos}</Text>
+                            </View>
+                            <View>
+                                <Text style={[style.text, { fontWeight: 'bold' }]}>Congelados:</Text>
+                                <Text style={{ alignSelf: 'center', marginRight: '3%' }}>{data.embryoProduction.numberFrozenEmbryos}</Text>
+                            </View>
+                            <View>
+                                <Text style={[style.text, { fontWeight: 'bold' }]}>Descartados:</Text>
+                                <Text style={{ alignSelf: 'center', marginRight: '3%' }}>{data.embryoProduction.numberDiscardedEmbryos}</Text>
+                            </View>
+                        </View>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-evenly', marginTop: '20%' }}>
                     <TouchableOpacity onPress={() => navigation.navigate('Descartados', { id: oocyteCollectionId })}
                         style={[style.listButtonSearch, { width: '30%', paddingLeft: '0%', paddingBottom: '2%' }]}>

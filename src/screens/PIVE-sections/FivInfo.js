@@ -205,13 +205,54 @@ export default ({ route, navigation }) => {
                     </View>
                     <Text style={[stylesEmbryos.sectionTitle, stylesEmbryos.cultivationTitle]}>Produção de Embriões</Text>
                     <View style={stylesEmbryos.cultivationContainer}>
-                        <View style={stylesEmbryos.cultivationItem}>
-                            <Text style={stylesEmbryos.label}>Total de Embriões:</Text>
-                            <Text style={stylesEmbryos.value}>{oocyteCollections.fivTotalEmbryos || '-'}</Text>
+                        <View style={{display: 'flex', flexDirection: 'row', marginBottom: '4%'}}>
+                            <View style={stylesEmbryos.cultivationItem}>
+                                <Text style={stylesEmbryos.label}>Total de Embriões:</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivTotalEmbryos || '-'}</Text>
+                            </View>
+                            <View style={stylesEmbryos.cultivationItem}>
+                                <Text style={stylesEmbryos.label}>Porcentual Embriões:</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivEmbryosPercentage || '-'}</Text>
+                            </View>
                         </View>
-                        <View style={stylesEmbryos.cultivationItem} >
-                            <Text style={stylesEmbryos.label}>Porcentual Embriões:</Text>
-                            <Text style={stylesEmbryos.value}>{oocyteCollections.fivEmbryosPercentage || '-'}</Text>
+                        <View style={{display: 'flex', flexDirection: 'row', marginBottom: '4%'}}>
+                            <View style={stylesEmbryos.cultivationItem}>
+                                <Text style={stylesEmbryos.label}>Registrados:</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivEmbryosRegistered || '-'}</Text>
+                            </View>
+                            <View style={stylesEmbryos.cultivationItem}>
+                                <Text style={stylesEmbryos.label}>Transferidos:</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivNumberTransferredEmbryos || '-'}</Text>
+                            </View>
+                        </View>
+                        <View style={{display: 'flex', flexDirection: 'row', marginBottom: '3%'}}>
+                            <View style={stylesEmbryos.cultivationItem}>
+                                <Text style={stylesEmbryos.label}>Congelados:</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivNumberFrozenEmbryos || '-'}</Text>
+                            </View>
+                            <View style={stylesEmbryos.cultivationItem}>
+                                <Text style={stylesEmbryos.label}>Descartados:</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivNumberDiscardedEmbryos || '-'}</Text>
+                            </View>
+                        </View>
+                    </View>
+                    <Text style={[stylesEmbryos.sectionTitle, stylesEmbryos.cultivationTitle]}>
+                        Prenhez
+                    </Text>
+                    <View style={stylesEmbryos.cultivationContainer}>
+                        <View style={{ display: 'flex', flexDirection: 'row', marginBottom: '4%' }}>
+                            <View style={stylesEmbryos.cultivationItem}>
+                                <Text style={stylesEmbryos.label}>Total de Prenhez:</Text>
+                                <Text style={stylesEmbryos.value}>
+                                    {oocyteCollections.fivNumberPregnancies || '-'}
+                                </Text>
+                            </View>
+                            <View style={stylesEmbryos.cultivationItem}>
+                                <Text style={stylesEmbryos.label}>% de Prenhez:</Text>
+                                <Text style={stylesEmbryos.value}>
+                                    {oocyteCollections.fivPregnancyPercentage || '-'}
+                                </Text>
+                            </View>
                         </View>
                     </View>
                     <View style={{ display: 'flex', flexDirection: 'row' }}>

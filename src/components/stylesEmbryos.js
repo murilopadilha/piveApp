@@ -57,8 +57,8 @@ export default StyleSheet.create({
         marginTop: 20,
     },
     cultivationContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
+        display: 'flex',
+        flexDirection: 'column',
         marginBottom: 20,
     },
     cultivationItem: {
