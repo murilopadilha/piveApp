@@ -2,6 +2,11 @@
   "name": "piveapp",
   "version": "1.0.0",
   "main": "index.js",
+  "engines": {
+    "node": "20.20.2",
+    "npm": "10.8.2"
+  },
+  "packageManager": "npm@10.8.2",
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",
