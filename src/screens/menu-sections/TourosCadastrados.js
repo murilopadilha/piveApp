@@ -47,12 +47,17 @@ export default ({ navigation }) => {
                 response = await axios.get(apiUrl)
 
                 if (query) {
-                    const filteredData = response.data.filter(item => 
-                        (item.donor.name && item.donor.name.includes(query)) ||
-                        (item.bull.name && item.bull.name.includes(query)) ||
-                        (item.donor.registrationNumber && item.donor.registrationNumber.includes(query)) ||
-                        (item.bull.registrationNumber && item.bull.registrationNumber.includes(query))
-                    );
+                    const filteredData = response.data.filter(item => {
+                        const donorName = String(item?.donor?.name ?? '')
+                        const bullName = String(item?.bull?.name ?? '')
+                        const donorRegistrationNumber = String(item?.donor?.registrationNumber ?? '')
+                        const bullRegistrationNumber = String(item?.bull?.registrationNumber ?? '')
+
+                        return donorName.includes(query) ||
+                            bullName.includes(query) ||
+                            donorRegistrationNumber.includes(query) ||
+                            bullRegistrationNumber.includes(query)
+                    });
                     setData(filteredData)
                 } else {
                     setData(response.data)
@@ -146,28 +151,24 @@ export default ({ navigation }) => {
                     keyExtractor={item => item?.id ? String(item.id) : Math.random().toString()}
                     renderItem={({ item }) => {
                         if (filterOption === 'combination') {
-                            if (item.donor && item.bull) {
-                                return (
-                                    <View style={style.listItem}>
-                                        <View style={style.listText}>
-                                            <Text style={style.listText}>
-                                                <Text style={{ fontWeight: 'bold' }}>Doadora: </Text>
-                                                {item.donor.name || 'N/A'} ({item.donor.registrationNumber || 'N/A'})
-                                            </Text>
-                                            <Text style={style.listText}>
-                                                <Text style={{ fontWeight: 'bold' }}>Touro: </Text>
-                                                {item.bull.name || 'N/A'} ({item.bull.registrationNumber || 'N/A'}) 
-                                            </Text>
-                                            <Text style={style.listText}>
-                                                <Text style={{ fontWeight: 'bold' }}>Eficiência emb viáveis: </Text>
-                                                {item.averageCombinationEmbryosPercentage || 'N/A'}
-                                            </Text>
-                                        </View>
+                            return (
+                                <View style={style.listItem}>
+                                    <View style={style.listText}>
+                                        <Text style={style.listText}>
+                                            <Text style={{ fontWeight: 'bold' }}>Doadora: </Text>
+                                            {item?.donor?.name || '-'} ({item?.donor?.registrationNumber || '-'})
+                                        </Text>
+                                        <Text style={style.listText}>
+                                            <Text style={{ fontWeight: 'bold' }}>Touro: </Text>
+                                            {item?.bull?.name || '-'} ({item?.bull?.registrationNumber || '-'})
+                                        </Text>
+                                        <Text style={style.listText}>
+                                            <Text style={{ fontWeight: 'bold' }}>Eficiência emb viáveis: </Text>
+                                            {item?.averageCombinationEmbryosPercentage ?? '-'}
+                                        </Text>
                                     </View>
-                                )
-                            } else {
-                                return <Text style={style.listText}>Dados incompletos</Text>
-                            }
+                                </View>
+                            )
                         } else {
                             return <ListItem data={item} onRemove={confirmRemove} navigation={navigation} />
                         }
@@ -185,15 +186,15 @@ function ListItem({ data, onRemove, navigation }) {
             <View style={{ alignSelf: 'center' }}>
                 <Text style={style.listText}>
                     <Text style={{ fontWeight: 'bold' }}>Nome: </Text>
-                    {data.name}
+                    {data?.name || '-'}
                 </Text>
                 <Text style={style.listText}>
                     <Text style={{ fontWeight: 'bold' }}>Número de registro: </Text>
-                    {data.registrationNumber}
+                    {data?.registrationNumber || '-'}
                 </Text>
                 <Text style={style.listText}>
                     <Text style={{ fontWeight: 'bold' }}>Eficiência emb viáveis: </Text>
-                    {data.averageEmbryoPercentage}
+                    {data?.averageEmbryoPercentage ?? '-'}
                 </Text>
             </View>
             <View style={style.listButtons}>

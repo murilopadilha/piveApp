@@ -52,11 +52,11 @@ export default ({ route, navigation }) => {
             <TouchableOpacity style={styles.item} onPress={() => handlePress(item.id)}>
                 <View style={styles.row}>
                     <Text style={styles.label}>Doadora:</Text>
-                    <Text style={styles.value}>{item.donorCattle.registrationNumber}</Text>
+                    <Text style={styles.value}>{item.donorCattle?.registrationNumber || '-'}</Text>
                 </View>
                 <View style={styles.row}>
                     <Text style={styles.label}>Touro:</Text>
-                    <Text style={styles.value}>{item.bull.registrationNumber}</Text>
+                    <Text style={styles.value}>{item.bull?.registrationNumber || '-'}</Text>
                 </View>
                 <View style={styles.row}>
                     <Text style={styles.label}>Total Oócitos:</Text>

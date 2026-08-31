@@ -80,19 +80,19 @@ function ListItem({ data, onRemove, navigation }) {
             <View style={{ alignSelf: 'center' }}>
                 <Text style={style.listText}>
                     <Text style={{ fontWeight: 'bold' }}>Nome: </Text>
-                    {data.name} ({data.registrationNumber})
+                    {data?.name || '-'} ({data?.registrationNumber || '-'})
                 </Text>
                 <Text style={style.listText}>
                     <Text style={{ fontWeight: 'bold' }}>Raça: </Text>
-                    {data.breed}
+                    {data?.breed || '-'}
                 </Text>
                 <Text style={style.listText}>
                     <Text style={{ fontWeight: 'bold' }}>Dia de Transferência: </Text>
-                    {data.pregnancy.transferDay}
+                    {data?.pregnancy?.transferDay ?? '-'}
                 </Text>
                 <Text style={style.listText}>
                     <Text style={{ fontWeight: 'bold' }}>Ano de Gestação: </Text>
-                    {data.pregnancy.gestationalAge}
+                    {data?.pregnancy?.gestationalAge ?? '-'}
                 </Text>
             </View>
         </View>

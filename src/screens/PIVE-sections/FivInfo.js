@@ -170,10 +170,10 @@ export default ({ route, navigation }) => {
                                     <Text style={[stylesEmbryos.value, { fontSize: 10 }]}>{index + 1}</Text>
                                 </View>
                                 <View style={{ width: '24%' }}>
-                                    <Text style={stylesEmbryos.value}>{collection.donorCattle.registrationNumber}</Text>
+                                    <Text style={stylesEmbryos.value}>{collection.donorCattle?.registrationNumber || '-'}</Text>
                                 </View>
                                 <View style={{ width: '22%' }}>
-                                    <Text style={stylesEmbryos.value}>{collection.bull.registrationNumber}</Text>
+                                    <Text style={stylesEmbryos.value}>{collection.bull?.registrationNumber || '-'}</Text>
                                 </View>
                                 <View style={{ width: '10%', marginLeft: '5%' }}>
                                     <Text style={stylesEmbryos.value}>{collection.totalOocytes}</Text>
