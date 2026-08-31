@@ -17,8 +17,14 @@ export default ({ route, navigation }) => {
     const [recipients, setRecipients] = useState([]) 
     const [selectedTransfer, setSelectedTransfer] = useState(null) 
     const [selectedReceiver, setSelectedReceiver] = useState(null)  
+    const oocyteCollectionIdRef = React.useRef(null)
 
     useEffect(() => {
+        let isActive = true
+
+        oocyteCollectionIdRef.current = null
+        setOocyteCollection(null)
+
         const fetchTransfers = async () => {
             try {
                 const response = await axios.get(`http://${IPAdress}/transfer?fivId=${fiv.id}`)
@@ -33,10 +39,15 @@ export default ({ route, navigation }) => {
         const fetchOocyteCollection = async () => {
             try {
                 const response = await axios.get(`http://${IPAdress}/oocyte-collection/${id}`)
-                setOocyteCollection(response.data)
+                if (isActive) {
+                    setOocyteCollection(response.data)
+                    oocyteCollectionIdRef.current = id
+                }
             } catch (error) {
-                Alert.alert("Erro", error.response?.data || "Erro ao buscar coleta de oócitos")
-                console.error(error)
+                if (isActive) {
+                    Alert.alert("Erro", error.response?.data || "Erro ao buscar coleta de oócitos")
+                    console.error(error)
+                }
             }
         }
 
@@ -52,10 +63,16 @@ export default ({ route, navigation }) => {
         fetchTransfers()
         fetchRecipients()
         fetchOocyteCollection()
+
+        return () => {
+            isActive = false
+        }
     }, [fiv.id, id])
 
     const postTransfer = async () => {
-        const productionId = oocyteCollection?.embryoProduction?.id
+        const productionId = oocyteCollectionIdRef.current === id
+            ? oocyteCollection?.embryoProduction?.id
+            : null
 
         if (!productionId) {
             Alert.alert("Erro", "Não foi possível localizar a produção embrionária necessária para esta operação.")

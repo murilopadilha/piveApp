@@ -12,31 +12,47 @@ export default ({ route, navigation }) => {
     const [newNumber, setNumber] = useState('')
     const [productionId, setProductionId] = useState(null)
     const [loading, setLoading] = useState(true)
+    const productionCollectionIdRef = React.useRef(null)
 
     useEffect(() => {
+        let isActive = true
+
+        productionCollectionIdRef.current = null
+        setProductionId(null)
+        setLoading(true)
+
         const fetchData = async () => {
             try {
                 const response = await axios.get(`http://${IPAdress}/oocyte-collection/${id}`)
                 const fetchedProductionId = response.data?.embryoProduction?.id
-                if (fetchedProductionId) {
-                    setProductionId(fetchedProductionId)
+                if (isActive) {
+                    setProductionId(fetchedProductionId ?? null)
+                    productionCollectionIdRef.current = id
                 }
             } catch (error) {
-                const responseData = error?.response?.data
-                const message = typeof responseData === 'string'
-                    ? responseData
-                    : error?.message || 'Não foi possível carregar os dados da coleta.'
-                Alert.alert("Erro", message)
+                if (isActive) {
+                    const responseData = error?.response?.data
+                    const message = typeof responseData === 'string'
+                        ? responseData
+                        : error?.message || 'Não foi possível carregar os dados da coleta.'
+                    Alert.alert("Erro", message)
+                }
             } finally {
-                setLoading(false)
+                if (isActive) {
+                    setLoading(false)
+                }
             }
         }
 
         fetchData()
+
+        return () => {
+            isActive = false
+        }
     }, [id])
 
     const postDiscardedEmbryos = async () => {
-        if (!productionId) {
+        if (productionCollectionIdRef.current !== id || !productionId) {
             Alert.alert("Erro", "Não foi possível localizar a produção embrionária necessária para esta operação.")
             return;
         }
