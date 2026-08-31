@@ -36,7 +36,11 @@ export default ({ navigation }) => {
                 setData(response.data)
             }
         } catch (error) {
-            console.error(error.response.data)
+            const responseData = error?.response?.data
+            const message = typeof responseData === 'string'
+                ? responseData
+                : error?.message || 'Não foi possível carregar as receptoras.'
+            console.error(message)
         } finally {
             setLoading(false)
         }
@@ -64,7 +68,11 @@ export default ({ navigation }) => {
             await axios.delete(`${baseURL}/receiver/${id}`);
             setData(data.filter(item => item.id !== id));
         } catch (error) {
-            console.error("Erro ao deletar o item:", error);
+            const responseData = error?.response?.data
+            const message = typeof responseData === 'string'
+                ? responseData
+                : error?.message || 'Não foi possível excluir a receptora.'
+            console.error("Erro ao deletar o item:", message);
         }
     }
 

@@ -19,7 +19,11 @@ export default ({ route, navigation }) => {
                 const response = await axios.get(`http://${IPAdress}/oocyte-collection/${id}`)
                 setProductionId(response.data.embryoProduction.id)
             } catch (error) {
-                Alert.alert("Erro", error.response.data)
+                const responseData = error?.response?.data
+                const message = typeof responseData === 'string'
+                    ? responseData
+                    : error?.message || 'Não foi possível carregar os dados da coleta.'
+                Alert.alert("Erro", message)
             } finally {
                 setLoading(false)
             }
@@ -42,7 +46,11 @@ export default ({ route, navigation }) => {
             Alert.alert("Sucesso", "Embriões congelados com sucesso!")
             navigation.goBack()
         } catch (error) {
-            Alert.alert("Erro", error.response.data)
+            const responseData = error?.response?.data
+            const message = typeof responseData === 'string'
+                ? responseData
+                : error?.message || 'Não foi possível registrar os embriões congelados.'
+            Alert.alert("Erro", message)
         }
     }
 

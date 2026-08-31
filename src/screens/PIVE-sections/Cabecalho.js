@@ -52,7 +52,11 @@ export default ({ route, navigation }) => {
             setTechnical('');
             setTE('');
         } catch (error) {
-            Alert.alert('Erro', error.response.data);
+            const responseData = error?.response?.data;
+            const message = typeof responseData === 'string'
+                ? responseData
+                : error?.message || 'Não foi possível salvar a FIV.';
+            Alert.alert('Erro', message);
         }
     };
 

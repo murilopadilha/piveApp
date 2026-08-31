@@ -31,7 +31,11 @@ export default ({ route, navigation }) => {
                 setDonors(donorsResponse.data)
                 setBulls(bullsResponse.data)
             } catch (error) {
-                Alert.alert('Error', 'Failed to load data. Please try again.')
+                const responseData = error?.response?.data
+                const message = typeof responseData === 'string'
+                    ? responseData
+                    : error?.message || 'Não foi possível carregar doadoras e touros.'
+                Alert.alert('Erro', message)
             }
         }
 
@@ -96,7 +100,11 @@ export default ({ route, navigation }) => {
                 setTotalOocytes('')
                 setViableOocytes('')
         } catch (error) {
-            Alert.alert(`${error.response.data}`)
+            const responseData = error?.response?.data
+            const message = typeof responseData === 'string'
+                ? responseData
+                : error?.message || 'Não foi possível salvar a coleta.'
+            Alert.alert(message)
         }
     }
 
@@ -117,7 +125,11 @@ export default ({ route, navigation }) => {
                 setTotalOocytes('')
                 setViableOocytes('')
         } catch (error) {
-                Alert.alert('Erro', error.response.data)
+                const responseData = error?.response?.data
+                const message = typeof responseData === 'string'
+                    ? responseData
+                    : error?.message || 'Não foi possível salvar e concluir a coleta.'
+                Alert.alert('Erro', message)
         }
     }
 
