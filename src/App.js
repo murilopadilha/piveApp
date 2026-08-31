@@ -41,38 +41,60 @@ import Transferidos from './screens/PIVE-sections/Transferidos';
 import Prenhez from './screens/PIVE-sections/Prenhez';
 import ReceptorasPrenhaz from './screens/PIVE-sections/ReceptorasPrenhaz.js';
 
-const MenuStack = createStackNavigator()
+const AnimalsStack = createStackNavigator()
 
-function MenuTabStack() {
+function AnimalsTabStack() {
   return(
-    <MenuStack.Navigator screenOptions={{
+    <AnimalsStack.Navigator screenOptions={{
       headerShown: false,
     }}>
-      <MenuStack.Screen name='Menu' component={Menu}/>
-      <MenuStack.Screen name='Calendario' component={Calendario}/>
-      <MenuStack.Screen name='CadastrarReceptora' component={CadastrarReceptoras}/>
-      <MenuStack.Screen name='CadastrarDoadora' component={CadastrarDoadora} />
-      <MenuStack.Screen name='CadastrarTouro' component={CadastrarTouro} />
-      <MenuStack.Screen name='ReceptorasCadastradas' component={ReceptorasCadastradas} />
-      <MenuStack.Screen name='DoadorasCadastradas' component={DoadorasCadastradas} />
-      <MenuStack.Screen name='TourosCadastrados' component={TourosCadastrados} />
-      <MenuStack.Screen name="EditarDoadora" component={EditarDoadora} />
-      <MenuStack.Screen name="EditarReceptora" component={EditarReceptora} />
-      <MenuStack.Screen name="EditarTouro" component={EditarTouro} />
-      <MenuStack.Screen name="EditarAgendamento" component={EditarAgendamento} />
-      <MenuStack.Screen name="ColetaOocitos" component={ColetaOocitos} />
-      <MenuStack.Screen name="Pive" component={Pive} />
-      <MenuStack.Screen name="FivInfo" component={FivInfo} />
-      <MenuStack.Screen name="Cultivo" component={Cultivo} />
-      <MenuStack.Screen name="Embrioes" component={Embrioes} />
-      <MenuStack.Screen name="Cabecalho" component={Cabecalho} />
-      <MenuStack.Screen name="Descartados" component={Descartados} />
-      <MenuStack.Screen name="Congelados" component={Congelados} />
-      <MenuStack.Screen name="Transferencia" component={Transferencia} />
-      <MenuStack.Screen name="Transferidos" component={Transferidos} />
-      <MenuStack.Screen name="Prenhez" component={Prenhez} />
-      <MenuStack.Screen name="ReceptorasPrenhaz" component={ReceptorasPrenhaz} />
-    </MenuStack.Navigator>
+      <AnimalsStack.Screen name='Menu' component={Menu}/>
+      <AnimalsStack.Screen name='CadastrarReceptora' component={CadastrarReceptoras}/>
+      <AnimalsStack.Screen name='CadastrarDoadora' component={CadastrarDoadora} />
+      <AnimalsStack.Screen name='CadastrarTouro' component={CadastrarTouro} />
+      <AnimalsStack.Screen name='ReceptorasCadastradas' component={ReceptorasCadastradas} />
+      <AnimalsStack.Screen name='DoadorasCadastradas' component={DoadorasCadastradas} />
+      <AnimalsStack.Screen name='TourosCadastrados' component={TourosCadastrados} />
+      <AnimalsStack.Screen name="EditarDoadora" component={EditarDoadora} />
+      <AnimalsStack.Screen name="EditarReceptora" component={EditarReceptora} />
+      <AnimalsStack.Screen name="EditarTouro" component={EditarTouro} />
+    </AnimalsStack.Navigator>
+  )
+}
+
+const PiveStack = createStackNavigator()
+
+function PiveTabStack() {
+  return(
+    <PiveStack.Navigator screenOptions={{
+      headerShown: false,
+    }}>
+      <PiveStack.Screen name="Pive" component={Pive} />
+      <PiveStack.Screen name="Cabecalho" component={Cabecalho} />
+      <PiveStack.Screen name="FivInfo" component={FivInfo} />
+      <PiveStack.Screen name="ColetaOocitos" component={ColetaOocitos} />
+      <PiveStack.Screen name="Embrioes" component={Embrioes} />
+      <PiveStack.Screen name="Cultivo" component={Cultivo} />
+      <PiveStack.Screen name="Descartados" component={Descartados} />
+      <PiveStack.Screen name="Congelados" component={Congelados} />
+      <PiveStack.Screen name="Transferidos" component={Transferidos} />
+      <PiveStack.Screen name="Transferencia" component={Transferencia} />
+      <PiveStack.Screen name="Prenhez" component={Prenhez} />
+      <PiveStack.Screen name="ReceptorasPrenhaz" component={ReceptorasPrenhaz} />
+    </PiveStack.Navigator>
+  )
+}
+
+const CalendarStack = createStackNavigator()
+
+function CalendarTabStack() {
+  return(
+    <CalendarStack.Navigator screenOptions={{
+      headerShown: false,
+    }}>
+      <CalendarStack.Screen name='Calendario' component={Calendario}/>
+      <CalendarStack.Screen name="EditarAgendamento" component={EditarAgendamento} />
+    </CalendarStack.Navigator>
   )
 }
 
@@ -122,7 +144,7 @@ export default function App() {
           </View>
         )
       }}>
-        <Tab.Screen name="Animais" component={MenuTabStack} options={{
+        <Tab.Screen name="Animais" component={AnimalsTabStack} options={{
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => {
             if(focused){
@@ -132,7 +154,7 @@ export default function App() {
             return <MaterialCommunityIcons name="cow-off" size={24} color="#000" /> 
           }
         }}/>
-        <Tab.Screen name="PIVE" component={Pive} options={{
+        <Tab.Screen name="PIVE" component={PiveTabStack} options={{
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => {
             if(focused){
@@ -142,7 +164,7 @@ export default function App() {
             return <FontAwesome5 name="file-alt" size={24} color="#000" />
           }
         }}/>
-        <Tab.Screen name="Calendário" component={Calendario} options={{
+        <Tab.Screen name="Calendário" component={CalendarTabStack} options={{
           headerShown: false,
           tabBarIcon: ({ color, size, focused }) => {
             if(focused){
