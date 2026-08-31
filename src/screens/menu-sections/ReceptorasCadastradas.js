@@ -13,6 +13,8 @@ export default ({ navigation }) => {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
+    const loadingRef = React.useRef(false)
+    const pendingLoadRef = React.useRef(null)
 
     useFocusEffect(
         React.useCallback(() => {
@@ -20,13 +22,20 @@ export default ({ navigation }) => {
                 loadApi(registrationNumber)
             }, 500)
 
-            return () => clearTimeout(debounceTimer);
+            return () => {
+                clearTimeout(debounceTimer);
+                pendingLoadRef.current = null
+            }
         }, [registrationNumber])
     )
 
     async function loadApi(query = '') {
-        if (loading) return
+        if (loadingRef.current) {
+            pendingLoadRef.current = () => loadApi(query)
+            return
+        }
 
+        loadingRef.current = true
         setLoading(true)
 
         try {
@@ -45,7 +54,15 @@ export default ({ navigation }) => {
                 : error?.message || 'Não foi possível carregar as receptoras.'
             console.error(message)
         } finally {
-            setLoading(false)
+            loadingRef.current = false
+            const pendingLoad = pendingLoadRef.current
+            pendingLoadRef.current = null
+
+            if (pendingLoad) {
+                pendingLoad()
+            } else {
+                setLoading(false)
+            }
         }
     }
 

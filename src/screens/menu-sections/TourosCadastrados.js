@@ -15,6 +15,8 @@ export default ({ navigation }) => {
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
     const [filterOption, setFilterOption] = useState('all')
+    const loadingRef = React.useRef(false)
+    const pendingLoadRef = React.useRef(null)
 
     const filterOptions = [
         { key: 'all', value: 'Todos os touros' },
@@ -28,13 +30,20 @@ export default ({ navigation }) => {
                 loadApi(registrationNumber)
             }, 500)
 
-            return () => clearTimeout(debounceTimer)
+            return () => {
+                clearTimeout(debounceTimer)
+                pendingLoadRef.current = null
+            }
         }, [filterOption, registrationNumber])
     )
 
     async function loadApi(query = '') {
-        if (loading) return
+        if (loadingRef.current) {
+            pendingLoadRef.current = () => loadApi(query)
+            return
+        }
 
+        loadingRef.current = true
         setLoading(true)
 
         try {
@@ -73,7 +82,15 @@ export default ({ navigation }) => {
         } catch (error) {
             console.error(error)
         } finally {
-            setLoading(false)
+            loadingRef.current = false
+            const pendingLoad = pendingLoadRef.current
+            pendingLoadRef.current = null
+
+            if (pendingLoad) {
+                pendingLoad()
+            } else {
+                setLoading(false)
+            }
         }
     }
 
