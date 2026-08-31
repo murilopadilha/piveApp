@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Text, View, TouchableOpacity, Alert, ScrollView, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar } from 'react-native-calendars';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { SelectList } from 'react-native-dropdown-select-list';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Octicons from '@expo/vector-icons/Octicons';
 import Feather from '@expo/vector-icons/Feather';
 import AntDesign from '@expo/vector-icons/AntDesign';
@@ -14,7 +14,8 @@ import style from "../components/style";
 import { IPAdress } from "../components/APIip";
 
 export default (props) => {
-    const [scheduleDate, setScheduleDate] = useState('');
+    const [newScheduleDate, setNewScheduleDate] = useState('');
+    const [selectedCalendarDate, setSelectedCalendarDate] = useState('');
     const [category, setCategory] = useState('');
     const [markedDates, setMarkedDates] = useState({});
     const [selectedDateDetails, setSelectedDateDetails] = useState([]);
@@ -51,12 +52,12 @@ export default (props) => {
 
     const handleConfirm = (date) => {
         const formattedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`;
-        setScheduleDate(formattedDate);
+        setNewScheduleDate(formattedDate);
         hideDatePicker();
     };
 
     const handleSchedule = async () => {
-        if (!scheduleDate || !category) {
+        if (!newScheduleDate || !category) {
             Alert.alert("Erro", "Por favor, selecione a data e a categoria.");
             return;
         }
@@ -69,7 +70,7 @@ export default (props) => {
                 },
                 body: JSON.stringify({
                     procedureType: category,
-                    date: scheduleDate,
+                    date: newScheduleDate,
                 }),
             });
 
@@ -102,6 +103,14 @@ export default (props) => {
                 };
             });
 
+            if (selectedCalendarDate) {
+                dates[selectedCalendarDate] = {
+                    ...dates[selectedCalendarDate],
+                    selected: true,
+                    selectedColor: '#092955',
+                };
+            }
+
             setMarkedDates(dates);
 
         } catch (error) {
@@ -119,7 +128,8 @@ export default (props) => {
 
             const details = data.map(item => ({
                 id: item.id,
-                procedureType: categories.find(cat => cat.key === item.procedureType)?.value || item.procedureType,
+                procedureType: item.procedureType,
+                procedureTypeLabel: categories.find(cat => cat.key === item.procedureType)?.value || item.procedureType,
                 date: item.date,
             }));
             setSelectedDateDetails(details);
@@ -140,16 +150,23 @@ export default (props) => {
 
             Alert.alert("Sucesso", "Agendamento excluído com sucesso!");
             fetchScheduledDates();
-            fetchDateDetails(scheduleDate);
+            if (selectedCalendarDate) {
+                fetchDateDetails(selectedCalendarDate);
+            }
 
         } catch (error) {
             Alert.alert("Erro", `Ocorreu um erro ao excluir o agendamento: ${error.message}`);
         }
     };
 
-    useEffect(() => {
-        fetchScheduledDates();
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchScheduledDates();
+            if (selectedCalendarDate) {
+                fetchDateDetails(selectedCalendarDate);
+            }
+        }, [selectedCalendarDate])
+    );
 
     return (
         <SafeAreaView style={[style.safeAreaView, { backgroundColor: '#F1F2F4' }]}>
@@ -167,7 +184,7 @@ export default (props) => {
                     dropdownStyles={style.selectListDropdown}
                 />
                 <TouchableOpacity onPress={showDatePicker} style={[style.dateInput, { marginLeft: 20, marginRight: 20, marginTop: 10 }]}>
-                    <Text style={style.dateText}>{scheduleDate || "Selecione a Data"}</Text>
+                    <Text style={style.dateText}>{newScheduleDate || "Selecione a Data"}</Text>
                     <AntDesign style={{ paddingLeft: '20%' }} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
                 <DateTimePickerModal
@@ -200,7 +217,7 @@ export default (props) => {
                     firstDay={1}
                     markedDates={markedDates}
                     onDayPress={(day) => {
-                        fetchDateDetails(day.dateString);
+                        setSelectedCalendarDate(day.dateString);
                     }}
                 />
                 {selectedDateDetails.length > 0 && (
@@ -208,7 +225,7 @@ export default (props) => {
                         {selectedDateDetails.map((detail, index) => (
                             <View key={index} style={style.detailItem}>
                                 <Text style={style.detailsText}>
-                                    <Text style={{ fontWeight: 'bold' }}>Agendamento:</Text> {detail.procedureType}
+                                    <Text style={{ fontWeight: 'bold' }}>Agendamento:</Text> {detail.procedureTypeLabel}
                                 </Text>
                                 <Text style={[style.detailsText, { marginBottom: 5 }]}>
                                     <Text style={{ fontWeight: 'bold' }}>Data:</Text> {detail.date}

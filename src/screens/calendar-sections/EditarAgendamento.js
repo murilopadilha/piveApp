@@ -13,10 +13,8 @@ export default () => {
     const navigation = useNavigation()
     const { detail } = route.params
 
-    const [scheduleDate, setScheduleDate] = useState('')
-    const [category, setCategory] = useState('')
-    const [markedDates, setMarkedDates] = useState({})
-    const [selectedDateDetails, setSelectedDateDetails] = useState([])
+    const [scheduleDate, setScheduleDate] = useState(detail.date || '')
+    const [category, setCategory] = useState(detail.procedureType || '')
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false)
 
     const categories = [
@@ -30,6 +28,11 @@ export default () => {
         key: cat.key,
         value: cat.value
     }))
+
+    const currentCategoryOption = categories.find(cat => cat.key === detail.procedureType) || {
+        key: detail.procedureType,
+        value: detail.procedureTypeLabel || detail.procedureType
+    }
 
     const handleSelect = (selectedKey) => {
         const selectedCategory = categories.find(cat => cat.key === selectedKey)
@@ -50,20 +53,6 @@ export default () => {
         const formattedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`
         setScheduleDate(formattedDate)
         hideDatePicker()
-    }
-
-    const fetchScheduledDates = async () => {
-        try {
-            const response = await fetch(`http://${IPAdress}/schedule`)
-            if (!response.ok) {
-                throw new Error('Falha na solicitação')
-            }
-            const data = await response.json()
-            
-            setMarkedDates(data)
-        } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao buscar as datas agendadas: ${error.message}`)
-        }
     }
 
     const handleSchedule = async () => {
@@ -104,8 +93,7 @@ export default () => {
                             const result = await response.json()
                             Alert.alert("Sucesso", "Agendamento editado com sucesso!")
                             console.log(result)
-
-                            fetchScheduledDates()
+                            navigation.goBack()
 
                         } catch (error) {
                             Alert.alert("Erro", `Ocorreu um erro: ${error.message}`)
@@ -130,6 +118,7 @@ export default () => {
                 <SelectList
                     setSelected={handleSelect}
                     data={categoryData}
+                    defaultOption={currentCategoryOption}
                     placeholder={"Selecione seu agendamento"}
                     boxStyles={style.selectListBox}
                     inputStyles={style.selectListInput}
