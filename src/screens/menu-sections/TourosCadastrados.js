@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from "axios";
 import style from "../../components/style";
@@ -21,17 +22,15 @@ export default ({ navigation }) => {
         { key: 'combination', value: 'Combinação de touros com doadoras' },
     ]
 
-    useEffect(() => {
-        loadApi();
-    }, [filterOption])
+    useFocusEffect(
+        React.useCallback(() => {
+            const debounceTimer = setTimeout(() => {
+                loadApi(registrationNumber)
+            }, 500)
 
-    useEffect(() => {
-        const debounceTimer = setTimeout(() => {
-            loadApi(registrationNumber)
-        }, 500)
-
-        return () => clearTimeout(debounceTimer)
-    }, [registrationNumber])
+            return () => clearTimeout(debounceTimer)
+        }, [filterOption, registrationNumber])
+    )
 
     async function loadApi(query = '') {
         if (loading) return

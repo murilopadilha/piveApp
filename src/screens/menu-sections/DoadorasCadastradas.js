@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Text, TextInput, View, FlatList, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import axios from "axios";
 import style from "../../components/style";
 import { SelectList } from 'react-native-dropdown-select-list';
@@ -22,17 +23,15 @@ export default ({ navigation }) => {
         { key: 'combination', value: 'Combinação de touros com doadoras' },
     ]
 
-    useEffect(() => {
-        loadApi()
-    }, [filterOption])
+    useFocusEffect(
+        React.useCallback(() => {
+            const debounceTimer = setTimeout(() => {
+                loadApi()
+            }, 500)
 
-    useEffect(() => {
-        const debounceTimer = setTimeout(() => {
-            loadApi()
-        }, 500)
-
-        return () => clearTimeout(debounceTimer)
-    }, [registrationNumber])
+            return () => clearTimeout(debounceTimer)
+        }, [filterOption, registrationNumber])
+    )
 
     async function loadApi() {
         if (loading) return
