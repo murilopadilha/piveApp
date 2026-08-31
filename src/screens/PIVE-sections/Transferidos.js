@@ -55,13 +55,20 @@ export default ({ route, navigation }) => {
     }, [fiv.id, id])
 
     const postTransfer = async () => {
-        if (!oocyteCollection || !selectedTransfer || !selectedReceiver) {
+        const productionId = oocyteCollection?.embryoProduction?.id
+
+        if (!productionId) {
+            Alert.alert("Erro", "Não foi possível localizar a produção embrionária necessária para esta operação.")
+            return;
+        }
+
+        if (!selectedTransfer || !selectedReceiver) {
             Alert.alert("Erro", "Por favor, selecione todos os campos.")
             return;
         }
 
         const transferData = {
-            productionId: oocyteCollection.embryoProduction.id,
+            productionId,
             transferId: selectedTransfer, 
             receiverId: selectedReceiver
         }

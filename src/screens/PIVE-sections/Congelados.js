@@ -17,7 +17,10 @@ export default ({ route, navigation }) => {
         const fetchData = async () => {
             try {
                 const response = await axios.get(`http://${IPAdress}/oocyte-collection/${id}`)
-                setProductionId(response.data.embryoProduction.id)
+                const fetchedProductionId = response.data?.embryoProduction?.id
+                if (fetchedProductionId) {
+                    setProductionId(fetchedProductionId)
+                }
             } catch (error) {
                 const responseData = error?.response?.data
                 const message = typeof responseData === 'string'
@@ -33,7 +36,12 @@ export default ({ route, navigation }) => {
     }, [id])
 
     const postFrozenEmbryos = async () => {
-        if (!productionId || !newNumber) {
+        if (!productionId) {
+            Alert.alert("Erro", "Não foi possível localizar a produção embrionária necessária para esta operação.")
+            return
+        }
+
+        if (!newNumber) {
             Alert.alert("Erro", "Por favor, preencha todos os campos.")
             return
         }
