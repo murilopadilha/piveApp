@@ -28,9 +28,9 @@ export default ({ route, navigation }) => {
         fetchData()
     }, [id])
 
-    const postDiscardedEmbryos = async () => {
+    const postFrozenEmbryos = async () => {
         if (!productionId || !newNumber) {
-            Alert.alert("Error", "Please fill in all fields.")
+            Alert.alert("Erro", "Por favor, preencha todos os campos.")
             return
         }
 
@@ -39,7 +39,7 @@ export default ({ route, navigation }) => {
                 productionId,
                 embryosQuantity: parseInt(newNumber),
             })
-            Alert.alert("Successo", "Embriões descartados com sucesso!")
+            Alert.alert("Sucesso", "Embriões congelados com sucesso!")
             navigation.goBack()
         } catch (error) {
             Alert.alert("Erro", error.response.data)
@@ -74,7 +74,7 @@ export default ({ route, navigation }) => {
             <View>
                 <TouchableOpacity
                     style={[style.button, { display: 'flex', flexDirection: 'row', marginLeft: '40%', marginTop: 0 }]}
-                    onPress={postDiscardedEmbryos}
+                    onPress={postFrozenEmbryos}
                 >
                     <MaterialIcons name="done" size={20} color="#fff" />
                     <Text style={[style.buttonText, { marginLeft: 5, paddingBottom: 2 }]}>Salvar</Text>
