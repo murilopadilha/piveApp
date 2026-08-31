@@ -8,6 +8,29 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { IPAdress } from "../../components/APIip";
 
+const parseLocalDate = (value) => {
+    const match = typeof value === 'string' && value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+
+    if (!match) {
+        return new Date()
+    }
+
+    const year = Number(match[1])
+    const month = Number(match[2])
+    const day = Number(match[3])
+    const date = new Date(year, month - 1, day)
+
+    if (
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+    ) {
+        return new Date()
+    }
+
+    return date
+}
+
 export default ({ route, navigation }) => {
     const { donor } = route.params
     const [newDonorName, setName] = useState(donor.name)
@@ -123,6 +146,7 @@ export default ({ route, navigation }) => {
                 </TouchableOpacity>
                 <DateTimePickerModal
                     isVisible={isDatePickerVisible}
+                    date={parseLocalDate(newDonorDateOfBirth)}
                     mode="date"
                     onConfirm={handleConfirm}
                     onCancel={hideDatePicker}
