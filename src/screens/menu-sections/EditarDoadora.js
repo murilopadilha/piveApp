@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,6 +15,7 @@ export default ({ route, navigation }) => {
     const [newDonorIndentification, setNumber] = useState(donor.registrationNumber)
     const [newDonorDateOfBirth, setDateOfBirth] = useState(donor.birth)
     const [donorId, setDonorId] = useState(donor.id)
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false)
 
     async function updateDonor(id, name, breed, registrationNumber, birth) {
         const donorData = {
@@ -66,19 +67,18 @@ export default ({ route, navigation }) => {
         )
     }
 
-    const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || new Date()
-        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
-        setDateOfBirth(formattedDate)
+    const showDatePicker = () => {
+        setDatePickerVisibility(true)
     }
 
-    const showDatePicker = () => {
-        DateTimePickerAndroid.open({
-            value: new Date(),
-            mode: 'date',
-            is24Hour: true,
-            onChange: onChangeDate,
-        })
+    const hideDatePicker = () => {
+        setDatePickerVisibility(false)
+    }
+
+    const handleConfirm = (date) => {
+        const formattedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`
+        setDateOfBirth(formattedDate)
+        hideDatePicker()
     }
 
     return (
@@ -121,6 +121,12 @@ export default ({ route, navigation }) => {
                     <Text style={style.dateText}>{newDonorDateOfBirth || "Selecione a data"}</Text>
                     <AntDesign style={{paddingLeft: 90}} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
+                <DateTimePickerModal
+                    isVisible={isDatePickerVisible}
+                    mode="date"
+                    onConfirm={handleConfirm}
+                    onCancel={hideDatePicker}
+                />
                 <View>
                     <TouchableOpacity 
                         style={[style.button, {display: 'flex', flexDirection: 'row'}]} 

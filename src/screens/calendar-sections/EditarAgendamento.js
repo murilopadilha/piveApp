@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { useRoute, useNavigation } from '@react-navigation/native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { SelectList } from "react-native-dropdown-select-list";
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import style from "../../components/style";
 
 import { IPAdress } from "../../components/APIip";
@@ -17,6 +17,7 @@ export default () => {
     const [category, setCategory] = useState('')
     const [markedDates, setMarkedDates] = useState({})
     const [selectedDateDetails, setSelectedDateDetails] = useState([])
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false)
 
     const categories = [
         { key: 'OOCYTE_COLLECTION', value: 'Coleta de Oócito' },
@@ -37,19 +38,18 @@ export default () => {
         }
     }
 
-    const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || new Date()
-        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
-        setScheduleDate(formattedDate)
+    const showDatePicker = () => {
+        setDatePickerVisibility(true)
     }
 
-    const showDatePicker = () => {
-        DateTimePickerAndroid.open({
-            value: new Date(),
-            mode: 'date',
-            is24Hour: true,
-            onChange: onChangeDate,
-        })
+    const hideDatePicker = () => {
+        setDatePickerVisibility(false)
+    }
+
+    const handleConfirm = (date) => {
+        const formattedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`
+        setScheduleDate(formattedDate)
+        hideDatePicker()
     }
 
     const fetchScheduledDates = async () => {
@@ -138,6 +138,12 @@ export default () => {
                 <TouchableOpacity onPress={showDatePicker} style={[style.dateInput, { marginLeft: 20, marginRight: 20, marginTop: 10 }]}>
                     <Text style={style.dateText}>{scheduleDate || "Selecione a Data"}</Text>
                 </TouchableOpacity>
+                <DateTimePickerModal
+                    isVisible={isDatePickerVisible}
+                    mode="date"
+                    onConfirm={handleConfirm}
+                    onCancel={hideDatePicker}
+                />
                 <TouchableOpacity onPress={handleSchedule} style={[style.scheduleButton, {width: 150, height: 35}]}>
                     <Text style={style.scheduleText}>Editar Agendamento</Text>
                 </TouchableOpacity>
