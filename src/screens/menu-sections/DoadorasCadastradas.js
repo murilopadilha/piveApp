@@ -1,16 +1,22 @@
 import React, { useState } from "react";
 import { Text, TextInput, View, FlatList, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
-import axios from "axios";
 import style from "../../components/style";
 import { SelectList } from 'react-native-dropdown-select-list';
 import Octicons from '@expo/vector-icons/Octicons';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { IPAdress } from "../../components/APIip";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {
+    deleteDonor,
+    listDonorBullCombinations,
+    listDonors,
+    listDonorsByHighestAverageEmbryoPercentage,
+    listDonorsByHighestAverageOocytes,
+    searchDonors,
+} from "../../api/donorService";
+import { normalizeApiError } from "../../api/errors";
 
 export default ({ navigation }) => {
-    const baseURL = `http://${IPAdress}`
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
@@ -46,28 +52,24 @@ export default ({ navigation }) => {
 
         loadingRef.current = true
         setLoading(true);
-        let response
+        let donors
 
         try {
-            let apiUrl
-
             if (filterOption === 'combination') {
-                apiUrl = `${baseURL}/donor-bull-combinations`
-                response = await axios.get(apiUrl)
+                donors = await listDonorBullCombinations()
             } else {
-                apiUrl = getApiUrl()
                 if (registrationNumber) {
-                    response = await axios.get(`${baseURL}/donor/search`, {
-                        params: { registrationNumber }
-                    })
+                    donors = await searchDonors(registrationNumber)
                 } else {
-                    response = await axios.get(apiUrl)
+                    donors = await getDonorsByFilter()
                 }
             }
 
-            setData(response.data)
+            setData(donors)
         } catch (error) {
-            console.error(error)
+            const apiError = normalizeApiError(error, 'Não foi possível carregar as doadoras.')
+            if (apiError.isCanceled) return
+            console.error(apiError.message)
         } finally {
             loadingRef.current = false
             const pendingLoad = pendingLoadRef.current
@@ -81,24 +83,26 @@ export default ({ navigation }) => {
         }
     }
 
-    function getApiUrl() {
+    function getDonorsByFilter() {
         switch (filterOption) {
             case 'highest-average-oocytes':
-                return `${baseURL}/donor/highest-average-oocytes`
+                return listDonorsByHighestAverageOocytes()
             case 'highest-average-embryo-percentage':
-                return `${baseURL}/donor/highest-average-embryo-percentage`
+                return listDonorsByHighestAverageEmbryoPercentage()
             case 'all':
             default:
-                return `${baseURL}/donor`
+                return listDonors()
         }
     }
 
     async function removeItem(id) {
         try {
-            await axios.delete(`${baseURL}/donor/${id}`)
+            await deleteDonor(id)
             setData(data.filter(item => item.id !== id))
         } catch (error) {
-            console.error("Error deleting item:", error)
+            const apiError = normalizeApiError(error, 'Não foi possível excluir a doadora.')
+            if (apiError.isCanceled) return
+            console.error("Error deleting item:", apiError.message)
         }
     }
 

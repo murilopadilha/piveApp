@@ -5,7 +5,8 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-native-safe-area-context";
 import style from "../../components/style";
-import { IPAdress } from "../../components/APIip";
+import { createDonor } from "../../api/donorService";
+import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
 
 export default ({ navigation }) => {
     const [newDonorName, setName] = useState('');
@@ -23,30 +24,21 @@ export default ({ navigation }) => {
         };
 
         try {
-            const response = await fetch(`http://${IPAdress}/donor`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(receiverData)
-            });
-
-            if (response.ok) {
-                const receivers = await response.json();
-                console.log(receivers);
-                Alert.alert('Sucesso', 'Doadora cadastrada com sucesso!');
-                setName('');
-                setBreed('');
-                setIdentification('');
-                setDateOfBirth('');
-            } else if (response.status === 409) {
-                const errorMessage = await response.text();
-                Alert.alert('Erro', errorMessage);
-            } else {
-                Alert.alert('Erro', "Erro ao enviar dados");
-            }
+            const receivers = await createDonor(receiverData);
+            console.log(receivers);
+            Alert.alert('Sucesso', 'Doadora cadastrada com sucesso!');
+            setName('');
+            setBreed('');
+            setIdentification('');
+            setDateOfBirth('');
         } catch (error) {
-            Alert.alert('Erro', error.message);
+            const apiError = normalizeApiError(error, 'Erro ao enviar dados');
+            if (apiError.isCanceled) return;
+            if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
+                Alert.alert('Erro', 'Erro ao enviar dados');
+                return;
+            }
+            Alert.alert('Erro', apiError.message);
         }
     };
 

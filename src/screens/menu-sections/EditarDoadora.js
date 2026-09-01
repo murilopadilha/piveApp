@@ -6,7 +6,8 @@ import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { IPAdress } from "../../components/APIip";
+import { updateDonor as updateDonorRequest } from "../../api/donorService";
+import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
 
 const parseLocalDate = (value) => {
     const match = typeof value === 'string' && value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
@@ -49,27 +50,19 @@ export default ({ route, navigation }) => {
         }
 
         try {
-            const response = await fetch(`http://${IPAdress}/donor/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(donorData)
-            })
-            if (response.ok) {
-                const result = await response.json();
-                console.log(result)
-                Alert.alert('Sucesso', 'Doadora atualizada com sucesso!')
-                navigation.goBack()
-            } else if (response.status == '409') {
-                const errorMessage = await response.text()
-                Alert.alert('Erro', errorMessage);
-            } else {
-                Alert.alert('Erro', "Erro ao enviar dados")
-            }
+            const result = await updateDonorRequest(id, donorData)
+            console.log(result)
+            Alert.alert('Sucesso', 'Doadora atualizada com sucesso!')
+            navigation.goBack()
         } catch (error) {
-            console.error('Erro ao atualizar o doador:', error)
-            Alert.alert('Erro', 'Não foi possível atualizar os dados.')
+            const apiError = normalizeApiError(error, 'Não foi possível atualizar os dados.')
+            if (apiError.isCanceled) return
+            console.error('Erro ao atualizar o doador:', apiError.message)
+            if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
+                Alert.alert('Erro', 'Erro ao enviar dados')
+                return
+            }
+            Alert.alert('Erro', apiError.message)
         }
     }
 
