@@ -20,8 +20,9 @@ export default ({ navigation }) => {
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
     const [filterOption, setFilterOption] = useState('all')
-    const loadingRef = React.useRef(false)
-    const pendingLoadRef = React.useRef(null)
+    const isScreenFocusedRef = React.useRef(false)
+    const abortControllerRef = React.useRef(null)
+    const requestIdRef = React.useRef(0)
 
     const filterOptions = [
         { key: 'all', value: 'Todos os touros' },
@@ -31,32 +32,40 @@ export default ({ navigation }) => {
 
     useFocusEffect(
         React.useCallback(() => {
+            isScreenFocusedRef.current = true
             const debounceTimer = setTimeout(() => {
                 loadApi(registrationNumber)
             }, 500)
 
             return () => {
+                isScreenFocusedRef.current = false
                 clearTimeout(debounceTimer)
-                pendingLoadRef.current = null
+                requestIdRef.current += 1
+                abortControllerRef.current?.abort()
+                abortControllerRef.current = null
             }
         }, [filterOption, registrationNumber])
     )
 
     async function loadApi(query = '') {
-        if (loadingRef.current) {
-            pendingLoadRef.current = () => loadApi(query)
-            return
-        }
+        if (!isScreenFocusedRef.current) return
 
-        loadingRef.current = true
+        abortControllerRef.current?.abort()
+        const abortController = new AbortController()
+        abortControllerRef.current = abortController
+        const requestId = ++requestIdRef.current
+
         setLoading(true)
 
         try {
+            let bulls
             if (filterOption === 'combination') {
-                const combinations = await listDonorBullCombinations()
+                const combinations = await listDonorBullCombinations({
+                    signal: abortController.signal,
+                })
 
                 if (query) {
-                    const filteredData = combinations.filter(item => {
+                    bulls = combinations.filter(item => {
                         const donorName = String(item?.donor?.name ?? '')
                         const bullName = String(item?.bull?.name ?? '')
                         const donorRegistrationNumber = String(item?.donor?.registrationNumber ?? '')
@@ -67,43 +76,50 @@ export default ({ navigation }) => {
                             donorRegistrationNumber.includes(query) ||
                             bullRegistrationNumber.includes(query)
                     });
-                    setData(filteredData)
                 } else {
-                    setData(combinations)
+                    bulls = combinations
                 }
             } else {
                 if (query) {
-                    const bulls = await searchBulls(query)
-                    setData(bulls)
+                    bulls = await searchBulls(query, {
+                        signal: abortController.signal,
+                    })
                 } else {
-                    const bulls = await getBullsByFilter()
-                    setData(bulls)
+                    bulls = await getBullsByFilter({ signal: abortController.signal })
                 }
             }
+
+            if (
+                requestId !== requestIdRef.current ||
+                !isScreenFocusedRef.current
+            ) return
+
+            setData(bulls)
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível carregar os touros.')
             if (apiError.isCanceled) return
+            if (
+                requestId !== requestIdRef.current ||
+                !isScreenFocusedRef.current
+            ) return
             console.error(apiError.message)
         } finally {
-            loadingRef.current = false
-            const pendingLoad = pendingLoadRef.current
-            pendingLoadRef.current = null
-
-            if (pendingLoad) {
-                pendingLoad()
-            } else {
-                setLoading(false)
+            if (requestId === requestIdRef.current) {
+                abortControllerRef.current = null
+                if (isScreenFocusedRef.current) {
+                    setLoading(false)
+                }
             }
         }
     }
 
-    function getBullsByFilter() {
+    function getBullsByFilter(options) {
         switch (filterOption) {
             case 'highest-average-embryo-percentage':
-                return listBullsByHighestAverageEmbryoPercentage()
+                return listBullsByHighestAverageEmbryoPercentage(options)
             case 'all':
             default:
-                return listBulls()
+                return listBulls(options)
         }
     }
 

@@ -21,8 +21,9 @@ export default ({ navigation }) => {
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
     const [filterOption, setFilterOption] = useState('all')
-    const loadingRef = React.useRef(false)
-    const pendingLoadRef = React.useRef(null)
+    const isScreenFocusedRef = React.useRef(false)
+    const abortControllerRef = React.useRef(null)
+    const requestIdRef = React.useRef(0)
 
     const filterOptions = [
         { key: 'all', value: 'Todas as doadoras' },
@@ -33,65 +34,78 @@ export default ({ navigation }) => {
 
     useFocusEffect(
         React.useCallback(() => {
+            isScreenFocusedRef.current = true
             const debounceTimer = setTimeout(() => {
                 loadApi()
             }, 500)
 
             return () => {
+                isScreenFocusedRef.current = false
                 clearTimeout(debounceTimer)
-                pendingLoadRef.current = null
+                requestIdRef.current += 1
+                abortControllerRef.current?.abort()
+                abortControllerRef.current = null
             }
         }, [filterOption, registrationNumber])
     )
 
     async function loadApi() {
-        if (loadingRef.current) {
-            pendingLoadRef.current = () => loadApi()
-            return
-        }
+        if (!isScreenFocusedRef.current) return
 
-        loadingRef.current = true
+        abortControllerRef.current?.abort()
+        const abortController = new AbortController()
+        abortControllerRef.current = abortController
+        const requestId = ++requestIdRef.current
+
         setLoading(true);
         let donors
 
         try {
             if (filterOption === 'combination') {
-                donors = await listDonorBullCombinations()
+                donors = await listDonorBullCombinations({ signal: abortController.signal })
             } else {
                 if (registrationNumber) {
-                    donors = await searchDonors(registrationNumber)
+                    donors = await searchDonors(registrationNumber, {
+                        signal: abortController.signal,
+                    })
                 } else {
-                    donors = await getDonorsByFilter()
+                    donors = await getDonorsByFilter({ signal: abortController.signal })
                 }
             }
+
+            if (
+                requestId !== requestIdRef.current ||
+                !isScreenFocusedRef.current
+            ) return
 
             setData(donors)
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível carregar as doadoras.')
             if (apiError.isCanceled) return
+            if (
+                requestId !== requestIdRef.current ||
+                !isScreenFocusedRef.current
+            ) return
             console.error(apiError.message)
         } finally {
-            loadingRef.current = false
-            const pendingLoad = pendingLoadRef.current
-            pendingLoadRef.current = null
-
-            if (pendingLoad) {
-                pendingLoad()
-            } else {
-                setLoading(false)
+            if (requestId === requestIdRef.current) {
+                abortControllerRef.current = null
+                if (isScreenFocusedRef.current) {
+                    setLoading(false)
+                }
             }
         }
     }
 
-    function getDonorsByFilter() {
+    function getDonorsByFilter(options) {
         switch (filterOption) {
             case 'highest-average-oocytes':
-                return listDonorsByHighestAverageOocytes()
+                return listDonorsByHighestAverageOocytes(options)
             case 'highest-average-embryo-percentage':
-                return listDonorsByHighestAverageEmbryoPercentage()
+                return listDonorsByHighestAverageEmbryoPercentage(options)
             case 'all':
             default:
-                return listDonors()
+                return listDonors(options)
         }
     }
 
