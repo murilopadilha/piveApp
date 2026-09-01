@@ -2,14 +2,17 @@ import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import axios from "axios";
 import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
-import { IPAdress } from "../../components/APIip";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {
+    deleteReceiver,
+    listReceivers,
+    searchReceivers,
+} from "../../api/receiverService";
+import { normalizeApiError } from "../../api/errors";
 
 export default ({ navigation }) => {
-    const baseURL = `http://${IPAdress}`
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
@@ -39,20 +42,17 @@ export default ({ navigation }) => {
         setLoading(true)
 
         try {
-            let response
             if (query) {
-                response = await axios.get(`${baseURL}/receiver/search?registrationNumber=${query}`)
-                setData(response.data);
+                const receivers = await searchReceivers(query)
+                setData(receivers);
             } else {
-                response = await axios.get(`${baseURL}/receiver`)
-                setData(response.data)
+                const receivers = await listReceivers()
+                setData(receivers)
             }
         } catch (error) {
-            const responseData = error?.response?.data
-            const message = typeof responseData === 'string'
-                ? responseData
-                : error?.message || 'Não foi possível carregar as receptoras.'
-            console.error(message)
+            const apiError = normalizeApiError(error, 'Não foi possível carregar as receptoras.')
+            if (apiError.isCanceled) return
+            console.error(apiError.message)
         } finally {
             loadingRef.current = false
             const pendingLoad = pendingLoadRef.current
@@ -85,14 +85,12 @@ export default ({ navigation }) => {
 
     async function removeItem(id) {
         try {
-            await axios.delete(`${baseURL}/receiver/${id}`);
+            await deleteReceiver(id);
             setData(data.filter(item => item.id !== id));
         } catch (error) {
-            const responseData = error?.response?.data
-            const message = typeof responseData === 'string'
-                ? responseData
-                : error?.message || 'Não foi possível excluir a receptora.'
-            console.error("Erro ao deletar o item:", message);
+            const apiError = normalizeApiError(error, 'Não foi possível excluir a receptora.')
+            if (apiError.isCanceled) return
+            console.error("Erro ao deletar o item:", apiError.message);
         }
     }
 

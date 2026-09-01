@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import style from "../../components/style";
-import { IPAdress } from "../../components/APIip";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { createReceiver } from "../../api/receiverService";
+import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
 
 export default ({ navigation }) => {
     const [newReceiverName, setName] = useState('')
@@ -19,29 +20,20 @@ export default ({ navigation }) => {
         }
 
         try {
-            const response = await fetch(`http://${IPAdress}/receiver`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(receiverData)
-            })
+            await createReceiver(receiverData)
+            Alert.alert('Sucesso', 'Receptora cadastrada com sucesso!')
 
-            if (response.ok) {
-                const receivers = await response.json()
-                Alert.alert('Sucesso', 'Receptora cadastrada com sucesso!')
-                
-                setName('')
-                setBreed('')
-                setIdentification('')
-            } else if (response.status == '409') {
-                const errorMessage = await response.text()
-                Alert.alert('Erro', errorMessage);
-            } else {
-                Alert.alert('Erro', "Erro ao enviar dados")
-            }
+            setName('')
+            setBreed('')
+            setIdentification('')
         } catch (error) {
-            Alert.alert('Erro', 'Ocorreu um erro')
+            const apiError = normalizeApiError(error, 'Ocorreu um erro')
+            if (apiError.isCanceled) return
+            if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
+                Alert.alert('Erro', 'Erro ao enviar dados')
+                return
+            }
+            Alert.alert('Erro', apiError.message)
         }
     }
 
