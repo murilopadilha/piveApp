@@ -6,7 +6,8 @@ import { SelectList } from "react-native-dropdown-select-list";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import style from "../../components/style";
 
-import { IPAdress } from "../../components/APIip";
+import { updateSchedule } from "../../api/scheduleService";
+import { normalizeApiError } from "../../api/errors";
 
 const parseLocalDate = (value) => {
     const match = typeof value === 'string' && value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
@@ -98,28 +99,18 @@ export default () => {
                         const scheduleId = detail.id
 
                         try {
-                            const response = await fetch(`http://${IPAdress}/schedule/${scheduleId}`, {
-                                method: 'PUT',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    procedureType: category,
-                                    date: scheduleDate,
-                                }),
+                            const result = await updateSchedule(scheduleId, {
+                                procedureType: category,
+                                date: scheduleDate,
                             })
-
-                            if (!response.ok) {
-                                throw new Error('Falha na solicitação')
-                            }
-
-                            const result = await response.json()
                             Alert.alert("Sucesso", "Agendamento editado com sucesso!")
                             console.log(result)
                             navigation.goBack()
 
                         } catch (error) {
-                            Alert.alert("Erro", `Ocorreu um erro: ${error.message}`)
+                            const apiError = normalizeApiError(error, 'Ocorreu um erro ao editar o agendamento.')
+                            if (apiError.isCanceled) return
+                            Alert.alert("Erro", apiError.message)
                         }
                     }
                 }

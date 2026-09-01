@@ -11,7 +11,13 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
 import style from "../components/style"; 
-import { IPAdress } from "../components/APIip";
+import {
+    createSchedule,
+    deleteSchedule,
+    getScheduleDetailsByDate,
+    listSchedules,
+} from "../api/scheduleService";
+import { normalizeApiError } from "../api/errors";
 
 export default (props) => {
     const [newScheduleDate, setNewScheduleDate] = useState('');
@@ -63,36 +69,24 @@ export default (props) => {
         }
 
         try {
-            const response = await fetch(`http://${IPAdress}/schedule`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    procedureType: category,
-                    date: newScheduleDate,
-                }),
+            await createSchedule({
+                procedureType: category,
+                date: newScheduleDate,
             });
-
-            if (!response.ok) {
-                throw new Error('Falha na solicitação');
-            }
 
             Alert.alert("Sucesso", "Agendamento realizado com sucesso!");
             fetchScheduledDates();
 
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro: ${error.message}`);
+            const apiError = normalizeApiError(error, 'Ocorreu um erro ao criar o agendamento.');
+            if (apiError.isCanceled) return;
+            Alert.alert("Erro", apiError.message);
         }
     };
 
     const fetchScheduledDates = async () => {
         try {
-            const response = await fetch(`http://${IPAdress}/schedule`);
-            if (!response.ok) {
-                throw new Error('Falha na solicitação');
-            }
-            const data = await response.json();
+            const data = await listSchedules();
 
             const dates = {};
             data.forEach(item => {
@@ -114,17 +108,15 @@ export default (props) => {
             setMarkedDates(dates);
 
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao buscar datas agendadas: ${error.message}`);
+            const apiError = normalizeApiError(error, 'Ocorreu um erro ao buscar datas agendadas.');
+            if (apiError.isCanceled) return;
+            Alert.alert("Erro", apiError.message);
         }
     };
 
     const fetchDateDetails = async (date) => {
         try {
-            const response = await fetch(`http://${IPAdress}/schedule/search?date=${date}`);
-            if (!response.ok) {
-                throw new Error('Falha na solicitação');
-            }
-            const data = await response.json();
+            const data = await getScheduleDetailsByDate(date);
 
             const details = data.map(item => ({
                 id: item.id,
@@ -134,19 +126,15 @@ export default (props) => {
             }));
             setSelectedDateDetails(details);
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao buscar detalhes: ${error.message}`);
+            const apiError = normalizeApiError(error, 'Ocorreu um erro ao buscar detalhes do agendamento.');
+            if (apiError.isCanceled) return;
+            Alert.alert("Erro", apiError.message);
         }
     };
 
     const handleDelete = async (id) => {
         try {
-            const response = await fetch(`http://${IPAdress}/schedule/${id}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                throw new Error('Falha na solicitação');
-            }
+            await deleteSchedule(id);
 
             Alert.alert("Sucesso", "Agendamento excluído com sucesso!");
             fetchScheduledDates();
@@ -155,7 +143,9 @@ export default (props) => {
             }
 
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao excluir o agendamento: ${error.message}`);
+            const apiError = normalizeApiError(error, 'Ocorreu um erro ao excluir o agendamento.');
+            if (apiError.isCanceled) return;
+            Alert.alert("Erro", apiError.message);
         }
     };
 
