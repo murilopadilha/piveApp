@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, TouchableOpacity, ScrollView, Alert, Platform, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import axios from 'axios';
 import { SelectList } from 'react-native-dropdown-select-list';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Feather from '@expo/vector-icons/Feather';
 import style from '../components/style';
 import stylesEmbryos from '../components/stylesEmbryos';
-import { IPAdress } from '../components/APIip';
 import { useFocusEffect } from '@react-navigation/native';
-
-const API_URL = `http://${IPAdress}/fiv`
-const BULLS_API_URL = `http://${IPAdress}/bull`
-const DONORS_API_URL = `http://${IPAdress}/donor`
+import { listDonors } from '../api/donorService';
+import { listBulls } from '../api/bullService';
+import {
+    createFiv,
+    listFivs,
+    listFivsByBull,
+    listFivsByDonor,
+} from '../api/fivService';
+import { normalizeApiError } from '../api/errors';
 
 export default ({ navigation }) => {
     const [category, setCategory] = useState('ALL')
@@ -38,33 +41,40 @@ export default ({ navigation }) => {
 
     const fetchItems = async () => {
         try {
-            const response = await axios.get(API_URL)
-            setItems(response.data)
+            const fivs = await listFivs()
+            setItems(fivs)
         } catch (error) {
-            Alert.alert('Erro', error.message)
+            const apiError = normalizeApiError(error, 'Não foi possível carregar as FIVs.')
+            if (apiError.isCanceled) return
+            Alert.alert('Erro', apiError.message)
         }
     }
 
-    const fetchSecondaryOptions = async (url) => {
+    const fetchSecondaryOptions = async (type) => {
         try {
-            const response = await axios.get(url)
-            const options = response.data.map(item => ({
+            const data = type === 'donor' ? await listDonors() : await listBulls()
+            const options = data.map(item => ({
                 key: item.id.toString(),
                 value: `${item.name} (${item.registrationNumber || item.breed || item.birth})`
             }));
             setSecondaryOptions(options);
         } catch (error) {
-            Alert.alert('Erro', error.message)
+            const apiError = normalizeApiError(error, 'Não foi possível carregar as opções do filtro.')
+            if (apiError.isCanceled) return
+            Alert.alert('Erro', apiError.message)
         }
     }
 
     const fetchFilteredFIVs = async (id, type) => {
-        const url = type === 'donor' ? `http://${IPAdress}/fiv/donor?donorId=${id}` : `http://${IPAdress}/fiv/bull?bullId=${id}`
         try {
-            const response = await axios.get(url)
-            setFilteredItems(response.data)
+            const fivs = type === 'donor'
+                ? await listFivsByDonor(id)
+                : await listFivsByBull(id)
+            setFilteredItems(fivs)
         } catch (error) {
-            Alert.alert('Erro', error.message)
+            const apiError = normalizeApiError(error, 'Não foi possível filtrar as FIVs.')
+            if (apiError.isCanceled) return
+            Alert.alert('Erro', apiError.message)
         }
     }
 
@@ -88,11 +98,11 @@ export default ({ navigation }) => {
         if (selectedCategory) {
             setCategory(selectedCategory.key)
             if (selectedKey === 'donor') {
-                fetchSecondaryOptions(DONORS_API_URL)
+                fetchSecondaryOptions('donor')
                 setSecondaryCategory('donor')
                 setSecondaryPlaceholder('Selecione uma doadora')
             } else if (selectedKey === 'bull') {
-                fetchSecondaryOptions(BULLS_API_URL)
+                fetchSecondaryOptions('bull')
                 setSecondaryCategory('bull')
                 setSecondaryPlaceholder('Selecione um touro')
             } else {
@@ -114,10 +124,12 @@ export default ({ navigation }) => {
 
     const handleNewFIV = async () => {
         try {
-            await axios.post(API_URL);
+            await createFiv();
             Alert.alert("Sucesso", "FIV criada com sucesso!", [{ text: "OK" }])
         } catch (error) {
-            console.error(error)
+            const apiError = normalizeApiError(error, 'Ocorreu um erro ao processar sua requisição.')
+            if (apiError.isCanceled) return
+            console.error(apiError.message)
             Alert.alert('Erro', 'Ocorreu um erro ao processar sua requisição.')
         }
     }
