@@ -26,6 +26,11 @@ export default (props) => {
     const [markedDates, setMarkedDates] = useState({});
     const [selectedDateDetails, setSelectedDateDetails] = useState([]);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const isScreenFocusedRef = React.useRef(false);
+    const scheduledDatesAbortControllerRef = React.useRef(null);
+    const scheduledDatesRequestIdRef = React.useRef(0);
+    const dateDetailsAbortControllerRef = React.useRef(null);
+    const dateDetailsRequestIdRef = React.useRef(0);
 
     const navigation = useNavigation();
 
@@ -40,6 +45,17 @@ export default (props) => {
         key: cat.key,
         value: cat.value
     }));
+
+    const calendarMarkedDates = selectedCalendarDate
+        ? {
+            ...markedDates,
+            [selectedCalendarDate]: {
+                ...markedDates[selectedCalendarDate],
+                selected: true,
+                selectedColor: '#092955',
+            },
+        }
+        : markedDates;
 
     const handleSelect = (selectedKey) => {
         const selectedCategory = categories.find(cat => cat.key === selectedKey);
@@ -85,8 +101,20 @@ export default (props) => {
     };
 
     const fetchScheduledDates = async () => {
+        if (!isScreenFocusedRef.current) return;
+
+        scheduledDatesAbortControllerRef.current?.abort();
+        const abortController = new AbortController();
+        scheduledDatesAbortControllerRef.current = abortController;
+        const requestId = ++scheduledDatesRequestIdRef.current;
+
         try {
-            const data = await listSchedules();
+            const data = await listSchedules({ signal: abortController.signal });
+
+            if (
+                requestId !== scheduledDatesRequestIdRef.current ||
+                !isScreenFocusedRef.current
+            ) return;
 
             const dates = {};
             data.forEach(item => {
@@ -97,26 +125,41 @@ export default (props) => {
                 };
             });
 
-            if (selectedCalendarDate) {
-                dates[selectedCalendarDate] = {
-                    ...dates[selectedCalendarDate],
-                    selected: true,
-                    selectedColor: '#092955',
-                };
-            }
-
             setMarkedDates(dates);
 
         } catch (error) {
+            if (
+                requestId !== scheduledDatesRequestIdRef.current ||
+                !isScreenFocusedRef.current
+            ) return;
+
             const apiError = normalizeApiError(error, 'Ocorreu um erro ao buscar datas agendadas.');
             if (apiError.isCanceled) return;
             Alert.alert("Erro", apiError.message);
+        } finally {
+            if (requestId === scheduledDatesRequestIdRef.current) {
+                scheduledDatesAbortControllerRef.current = null;
+            }
         }
     };
 
     const fetchDateDetails = async (date) => {
+        if (!isScreenFocusedRef.current) return;
+
+        dateDetailsAbortControllerRef.current?.abort();
+        const abortController = new AbortController();
+        dateDetailsAbortControllerRef.current = abortController;
+        const requestId = ++dateDetailsRequestIdRef.current;
+
         try {
-            const data = await getScheduleDetailsByDate(date);
+            const data = await getScheduleDetailsByDate(date, {
+                signal: abortController.signal,
+            });
+
+            if (
+                requestId !== dateDetailsRequestIdRef.current ||
+                !isScreenFocusedRef.current
+            ) return;
 
             const details = data.map(item => ({
                 id: item.id,
@@ -126,9 +169,18 @@ export default (props) => {
             }));
             setSelectedDateDetails(details);
         } catch (error) {
+            if (
+                requestId !== dateDetailsRequestIdRef.current ||
+                !isScreenFocusedRef.current
+            ) return;
+
             const apiError = normalizeApiError(error, 'Ocorreu um erro ao buscar detalhes do agendamento.');
             if (apiError.isCanceled) return;
             Alert.alert("Erro", apiError.message);
+        } finally {
+            if (requestId === dateDetailsRequestIdRef.current) {
+                dateDetailsAbortControllerRef.current = null;
+            }
         }
     };
 
@@ -151,10 +203,30 @@ export default (props) => {
 
     useFocusEffect(
         React.useCallback(() => {
+            isScreenFocusedRef.current = true;
             fetchScheduledDates();
+
+            return () => {
+                isScreenFocusedRef.current = false;
+
+                scheduledDatesRequestIdRef.current += 1;
+                scheduledDatesAbortControllerRef.current?.abort();
+                scheduledDatesAbortControllerRef.current = null;
+            };
+        }, [])
+    );
+
+    useFocusEffect(
+        React.useCallback(() => {
             if (selectedCalendarDate) {
                 fetchDateDetails(selectedCalendarDate);
             }
+
+            return () => {
+                dateDetailsRequestIdRef.current += 1;
+                dateDetailsAbortControllerRef.current?.abort();
+                dateDetailsAbortControllerRef.current = null;
+            };
         }, [selectedCalendarDate])
     );
 
@@ -205,8 +277,15 @@ export default (props) => {
                     }}
                     monthFormat={'yyyy MMMM'}
                     firstDay={1}
-                    markedDates={markedDates}
+                    markedDates={calendarMarkedDates}
                     onDayPress={(day) => {
+                        if (day.dateString !== selectedCalendarDate) {
+                            dateDetailsRequestIdRef.current += 1;
+                            dateDetailsAbortControllerRef.current?.abort();
+                            dateDetailsAbortControllerRef.current = null;
+
+                            setSelectedDateDetails([]);
+                        }
                         setSelectedCalendarDate(day.dateString);
                     }}
                 />
