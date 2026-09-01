@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import style from "../../components/style";
-import { IPAdress } from "../../components/APIip";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { createBull } from "../../api/bullService";
+import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
 
 export default ({ navigation }) => {
     const [newBullName, setName] = useState('')
@@ -17,33 +18,24 @@ export default ({ navigation }) => {
         }
 
         try {
-            const response = await fetch(`http://${IPAdress}/bull`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(bullsData)
-            })
+            await createBull(bullsData)
 
-            if (response.ok) { 
-                const result = await response.json();
-                
-                Alert.alert(
-                    "Sucesso",
-                    "Cadastro realizado com sucesso!",
-                    [{ text: "OK" }]
-                )
+            Alert.alert(
+                "Sucesso",
+                "Cadastro realizado com sucesso!",
+                [{ text: "OK" }]
+            )
 
-                setName('')
-                setNumber('')
-            } else if (response.status == '409') {
-                const errorMessage = await response.text()
-                Alert.alert('Erro', errorMessage);
-            } else {
-                Alert.alert('Erro', "Erro ao enviar dados")
-            }
+            setName('')
+            setNumber('')
         } catch (error) {
-            Alert.alert('Erro', error.message)
+            const apiError = normalizeApiError(error, 'Erro ao enviar dados')
+            if (apiError.isCanceled) return
+            if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
+                Alert.alert('Erro', 'Erro ao enviar dados')
+                return
+            }
+            Alert.alert('Erro', apiError.message)
         }
     }
 

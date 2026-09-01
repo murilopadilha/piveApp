@@ -2,15 +2,20 @@ import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import axios from "axios";
 import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SelectList } from 'react-native-dropdown-select-list';
-import { IPAdress } from "../../components/APIip";
+import {
+    deleteBull,
+    listBulls,
+    listBullsByHighestAverageEmbryoPercentage,
+    listDonorBullCombinations,
+    searchBulls,
+} from "../../api/bullService";
+import { normalizeApiError } from "../../api/errors";
 
 export default ({ navigation }) => {
-    const baseURL = `http://${IPAdress}`
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
@@ -47,15 +52,11 @@ export default ({ navigation }) => {
         setLoading(true)
 
         try {
-            let response;
-            let apiUrl = getApiUrl()
-
             if (filterOption === 'combination') {
-                apiUrl = `${baseURL}/donor-bull-combinations`
-                response = await axios.get(apiUrl)
+                const combinations = await listDonorBullCombinations()
 
                 if (query) {
-                    const filteredData = response.data.filter(item => {
+                    const filteredData = combinations.filter(item => {
                         const donorName = String(item?.donor?.name ?? '')
                         const bullName = String(item?.bull?.name ?? '')
                         const donorRegistrationNumber = String(item?.donor?.registrationNumber ?? '')
@@ -68,19 +69,21 @@ export default ({ navigation }) => {
                     });
                     setData(filteredData)
                 } else {
-                    setData(response.data)
+                    setData(combinations)
                 }
             } else {
                 if (query) {
-                    response = await axios.get(`${baseURL}/bull/search?registrationNumber=${query}`)
-                    setData(response.data)
+                    const bulls = await searchBulls(query)
+                    setData(bulls)
                 } else {
-                    response = await axios.get(apiUrl)
-                    setData(response.data)
+                    const bulls = await getBullsByFilter()
+                    setData(bulls)
                 }
             }
         } catch (error) {
-            console.error(error)
+            const apiError = normalizeApiError(error, 'Não foi possível carregar os touros.')
+            if (apiError.isCanceled) return
+            console.error(apiError.message)
         } finally {
             loadingRef.current = false
             const pendingLoad = pendingLoadRef.current
@@ -94,13 +97,13 @@ export default ({ navigation }) => {
         }
     }
 
-    function getApiUrl() {
+    function getBullsByFilter() {
         switch (filterOption) {
             case 'highest-average-embryo-percentage':
-                return `${baseURL}/bull/highest-average-embryo-percentage`
+                return listBullsByHighestAverageEmbryoPercentage()
             case 'all':
             default:
-                return `${baseURL}/bull`
+                return listBulls()
         }
     }
 
@@ -123,10 +126,12 @@ export default ({ navigation }) => {
 
     async function removeItem(id) {
         try {
-            await axios.delete(`${baseURL}/bull/${id}`);
+            await deleteBull(id);
             setData(data.filter(item => item.id !== id));
         } catch (error) {
-            console.error("Erro ao deletar o item:", error);
+            const apiError = normalizeApiError(error, 'Não foi possível excluir o touro.')
+            if (apiError.isCanceled) return
+            console.error("Erro ao deletar o item:", apiError.message);
         }
     }
 

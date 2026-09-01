@@ -6,7 +6,8 @@ import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { IPAdress } from "../../components/APIip";
+import { updateBull as updateBullRequest } from "../../api/bullService";
+import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
 
 export default ({ route, navigation }) => {
     const { donor } = route.params; 
@@ -23,26 +24,18 @@ export default ({ route, navigation }) => {
         }
 
         try {
-            const response = await fetch(`http://${IPAdress}/bull/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(donorData)
-            })
-            if(response.ok) {
-                const result = await response.json()
-                console.log(result)
-                Alert.alert('Sucesso', 'Touro atualizado com sucesso!')
-                navigation.goBack()
-            } else if (response.status == '409') {
-                const errorMessage = await response.text()
-                Alert.alert('Erro', errorMessage);
-            } else {
-                Alert.alert('Erro', "Erro ao enviar dados")
-            }
+            const result = await updateBullRequest(id, donorData)
+            console.log(result)
+            Alert.alert('Sucesso', 'Touro atualizado com sucesso!')
+            navigation.goBack()
         } catch (error) {
-            Alert.alert('Erro', 'Não foi possível atualizar os dados.')
+            const apiError = normalizeApiError(error, 'Não foi possível atualizar os dados.')
+            if (apiError.isCanceled) return
+            if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
+                Alert.alert('Erro', 'Erro ao enviar dados')
+                return
+            }
+            Alert.alert('Erro', apiError.message)
         }
     }
 
