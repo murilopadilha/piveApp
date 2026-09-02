@@ -16,9 +16,25 @@ export default ({ navigation }) => {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
+    const [loadError, setLoadError] = useState(null)
+    const [hasLoaded, setHasLoaded] = useState(false)
+    const [deletingReceiverIds, setDeletingReceiverIds] = useState([])
+    const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
+    const registrationNumberRef = React.useRef(registrationNumber)
+    const deletingReceiverIdsRef = React.useRef(new Set())
     const abortControllerRef = React.useRef(null)
     const requestIdRef = React.useRef(0)
+
+    registrationNumberRef.current = registrationNumber
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+        }
+    }, [])
 
     useFocusEffect(
         React.useCallback(() => {
@@ -63,6 +79,8 @@ export default ({ navigation }) => {
             ) return
 
             setData(receivers)
+            setLoadError(null)
+            setHasLoaded(true)
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível carregar as receptoras.')
             if (apiError.isCanceled) return
@@ -71,6 +89,8 @@ export default ({ navigation }) => {
                 !isScreenFocusedRef.current
             ) return
             console.error(apiError.message)
+            setLoadError(apiError.message)
+            setHasLoaded(true)
         } finally {
             if (requestId === requestIdRef.current) {
                 abortControllerRef.current = null
@@ -99,13 +119,27 @@ export default ({ navigation }) => {
     }
 
     async function removeItem(id) {
+        if (deletingReceiverIdsRef.current.has(id)) return
+
+        deletingReceiverIdsRef.current.add(id)
+        setDeletingReceiverIds(Array.from(deletingReceiverIdsRef.current))
+
         try {
             await deleteReceiver(id);
-            setData(data.filter(item => item.id !== id));
+
+            if (!isScreenFocusedRef.current) return
+
+            await loadApi(registrationNumberRef.current)
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível excluir a receptora.')
             if (apiError.isCanceled) return
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return
             console.error("Erro ao deletar o item:", apiError.message);
+        } finally {
+            deletingReceiverIdsRef.current.delete(id)
+            if (isMountedRef.current) {
+                setDeletingReceiverIds(Array.from(deletingReceiverIdsRef.current))
+            }
         }
     }
 
@@ -129,6 +163,11 @@ export default ({ navigation }) => {
                         onChangeText={setRegistrationNumber}
                     />
                 </View>
+                {loadError && (
+                    <Text style={{ color: '#B00020', marginHorizontal: 20, marginTop: 5 }}>
+                        {loadError}
+                    </Text>
+                )}
                 <FlatList
                     showsVerticalScrollIndicator={false}
                     style={{ marginTop: 5 }}
@@ -136,16 +175,30 @@ export default ({ navigation }) => {
                     data={data}
                     keyExtractor={item => String(item.id)}
                     renderItem={({ item }) => (
-                        <ListItem data={item} onRemove={confirmRemove} navigation={navigation} />
+                        <ListItem
+                            data={item}
+                            isDeleting={deletingReceiverIds.includes(item.id)}
+                            onRemove={confirmRemove}
+                            navigation={navigation}
+                        />
                     )}
-                    ListFooterComponent={<FooterList load={loading} />}
+                    ListEmptyComponent={
+                        !hasLoaded || loading ? (
+                            <ActivityIndicator size={25} color="#092955" />
+                        ) : loadError ? null : (
+                            <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                                Nenhuma receptora encontrada.
+                            </Text>
+                        )
+                    }
+                    ListFooterComponent={<FooterList load={loading && data.length > 0} />}
                 />
             </View>
         </SafeAreaView>
     )
 }
 
-function ListItem({ data, onRemove, navigation }) {
+function ListItem({ data, isDeleting, onRemove, navigation }) {
     return (
         <View style={style.listItem}>
             <View style={{alignSelf: 'center'}}>
@@ -160,6 +213,7 @@ function ListItem({ data, onRemove, navigation }) {
             </View>
             <View style={style.listButtons}>
                 <TouchableOpacity
+                    disabled={isDeleting}
                     style={style.listButtonDelete}
                     onPress={() => onRemove(data.id)}
                 >
