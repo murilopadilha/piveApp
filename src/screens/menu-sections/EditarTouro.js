@@ -5,6 +5,7 @@ import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from '@react-navigation/native';
 
 import { updateBull as updateBullRequest } from "../../api/bullService";
 import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
@@ -16,26 +17,62 @@ export default ({ route, navigation }) => {
     const [newDonorIndentification, setNumber] = useState(donor.registrationNumber)
     const [newDonorDateOfBirth, setDateOfBirth] = useState(donor.birth)
     const [donorId, setDonorId] = useState(donor.id)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const isSubmittingRef = React.useRef(false)
+    const isMountedRef = React.useRef(true)
+    const isScreenFocusedRef = React.useRef(false)
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+        }
+    }, [])
+
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true
+
+            return () => {
+                isScreenFocusedRef.current = false
+            }
+        }, [])
+    )
 
     async function updateBull(id, name, registrationNumber) {
+        if (isSubmittingRef.current) return
+
         const donorData = {
             "name": name,
             "registrationNumber": registrationNumber
         }
 
+        isSubmittingRef.current = true
+        setIsSubmitting(true)
+
         try {
             const result = await updateBullRequest(id, donorData)
+
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return
+
             console.log(result)
             Alert.alert('Sucesso', 'Touro atualizado com sucesso!')
             navigation.goBack()
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível atualizar os dados.')
             if (apiError.isCanceled) return
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return
             if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
                 Alert.alert('Erro', 'Erro ao enviar dados')
                 return
             }
             Alert.alert('Erro', apiError.message)
+        } finally {
+            isSubmittingRef.current = false
+            if (isMountedRef.current) {
+                setIsSubmitting(false)
+            }
         }
     }
 
@@ -55,6 +92,8 @@ export default ({ route, navigation }) => {
     }
 
     function confirmUpdate() {
+        if (isSubmittingRef.current) return
+
         Alert.alert(
             "Confirmar Edição",
             "Você tem certeza de que deseja editar os dados do touro?",
@@ -100,6 +139,7 @@ export default ({ route, navigation }) => {
                 />
                 <View>
                     <TouchableOpacity 
+                        disabled={isSubmitting}
                         style={[style.button, {display: 'flex', flexDirection: 'row'}]} 
                         onPress={confirmUpdate} 
                     >

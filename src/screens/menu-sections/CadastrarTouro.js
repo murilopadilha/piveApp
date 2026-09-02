@@ -4,21 +4,51 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import style from "../../components/style";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from '@react-navigation/native';
 import { createBull } from "../../api/bullService";
 import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
 
 export default ({ navigation }) => {
     const [newBullName, setName] = useState('')
     const [newBullIndentification, setNumber] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const isSubmittingRef = React.useRef(false)
+    const isMountedRef = React.useRef(true)
+    const isScreenFocusedRef = React.useRef(false)
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+        }
+    }, [])
+
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true
+
+            return () => {
+                isScreenFocusedRef.current = false
+            }
+        }, [])
+    )
 
     async function postBulls(name, registrationNumber) {
+        if (isSubmittingRef.current) return
+
         const bullsData = {
             "name": name,
             "registrationNumber": registrationNumber
         }
 
+        isSubmittingRef.current = true
+        setIsSubmitting(true)
+
         try {
             await createBull(bullsData)
+
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return
 
             Alert.alert(
                 "Sucesso",
@@ -31,11 +61,17 @@ export default ({ navigation }) => {
         } catch (error) {
             const apiError = normalizeApiError(error, 'Erro ao enviar dados')
             if (apiError.isCanceled) return
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return
             if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
                 Alert.alert('Erro', 'Erro ao enviar dados')
                 return
             }
             Alert.alert('Erro', apiError.message)
+        } finally {
+            isSubmittingRef.current = false
+            if (isMountedRef.current) {
+                setIsSubmitting(false)
+            }
         }
     }
 
@@ -68,6 +104,7 @@ export default ({ navigation }) => {
                 />
                 <View>
                     <TouchableOpacity
+                        disabled={isSubmitting}
                         style={[style.button, {display: 'flex', flexDirection: 'row'}]}
                         onPress={() => postBulls(newBullName, newBullIndentification)}
                     >

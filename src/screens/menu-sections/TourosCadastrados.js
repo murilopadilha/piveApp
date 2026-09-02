@@ -20,9 +20,27 @@ export default ({ navigation }) => {
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
     const [filterOption, setFilterOption] = useState('all')
+    const [loadError, setLoadError] = useState(null)
+    const [hasLoaded, setHasLoaded] = useState(false)
+    const [deletingBullIds, setDeletingBullIds] = useState([])
+    const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
+    const registrationNumberRef = React.useRef(registrationNumber)
+    const filterOptionRef = React.useRef(filterOption)
+    const deletingBullIdsRef = React.useRef(new Set())
     const abortControllerRef = React.useRef(null)
     const requestIdRef = React.useRef(0)
+
+    registrationNumberRef.current = registrationNumber
+    filterOptionRef.current = filterOption
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+        }
+    }, [])
 
     const filterOptions = [
         { key: 'all', value: 'Todos os touros' },
@@ -34,7 +52,7 @@ export default ({ navigation }) => {
         React.useCallback(() => {
             isScreenFocusedRef.current = true
             const debounceTimer = setTimeout(() => {
-                loadApi(registrationNumber)
+                loadApi(filterOption, registrationNumber)
             }, 500)
 
             return () => {
@@ -47,7 +65,7 @@ export default ({ navigation }) => {
         }, [filterOption, registrationNumber])
     )
 
-    async function loadApi(query = '') {
+    async function loadApi(currentFilterOption, query = '') {
         if (!isScreenFocusedRef.current) return
 
         abortControllerRef.current?.abort()
@@ -59,7 +77,7 @@ export default ({ navigation }) => {
 
         try {
             let bulls
-            if (filterOption === 'combination') {
+            if (currentFilterOption === 'combination') {
                 const combinations = await listDonorBullCombinations({
                     signal: abortController.signal,
                 })
@@ -85,7 +103,9 @@ export default ({ navigation }) => {
                         signal: abortController.signal,
                     })
                 } else {
-                    bulls = await getBullsByFilter({ signal: abortController.signal })
+                    bulls = await getBullsByFilter(currentFilterOption, {
+                        signal: abortController.signal,
+                    })
                 }
             }
 
@@ -95,6 +115,8 @@ export default ({ navigation }) => {
             ) return
 
             setData(bulls)
+            setLoadError(null)
+            setHasLoaded(true)
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível carregar os touros.')
             if (apiError.isCanceled) return
@@ -103,6 +125,8 @@ export default ({ navigation }) => {
                 !isScreenFocusedRef.current
             ) return
             console.error(apiError.message)
+            setLoadError(apiError.message)
+            setHasLoaded(true)
         } finally {
             if (requestId === requestIdRef.current) {
                 abortControllerRef.current = null
@@ -113,8 +137,8 @@ export default ({ navigation }) => {
         }
     }
 
-    function getBullsByFilter(options) {
-        switch (filterOption) {
+    function getBullsByFilter(currentFilterOption, options) {
+        switch (currentFilterOption) {
             case 'highest-average-embryo-percentage':
                 return listBullsByHighestAverageEmbryoPercentage(options)
             case 'all':
@@ -141,13 +165,30 @@ export default ({ navigation }) => {
     }
 
     async function removeItem(id) {
+        if (deletingBullIdsRef.current.has(id)) return
+
+        deletingBullIdsRef.current.add(id)
+        setDeletingBullIds(Array.from(deletingBullIdsRef.current))
+
         try {
             await deleteBull(id);
-            setData(data.filter(item => item.id !== id));
+
+            if (!isScreenFocusedRef.current) return
+
+            await loadApi(
+                filterOptionRef.current,
+                registrationNumberRef.current
+            )
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível excluir o touro.')
             if (apiError.isCanceled) return
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return
             console.error("Erro ao deletar o item:", apiError.message);
+        } finally {
+            deletingBullIdsRef.current.delete(id)
+            if (isMountedRef.current) {
+                setDeletingBullIds(Array.from(deletingBullIdsRef.current))
+            }
         }
     }
 
@@ -180,6 +221,11 @@ export default ({ navigation }) => {
                     inputStyles={style.selectListInput}
                     dropdownStyles={style.selectListDropdown}
                 />
+                {loadError && (
+                    <Text style={{ color: '#B00020', marginHorizontal: 20, marginTop: 5 }}>
+                        {loadError}
+                    </Text>
+                )}
                 <FlatList
                     showsVerticalScrollIndicator={false}
                     style={{ marginTop: 5 }}
@@ -207,17 +253,33 @@ export default ({ navigation }) => {
                                 </View>
                             )
                         } else {
-                            return <ListItem data={item} onRemove={confirmRemove} navigation={navigation} />
+                            return (
+                                <ListItem
+                                    data={item}
+                                    isDeleting={deletingBullIds.includes(item.id)}
+                                    onRemove={confirmRemove}
+                                    navigation={navigation}
+                                />
+                            )
                         }
                     }}
-                    ListFooterComponent={<FooterList load={loading} />}
+                    ListEmptyComponent={
+                        !hasLoaded || loading ? (
+                            <ActivityIndicator size={25} color="#092955" />
+                        ) : loadError ? null : (
+                            <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                                Nenhum touro encontrado.
+                            </Text>
+                        )
+                    }
+                    ListFooterComponent={<FooterList load={loading && data.length > 0} />}
                 />
             </View>
         </SafeAreaView>
     )
 }
 
-function ListItem({ data, onRemove, navigation }) {
+function ListItem({ data, isDeleting, onRemove, navigation }) {
     return (
         <View style={style.listItem}>
             <View style={{ alignSelf: 'center' }}>
@@ -236,6 +298,7 @@ function ListItem({ data, onRemove, navigation }) {
             </View>
             <View style={style.listButtons}>
                 <TouchableOpacity
+                    disabled={isDeleting}
                     style={style.listButtonDelete}
                     onPress={() => onRemove(data.id)}
                 >
