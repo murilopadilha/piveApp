@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import { Text, View, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
-import axios from "axios";
 import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import { IPAdress } from "../../components/APIip";
 import { SelectList } from 'react-native-dropdown-select-list'; 
-import { listTransfersByFiv } from "../../api/transferService";
+import { createEmbryoTransfer, listTransfersByFiv } from "../../api/transferService";
 import { getOocyteCollection } from "../../api/oocyteCollectionService";
 import { listAvailableReceivers } from "../../api/receiverService";
 import { normalizeApiError } from "../../api/errors";
@@ -31,7 +29,11 @@ export default ({ route, navigation }) => {
     const [recipientsLoading, setRecipientsLoading] = useState(true)
     const [recipientsError, setRecipientsError] = useState(null)
     const [hasLoadedRecipients, setHasLoadedRecipients] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
     const isScreenFocusedRef = React.useRef(false)
+    const isMountedRef = React.useRef(true)
+    const isSubmittingRef = React.useRef(false)
+    const mutationAbortControllerRef = React.useRef(null)
     const activeFivIdRef = React.useRef(fiv.id)
     const activeCollectionIdRef = React.useRef(id)
     const loadedTransfersFivIdRef = React.useRef(null)
@@ -45,6 +47,109 @@ export default ({ route, navigation }) => {
 
     activeFivIdRef.current = fiv.id
     activeCollectionIdRef.current = id
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+            mutationAbortControllerRef.current?.abort()
+            mutationAbortControllerRef.current = null
+        }
+    }, [])
+
+    const fetchOocyteCollection = React.useCallback(async (currentCollectionId) => {
+        collectionAbortControllerRef.current?.abort()
+        const abortController = new AbortController()
+        collectionAbortControllerRef.current = abortController
+        const requestId = ++collectionRequestIdRef.current
+
+        setCollectionLoading(true)
+
+        try {
+            const collectionData = await getOocyteCollection(currentCollectionId, {
+                signal: abortController.signal,
+            })
+
+            if (
+                requestId !== collectionRequestIdRef.current ||
+                !isScreenFocusedRef.current ||
+                activeCollectionIdRef.current !== currentCollectionId
+            ) return
+
+            setOocyteCollection(collectionData)
+            oocyteCollectionIdRef.current = currentCollectionId
+            setHasLoadedCollection(true)
+            setCollectionError(null)
+        } catch (requestError) {
+            const apiError = normalizeApiError(
+                requestError,
+                'Erro ao buscar coleta de oócitos'
+            )
+            if (apiError.isCanceled) return
+            if (
+                requestId !== collectionRequestIdRef.current ||
+                !isScreenFocusedRef.current ||
+                activeCollectionIdRef.current !== currentCollectionId
+            ) return
+            setCollectionError(apiError.message)
+            Alert.alert("Erro", apiError.message)
+            console.error(apiError.message)
+        } finally {
+            if (requestId === collectionRequestIdRef.current) {
+                collectionAbortControllerRef.current = null
+                if (
+                    isScreenFocusedRef.current &&
+                    activeCollectionIdRef.current === currentCollectionId
+                ) {
+                    setCollectionLoading(false)
+                }
+            }
+        }
+    }, [])
+
+    const fetchRecipients = React.useCallback(async () => {
+        recipientsAbortControllerRef.current?.abort()
+        const abortController = new AbortController()
+        recipientsAbortControllerRef.current = abortController
+        const requestId = ++recipientsRequestIdRef.current
+
+        setRecipientsLoading(true)
+
+        try {
+            const recipientData = await listAvailableReceivers({
+                signal: abortController.signal,
+            })
+
+            if (
+                requestId !== recipientsRequestIdRef.current ||
+                !isScreenFocusedRef.current
+            ) return
+
+            setRecipients(recipientData)
+            setHasLoadedRecipients(true)
+            setRecipientsError(null)
+        } catch (requestError) {
+            const apiError = normalizeApiError(
+                requestError,
+                'Não foi possível buscar as receptoras'
+            )
+            if (apiError.isCanceled) return
+            if (
+                requestId !== recipientsRequestIdRef.current ||
+                !isScreenFocusedRef.current
+            ) return
+            setRecipientsError(apiError.message)
+            Alert.alert("Erro", apiError.message)
+        } finally {
+            if (requestId === recipientsRequestIdRef.current) {
+                recipientsAbortControllerRef.current = null
+                if (isScreenFocusedRef.current) {
+                    setRecipientsLoading(false)
+                }
+            }
+        }
+    }, [])
 
     useFocusEffect(
         React.useCallback(() => {
@@ -122,102 +227,9 @@ export default ({ route, navigation }) => {
                 }
             }
 
-            const fetchOocyteCollection = async () => {
-                collectionAbortControllerRef.current?.abort()
-                const abortController = new AbortController()
-                collectionAbortControllerRef.current = abortController
-                const requestId = ++collectionRequestIdRef.current
-
-                setCollectionLoading(true)
-
-                try {
-                    const collectionData = await getOocyteCollection(currentCollectionId, {
-                        signal: abortController.signal,
-                    })
-
-                    if (
-                        requestId !== collectionRequestIdRef.current ||
-                        !isScreenFocusedRef.current ||
-                        activeCollectionIdRef.current !== currentCollectionId
-                    ) return
-
-                    setOocyteCollection(collectionData)
-                    oocyteCollectionIdRef.current = currentCollectionId
-                    setHasLoadedCollection(true)
-                    setCollectionError(null)
-                } catch (requestError) {
-                    const apiError = normalizeApiError(
-                        requestError,
-                        'Erro ao buscar coleta de oócitos'
-                    )
-                    if (apiError.isCanceled) return
-                    if (
-                        requestId !== collectionRequestIdRef.current ||
-                        !isScreenFocusedRef.current ||
-                        activeCollectionIdRef.current !== currentCollectionId
-                    ) return
-                    setCollectionError(apiError.message)
-                    Alert.alert("Erro", apiError.message)
-                    console.error(apiError.message)
-                } finally {
-                    if (requestId === collectionRequestIdRef.current) {
-                        collectionAbortControllerRef.current = null
-                        if (
-                            isScreenFocusedRef.current &&
-                            activeCollectionIdRef.current === currentCollectionId
-                        ) {
-                            setCollectionLoading(false)
-                        }
-                    }
-                }
-            }
-
-            const fetchRecipients = async () => {
-                recipientsAbortControllerRef.current?.abort()
-                const abortController = new AbortController()
-                recipientsAbortControllerRef.current = abortController
-                const requestId = ++recipientsRequestIdRef.current
-
-                setRecipientsLoading(true)
-
-                try {
-                    const recipientData = await listAvailableReceivers({
-                        signal: abortController.signal,
-                    })
-
-                    if (
-                        requestId !== recipientsRequestIdRef.current ||
-                        !isScreenFocusedRef.current
-                    ) return
-
-                    setRecipients(recipientData)
-                    setHasLoadedRecipients(true)
-                    setRecipientsError(null)
-                } catch (requestError) {
-                    const apiError = normalizeApiError(
-                        requestError,
-                        'Não foi possível buscar as receptoras'
-                    )
-                    if (apiError.isCanceled) return
-                    if (
-                        requestId !== recipientsRequestIdRef.current ||
-                        !isScreenFocusedRef.current
-                    ) return
-                    setRecipientsError(apiError.message)
-                    Alert.alert("Erro", apiError.message)
-                } finally {
-                    if (requestId === recipientsRequestIdRef.current) {
-                        recipientsAbortControllerRef.current = null
-                        if (isScreenFocusedRef.current) {
-                            setRecipientsLoading(false)
-                        }
-                    }
-                }
-            }
-
             fetchTransfers()
             fetchRecipients()
-            fetchOocyteCollection()
+            fetchOocyteCollection(currentCollectionId)
 
             return () => {
                 isScreenFocusedRef.current = false
@@ -233,11 +245,16 @@ export default ({ route, navigation }) => {
                 recipientsRequestIdRef.current += 1
                 recipientsAbortControllerRef.current?.abort()
                 recipientsAbortControllerRef.current = null
+
+                mutationAbortControllerRef.current?.abort()
+                mutationAbortControllerRef.current = null
             }
-        }, [fiv.id, id])
+        }, [fiv.id, id, fetchOocyteCollection, fetchRecipients])
     )
 
     const postTransfer = async () => {
+        if (isSubmittingRef.current) return
+
         const productionId = oocyteCollectionIdRef.current === id
             ? oocyteCollection?.embryoProduction?.id
             : null
@@ -258,12 +275,59 @@ export default ({ route, navigation }) => {
             receiverId: selectedReceiver
         }
 
+        const submittedFivId = fiv.id
+        const submittedCollectionId = id
+        const abortController = new AbortController()
+
+        isSubmittingRef.current = true
+        mutationAbortControllerRef.current = abortController
+        setIsSubmitting(true)
+
         try {
-            const response = await axios.post(`http://${IPAdress}/embryo/transfer`, transferData)
+            await createEmbryoTransfer(transferData, {
+                signal: abortController.signal,
+            })
+
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                activeFivIdRef.current !== submittedFivId ||
+                activeCollectionIdRef.current !== submittedCollectionId
+            ) return
+
+            await Promise.all([
+                fetchOocyteCollection(submittedCollectionId),
+                fetchRecipients(),
+            ])
+
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                activeFivIdRef.current !== submittedFivId ||
+                activeCollectionIdRef.current !== submittedCollectionId
+            ) return
+
             Alert.alert("Successo", "Transferência salva com sucesso.")
-        } catch (error) {
-            Alert.alert("Erro", error.response?.data || "Ocorreu um erro")
-            console.error(error)
+        } catch (requestError) {
+            const apiError = normalizeApiError(requestError, 'Ocorreu um erro')
+            if (apiError.isCanceled) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                activeFivIdRef.current !== submittedFivId ||
+                activeCollectionIdRef.current !== submittedCollectionId
+            ) return
+
+            Alert.alert("Erro", apiError.message)
+            console.error(apiError.message)
+        } finally {
+            if (mutationAbortControllerRef.current === abortController) {
+                mutationAbortControllerRef.current = null
+            }
+            isSubmittingRef.current = false
+            if (isMountedRef.current) {
+                setIsSubmitting(false)
+            }
         }
     }
 
@@ -380,6 +444,7 @@ export default ({ route, navigation }) => {
                 <TouchableOpacity
                     style={[style.listButtonEdit, { marginLeft: '20%', marginTop: '5%', height: '60%', width: '23%', paddingTop: '1%' }]}
                     onPress={postTransfer}
+                    disabled={isSubmitting}
                 >
                     <MaterialIcons name="done" size={20} color="#fff" />
                     <Text style={[style.buttonText, { marginLeft: 5, paddingTop: '1%' }]}>Salvar</Text>
