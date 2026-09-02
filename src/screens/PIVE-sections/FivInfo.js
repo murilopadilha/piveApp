@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
+import { Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Alert, AppState } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Octicons from '@expo/vector-icons/Octicons';
 import axios from "axios";
+import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import stylesEmbryos from "../../components/stylesEmbryos";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { IPAdress } from "../../components/APIip";
+import { getFivDetails } from "../../api/fivService";
+import { normalizeApiError } from "../../api/errors";
 
 export default ({ route, navigation }) => {
     const { fiv } = route.params
@@ -22,41 +25,143 @@ export default ({ route, navigation }) => {
     const [cultivationId, setCultivationId] = useState(null)
     const [embryosRegistered, setEmbryosRegistered] = useState(0)
     const [oocyteCollections, setOocyteCollections] = useState([])
+    const isScreenFocusedRef = React.useRef(false)
+    const isPollingActiveRef = React.useRef(false)
+    const appStateRef = React.useRef(AppState.currentState)
+    const pollingTimeoutRef = React.useRef(null)
+    const pollingAbortControllerRef = React.useRef(null)
+    const pollingRequestIdRef = React.useRef(0)
 
     const categories = [
         { key: 'true', value: 'Sim' },
         { key: 'false', value: 'Não' },
     ]
 
-    const fetchData = async () => {
-        try {
-            const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`)
-            setOocyteCollections(response.data)
-            if (Array.isArray(response.data) && response.data.length > 0) {
-                const fetchedData = response.data[0]
-                setData(fetchedData)
-                if (fetchedData.cultivation) {
-                    setCultivationId(fetchedData.cultivation.id)
-                }
-            } else {
-                setData(null)
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true
+            appStateRef.current = AppState.currentState
+            isPollingActiveRef.current = AppState.currentState === 'active'
+
+            function scheduleNextPoll() {
+                if (
+                    !isPollingActiveRef.current ||
+                    !isScreenFocusedRef.current ||
+                    appStateRef.current !== 'active'
+                ) return
+
+                pollingTimeoutRef.current = setTimeout(() => {
+                    pollingTimeoutRef.current = null
+                    runPollingCycle()
+                }, 3000)
             }
-        } catch (err) {
-            setError(err.message)
-        } finally {
-            setLoading(false)
-        }
-    }
 
-    useEffect(() => {
-        fetchData()
+            async function runPollingCycle() {
+                if (
+                    !isPollingActiveRef.current ||
+                    !isScreenFocusedRef.current ||
+                    appStateRef.current !== 'active'
+                ) return
 
-        const intervalId = setInterval(() => {
-            fetchData()
-        }, 3000)
+                const abortController = new AbortController()
+                pollingAbortControllerRef.current = abortController
+                const requestId = ++pollingRequestIdRef.current
 
-        return () => clearInterval(intervalId)
-    }, [fiv])
+                try {
+                    const responseData = await getFivDetails(fiv.id, {
+                        signal: abortController.signal,
+                    })
+
+                    if (
+                        requestId !== pollingRequestIdRef.current ||
+                        !isPollingActiveRef.current ||
+                        !isScreenFocusedRef.current ||
+                        appStateRef.current !== 'active'
+                    ) return
+
+                    setOocyteCollections(responseData)
+                    if (Array.isArray(responseData) && responseData.length > 0) {
+                        const fetchedData = responseData[0]
+                        setData(fetchedData)
+                        if (fetchedData.cultivation) {
+                            setCultivationId(fetchedData.cultivation.id)
+                        }
+                    } else {
+                        setData(null)
+                    }
+                    setError(null)
+                } catch (err) {
+                    const apiError = normalizeApiError(err, 'Não foi possível carregar os dados da FIV.')
+                    if (apiError.isCanceled) return
+                    if (
+                        requestId !== pollingRequestIdRef.current ||
+                        !isPollingActiveRef.current ||
+                        !isScreenFocusedRef.current ||
+                        appStateRef.current !== 'active'
+                    ) return
+                    setError(apiError.message)
+                } finally {
+                    if (requestId === pollingRequestIdRef.current) {
+                        pollingAbortControllerRef.current = null
+                        if (
+                            isPollingActiveRef.current &&
+                            isScreenFocusedRef.current &&
+                            appStateRef.current === 'active'
+                        ) {
+                            setLoading(false)
+                            scheduleNextPoll()
+                        }
+                    }
+                }
+            }
+
+            const handleAppStateChange = (nextAppState) => {
+                const wasActive = appStateRef.current === 'active'
+                appStateRef.current = nextAppState
+
+                if (nextAppState !== 'active') {
+                    isPollingActiveRef.current = false
+                    if (pollingTimeoutRef.current) {
+                        clearTimeout(pollingTimeoutRef.current)
+                        pollingTimeoutRef.current = null
+                    }
+                    pollingRequestIdRef.current += 1
+                    pollingAbortControllerRef.current?.abort()
+                    pollingAbortControllerRef.current = null
+                    return
+                }
+
+                if (!isScreenFocusedRef.current || wasActive) return
+
+                isPollingActiveRef.current = true
+                runPollingCycle()
+            }
+
+            const appStateSubscription = AppState.addEventListener(
+                'change',
+                handleAppStateChange
+            )
+
+            if (isPollingActiveRef.current) {
+                runPollingCycle()
+            }
+
+            return () => {
+                isScreenFocusedRef.current = false
+                isPollingActiveRef.current = false
+
+                if (pollingTimeoutRef.current) {
+                    clearTimeout(pollingTimeoutRef.current)
+                    pollingTimeoutRef.current = null
+                }
+
+                pollingRequestIdRef.current += 1
+                pollingAbortControllerRef.current?.abort()
+                pollingAbortControllerRef.current = null
+                appStateSubscription.remove()
+            }
+        }, [fiv.id])
+    )
 
     useEffect(() => {
         if (data && data.cultivation) {
@@ -102,7 +207,7 @@ export default ({ route, navigation }) => {
         return <ActivityIndicator size="large" color="#092955" />
     }
 
-    if (error) {
+    if (error && !data) {
         return <Text>Error: {error}</Text>
     }
 
@@ -119,6 +224,11 @@ export default ({ route, navigation }) => {
                 </TouchableOpacity>
                 <Text style={style.titleText}>Informação da FIV</Text>
             </View>
+            {error && (
+                <Text style={{ color: '#B00020', marginHorizontal: 20 }}>
+                    Error: {error}
+                </Text>
+            )}
             <ScrollView style={[stylesEmbryos.scrollContainer, { marginHorizontal: 20 }]} contentContainerStyle={{ paddingBottom: '30%' }}
             showsVerticalScrollIndicator={false}>
                 <View style={stylesEmbryos.section}>

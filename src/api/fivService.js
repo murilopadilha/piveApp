@@ -21,6 +21,11 @@ export const listFivsByBull = async (bullId, { signal } = {}) => {
     return response.data
 }
 
+export const getFivDetails = async (id, { signal } = {}) => {
+    const response = await apiClient.get(`/fiv/${id}`, { signal })
+    return response.data
+}
+
 export const createFiv = async ({ signal } = {}) => {
     const response = await apiClient.post('/fiv', undefined, { signal })
     return response.data
