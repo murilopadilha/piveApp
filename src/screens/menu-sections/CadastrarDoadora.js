@@ -4,6 +4,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import { createDonor } from "../../api/donorService";
 import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
@@ -14,8 +15,32 @@ export default ({ navigation }) => {
     const [newDonorIdentification, setIdentification] = useState('');
     const [newDonorDateOfBirth, setDateOfBirth] = useState('');
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const isSubmittingRef = React.useRef(false);
+    const isMountedRef = React.useRef(true);
+    const isScreenFocusedRef = React.useRef(false);
+
+    React.useEffect(() => {
+        isMountedRef.current = true;
+
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true;
+
+            return () => {
+                isScreenFocusedRef.current = false;
+            };
+        }, [])
+    );
 
     const postDonors = async (name, breed, registrationNumber, birth) => {
+        if (isSubmittingRef.current) return;
+
         const receiverData = {
             "name": name,
             "breed": breed,
@@ -23,8 +48,14 @@ export default ({ navigation }) => {
             "registrationNumber": registrationNumber
         };
 
+        isSubmittingRef.current = true;
+        setIsSubmitting(true);
+
         try {
             const receivers = await createDonor(receiverData);
+
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return;
+
             console.log(receivers);
             Alert.alert('Sucesso', 'Doadora cadastrada com sucesso!');
             setName('');
@@ -34,11 +65,17 @@ export default ({ navigation }) => {
         } catch (error) {
             const apiError = normalizeApiError(error, 'Erro ao enviar dados');
             if (apiError.isCanceled) return;
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return;
             if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
                 Alert.alert('Erro', 'Erro ao enviar dados');
                 return;
             }
             Alert.alert('Erro', apiError.message);
+        } finally {
+            isSubmittingRef.current = false;
+            if (isMountedRef.current) {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -104,6 +141,7 @@ export default ({ navigation }) => {
                 />
                 <View>
                     <TouchableOpacity
+                        disabled={isSubmitting}
                         style={[style.button, { display: 'flex', flexDirection: 'row' }]}
                         onPress={() => postDonors(newDonorName, newDonorBreed, newDonorIdentification, newDonorDateOfBirth)}
                     >

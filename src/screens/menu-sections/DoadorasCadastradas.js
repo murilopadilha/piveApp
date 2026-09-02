@@ -21,9 +21,27 @@ export default ({ navigation }) => {
     const [loading, setLoading] = useState(false)
     const [registrationNumber, setRegistrationNumber] = useState('')
     const [filterOption, setFilterOption] = useState('all')
+    const [loadError, setLoadError] = useState(null)
+    const [hasLoaded, setHasLoaded] = useState(false)
+    const [deletingDonorIds, setDeletingDonorIds] = useState([])
+    const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
+    const registrationNumberRef = React.useRef(registrationNumber)
+    const filterOptionRef = React.useRef(filterOption)
+    const deletingDonorIdsRef = React.useRef(new Set())
     const abortControllerRef = React.useRef(null)
     const requestIdRef = React.useRef(0)
+
+    registrationNumberRef.current = registrationNumber
+    filterOptionRef.current = filterOption
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+        }
+    }, [])
 
     const filterOptions = [
         { key: 'all', value: 'Todas as doadoras' },
@@ -36,7 +54,7 @@ export default ({ navigation }) => {
         React.useCallback(() => {
             isScreenFocusedRef.current = true
             const debounceTimer = setTimeout(() => {
-                loadApi()
+                loadApi(filterOption, registrationNumber)
             }, 500)
 
             return () => {
@@ -49,7 +67,7 @@ export default ({ navigation }) => {
         }, [filterOption, registrationNumber])
     )
 
-    async function loadApi() {
+    async function loadApi(currentFilterOption, currentRegistrationNumber) {
         if (!isScreenFocusedRef.current) return
 
         abortControllerRef.current?.abort()
@@ -61,15 +79,17 @@ export default ({ navigation }) => {
         let donors
 
         try {
-            if (filterOption === 'combination') {
+            if (currentFilterOption === 'combination') {
                 donors = await listDonorBullCombinations({ signal: abortController.signal })
             } else {
-                if (registrationNumber) {
-                    donors = await searchDonors(registrationNumber, {
+                if (currentRegistrationNumber) {
+                    donors = await searchDonors(currentRegistrationNumber, {
                         signal: abortController.signal,
                     })
                 } else {
-                    donors = await getDonorsByFilter({ signal: abortController.signal })
+                    donors = await getDonorsByFilter(currentFilterOption, {
+                        signal: abortController.signal,
+                    })
                 }
             }
 
@@ -79,6 +99,8 @@ export default ({ navigation }) => {
             ) return
 
             setData(donors)
+            setLoadError(null)
+            setHasLoaded(true)
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível carregar as doadoras.')
             if (apiError.isCanceled) return
@@ -87,6 +109,8 @@ export default ({ navigation }) => {
                 !isScreenFocusedRef.current
             ) return
             console.error(apiError.message)
+            setLoadError(apiError.message)
+            setHasLoaded(true)
         } finally {
             if (requestId === requestIdRef.current) {
                 abortControllerRef.current = null
@@ -97,8 +121,8 @@ export default ({ navigation }) => {
         }
     }
 
-    function getDonorsByFilter(options) {
-        switch (filterOption) {
+    function getDonorsByFilter(currentFilterOption, options) {
+        switch (currentFilterOption) {
             case 'highest-average-oocytes':
                 return listDonorsByHighestAverageOocytes(options)
             case 'highest-average-embryo-percentage':
@@ -110,13 +134,30 @@ export default ({ navigation }) => {
     }
 
     async function removeItem(id) {
+        if (deletingDonorIdsRef.current.has(id)) return
+
+        deletingDonorIdsRef.current.add(id)
+        setDeletingDonorIds(Array.from(deletingDonorIdsRef.current))
+
         try {
             await deleteDonor(id)
-            setData(data.filter(item => item.id !== id))
+
+            if (!isScreenFocusedRef.current) return
+
+            await loadApi(
+                filterOptionRef.current,
+                registrationNumberRef.current
+            )
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível excluir a doadora.')
             if (apiError.isCanceled) return
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return
             console.error("Error deleting item:", apiError.message)
+        } finally {
+            deletingDonorIdsRef.current.delete(id)
+            if (isMountedRef.current) {
+                setDeletingDonorIds(Array.from(deletingDonorIdsRef.current))
+            }
         }
     }
 
@@ -136,6 +177,8 @@ export default ({ navigation }) => {
         }
         return data
     }
+
+    const visibleData = filteredData()
 
     return (
         <SafeAreaView style={style.menu}>
@@ -166,11 +209,16 @@ export default ({ navigation }) => {
                     inputStyles={[style.selectListInput, { color: '#000' }]}
                     dropdownStyles={style.selectListDropdown}
                 />
+                {loadError && (
+                    <Text style={{ color: '#B00020', marginHorizontal: 20, marginTop: 5 }}>
+                        {loadError}
+                    </Text>
+                )}
                 <FlatList
                     showsVerticalScrollIndicator={false}
                     style={{ marginTop: 5 }}
                     contentContainerStyle={{ marginHorizontal: 20, paddingBottom: 300 }}
-                    data={filteredData()}
+                    data={visibleData}
                     keyExtractor={(item) => item?.id ? String(item.id) : Math.random().toString()}
                     renderItem={({ item }) => {
                         if (filterOption === 'combination') {
@@ -193,16 +241,32 @@ export default ({ navigation }) => {
                                 </View>
                             )
                         }
-                        return <ListItem data={item} onRemove={removeItem} navigation={navigation} />
+                        return (
+                            <ListItem
+                                data={item}
+                                isDeleting={deletingDonorIds.includes(item.id)}
+                                onRemove={removeItem}
+                                navigation={navigation}
+                            />
+                        )
                     }}
-                    ListFooterComponent={<FooterList load={loading} />}
+                    ListEmptyComponent={
+                        !hasLoaded || loading ? (
+                            <ActivityIndicator size={25} color="#092955" />
+                        ) : loadError ? null : (
+                            <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                                Nenhuma doadora encontrada.
+                            </Text>
+                        )
+                    }
+                    ListFooterComponent={<FooterList load={loading && visibleData.length > 0} />}
                 />
             </View>
         </SafeAreaView>
     )
 }
 
-function ListItem({ data, onRemove, navigation }) {
+function ListItem({ data, isDeleting, onRemove, navigation }) {
     const confirmDelete = (id) => {
         Alert.alert(
             "Confirmar Exclusão",
@@ -240,6 +304,7 @@ function ListItem({ data, onRemove, navigation }) {
             </View>
             <View style={style.listButtons}>
                 <TouchableOpacity
+                    disabled={isDeleting}
                     style={style.listButtonDelete}
                     onPress={() => confirmDelete(data.id)}
                 >

@@ -5,6 +5,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from '@react-navigation/native';
 
 import { updateDonor as updateDonorRequest } from "../../api/donorService";
 import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
@@ -40,8 +41,32 @@ export default ({ route, navigation }) => {
     const [newDonorDateOfBirth, setDateOfBirth] = useState(donor.birth)
     const [donorId, setDonorId] = useState(donor.id)
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const isSubmittingRef = React.useRef(false)
+    const isMountedRef = React.useRef(true)
+    const isScreenFocusedRef = React.useRef(false)
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+        }
+    }, [])
+
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true
+
+            return () => {
+                isScreenFocusedRef.current = false
+            }
+        }, [])
+    )
 
     async function updateDonor(id, name, breed, registrationNumber, birth) {
+        if (isSubmittingRef.current) return
+
         const donorData = {
             "name": name,
             "breed": breed,
@@ -49,24 +74,38 @@ export default ({ route, navigation }) => {
             "registrationNumber": registrationNumber
         }
 
+        isSubmittingRef.current = true
+        setIsSubmitting(true)
+
         try {
             const result = await updateDonorRequest(id, donorData)
+
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return
+
             console.log(result)
             Alert.alert('Sucesso', 'Doadora atualizada com sucesso!')
             navigation.goBack()
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível atualizar os dados.')
             if (apiError.isCanceled) return
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return
             console.error('Erro ao atualizar o doador:', apiError.message)
             if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
                 Alert.alert('Erro', 'Erro ao enviar dados')
                 return
             }
             Alert.alert('Erro', apiError.message)
+        } finally {
+            isSubmittingRef.current = false
+            if (isMountedRef.current) {
+                setIsSubmitting(false)
+            }
         }
     }
 
     const confirmUpdate = () => {
+        if (isSubmittingRef.current) return
+
         Alert.alert(
             "Confirmar Edição",
             "Você tem certeza de que deseja editar os dados da doadora?",
@@ -146,6 +185,7 @@ export default ({ route, navigation }) => {
                 />
                 <View>
                     <TouchableOpacity 
+                        disabled={isSubmitting}
                         style={[style.button, {display: 'flex', flexDirection: 'row'}]} 
                         onPress={confirmUpdate} 
                     >
