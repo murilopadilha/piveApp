@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, TouchableOpacity, ScrollView, Alert, Platform, Image } from 'react-native';
+import { Text, View, TouchableOpacity, ScrollView, Alert, Platform, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SelectList } from 'react-native-dropdown-select-list';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -33,6 +33,27 @@ export default ({ navigation }) => {
     const [secondaryCategory, setSecondaryCategory] = useState(null)
     const [secondaryPlaceholder, setSecondaryPlaceholder] = useState('Selecione uma opção')
     const [selectedSecondary, setSelectedSecondary] = useState(null)
+    const [loading, setLoading] = useState(false)
+    const [loadError, setLoadError] = useState(null)
+    const [hasLoaded, setHasLoaded] = useState(false)
+    const [secondaryOptionsLoading, setSecondaryOptionsLoading] = useState(false)
+    const [secondaryOptionsError, setSecondaryOptionsError] = useState(null)
+    const [hasLoadedSecondaryOptions, setHasLoadedSecondaryOptions] = useState(false)
+    const [filteredFivsLoading, setFilteredFivsLoading] = useState(false)
+    const [filteredFivsError, setFilteredFivsError] = useState(null)
+    const [hasLoadedFilteredFivs, setHasLoadedFilteredFivs] = useState(false)
+    const isScreenFocusedRef = React.useRef(false)
+    const secondaryCategoryRef = React.useRef(secondaryCategory)
+    const selectedSecondaryRef = React.useRef(selectedSecondary)
+    const itemsAbortControllerRef = React.useRef(null)
+    const itemsRequestIdRef = React.useRef(0)
+    const secondaryOptionsAbortControllerRef = React.useRef(null)
+    const secondaryOptionsRequestIdRef = React.useRef(0)
+    const filteredFivsAbortControllerRef = React.useRef(null)
+    const filteredFivsRequestIdRef = React.useRef(0)
+
+    secondaryCategoryRef.current = secondaryCategory
+    selectedSecondaryRef.current = selectedSecondary
 
     const categoryData = categories.map(cat => ({
         key: cat.key,
@@ -40,55 +61,206 @@ export default ({ navigation }) => {
     }))
 
     const fetchItems = async () => {
+        if (!isScreenFocusedRef.current) return
+
+        itemsAbortControllerRef.current?.abort()
+        const abortController = new AbortController()
+        itemsAbortControllerRef.current = abortController
+        const requestId = ++itemsRequestIdRef.current
+
+        setLoading(true)
+
         try {
-            const fivs = await listFivs()
+            const fivs = await listFivs({ signal: abortController.signal })
+
+            if (
+                requestId !== itemsRequestIdRef.current ||
+                !isScreenFocusedRef.current
+            ) return
+
             setItems(fivs)
+            setLoadError(null)
+            setHasLoaded(true)
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível carregar as FIVs.')
             if (apiError.isCanceled) return
+            if (
+                requestId !== itemsRequestIdRef.current ||
+                !isScreenFocusedRef.current
+            ) return
+            setLoadError(apiError.message)
+            setHasLoaded(true)
             Alert.alert('Erro', apiError.message)
+        } finally {
+            if (requestId === itemsRequestIdRef.current) {
+                itemsAbortControllerRef.current = null
+                if (isScreenFocusedRef.current) {
+                    setLoading(false)
+                }
+            }
         }
     }
 
-    const fetchSecondaryOptions = async (type) => {
+    const fetchSecondaryOptions = async (type, { clearExisting = true } = {}) => {
+        if (!isScreenFocusedRef.current) return
+
+        secondaryOptionsAbortControllerRef.current?.abort()
+        const abortController = new AbortController()
+        secondaryOptionsAbortControllerRef.current = abortController
+        const requestId = ++secondaryOptionsRequestIdRef.current
+
+        if (clearExisting) {
+            setSecondaryOptions([])
+            setHasLoadedSecondaryOptions(false)
+        }
+        setSecondaryOptionsLoading(true)
+        setSecondaryOptionsError(null)
+
         try {
-            const data = type === 'donor' ? await listDonors() : await listBulls()
+            const data = type === 'donor'
+                ? await listDonors({ signal: abortController.signal })
+                : await listBulls({ signal: abortController.signal })
             const options = data.map(item => ({
                 key: item.id.toString(),
                 value: `${item.name} (${item.registrationNumber || item.breed || item.birth})`
             }));
+
+            if (
+                requestId !== secondaryOptionsRequestIdRef.current ||
+                !isScreenFocusedRef.current ||
+                secondaryCategoryRef.current !== type
+            ) return
+
             setSecondaryOptions(options);
+            setSecondaryOptionsError(null)
+            setHasLoadedSecondaryOptions(true)
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível carregar as opções do filtro.')
             if (apiError.isCanceled) return
+            if (
+                requestId !== secondaryOptionsRequestIdRef.current ||
+                !isScreenFocusedRef.current ||
+                secondaryCategoryRef.current !== type
+            ) return
+            setSecondaryOptionsError(apiError.message)
+            setHasLoadedSecondaryOptions(true)
             Alert.alert('Erro', apiError.message)
+        } finally {
+            if (requestId === secondaryOptionsRequestIdRef.current) {
+                secondaryOptionsAbortControllerRef.current = null
+                if (isScreenFocusedRef.current) {
+                    setSecondaryOptionsLoading(false)
+                }
+            }
         }
     }
 
-    const fetchFilteredFIVs = async (id, type) => {
+    const fetchFilteredFIVs = async (id, type, { clearExisting = true } = {}) => {
+        if (!isScreenFocusedRef.current) return
+
+        filteredFivsAbortControllerRef.current?.abort()
+        const abortController = new AbortController()
+        filteredFivsAbortControllerRef.current = abortController
+        const requestId = ++filteredFivsRequestIdRef.current
+
+        if (clearExisting) {
+            setFilteredItems([])
+            setHasLoadedFilteredFivs(false)
+        }
+        setFilteredFivsLoading(true)
+        setFilteredFivsError(null)
+
         try {
             const fivs = type === 'donor'
-                ? await listFivsByDonor(id)
-                : await listFivsByBull(id)
+                ? await listFivsByDonor(id, { signal: abortController.signal })
+                : await listFivsByBull(id, { signal: abortController.signal })
+
+            if (
+                requestId !== filteredFivsRequestIdRef.current ||
+                !isScreenFocusedRef.current ||
+                secondaryCategoryRef.current !== type ||
+                selectedSecondaryRef.current !== id
+            ) return
+
             setFilteredItems(fivs)
+            setFilteredFivsError(null)
+            setHasLoadedFilteredFivs(true)
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível filtrar as FIVs.')
             if (apiError.isCanceled) return
+            if (
+                requestId !== filteredFivsRequestIdRef.current ||
+                !isScreenFocusedRef.current ||
+                secondaryCategoryRef.current !== type ||
+                selectedSecondaryRef.current !== id
+            ) return
+            setFilteredFivsError(apiError.message)
+            setHasLoadedFilteredFivs(true)
             Alert.alert('Erro', apiError.message)
+        } finally {
+            if (requestId === filteredFivsRequestIdRef.current) {
+                filteredFivsAbortControllerRef.current = null
+                if (isScreenFocusedRef.current) {
+                    setFilteredFivsLoading(false)
+                }
+            }
         }
+    }
+
+    const invalidateSecondaryOptionsRequest = () => {
+        secondaryOptionsRequestIdRef.current += 1
+        secondaryOptionsAbortControllerRef.current?.abort()
+        secondaryOptionsAbortControllerRef.current = null
+    }
+
+    const invalidateFilteredFivsRequest = () => {
+        filteredFivsRequestIdRef.current += 1
+        filteredFivsAbortControllerRef.current?.abort()
+        filteredFivsAbortControllerRef.current = null
     }
 
     useFocusEffect(
         React.useCallback(() => {
+            isScreenFocusedRef.current = true
             fetchItems()
-            return () => {}
+
+            const currentSecondaryCategory = secondaryCategoryRef.current
+            const currentSelectedSecondary = selectedSecondaryRef.current
+
+            if (currentSecondaryCategory) {
+                fetchSecondaryOptions(currentSecondaryCategory, { clearExisting: false })
+
+                if (currentSelectedSecondary) {
+                    fetchFilteredFIVs(
+                        currentSelectedSecondary,
+                        currentSecondaryCategory,
+                        { clearExisting: false }
+                    )
+                }
+            }
+
+            return () => {
+                isScreenFocusedRef.current = false
+
+                itemsRequestIdRef.current += 1
+                itemsAbortControllerRef.current?.abort()
+                itemsAbortControllerRef.current = null
+
+                secondaryOptionsRequestIdRef.current += 1
+                secondaryOptionsAbortControllerRef.current?.abort()
+                secondaryOptionsAbortControllerRef.current = null
+
+                filteredFivsRequestIdRef.current += 1
+                filteredFivsAbortControllerRef.current?.abort()
+                filteredFivsAbortControllerRef.current = null
+            }
         }, [])
     )
 
     useEffect(() => {
         if (category === 'ALL') {
             setFilteredItems(items)
-        } else {
+        } else if (category !== 'donor' && category !== 'bull') {
             setFilteredItems(items.filter(item => item.status === category))
         }
     }, [category, items])
@@ -98,15 +270,42 @@ export default ({ navigation }) => {
         if (selectedCategory) {
             setCategory(selectedCategory.key)
             if (selectedKey === 'donor') {
-                fetchSecondaryOptions('donor')
+                invalidateFilteredFivsRequest()
+                setFilteredFivsLoading(false)
+                setFilteredFivsError(null)
+                setHasLoadedFilteredFivs(false)
+                setFilteredItems([])
+                setSelectedSecondary(null)
+                selectedSecondaryRef.current = null
                 setSecondaryCategory('donor')
+                secondaryCategoryRef.current = 'donor'
                 setSecondaryPlaceholder('Selecione uma doadora')
+                fetchSecondaryOptions('donor')
             } else if (selectedKey === 'bull') {
-                fetchSecondaryOptions('bull')
+                invalidateFilteredFivsRequest()
+                setFilteredFivsLoading(false)
+                setFilteredFivsError(null)
+                setHasLoadedFilteredFivs(false)
+                setFilteredItems([])
+                setSelectedSecondary(null)
+                selectedSecondaryRef.current = null
                 setSecondaryCategory('bull')
+                secondaryCategoryRef.current = 'bull'
                 setSecondaryPlaceholder('Selecione um touro')
+                fetchSecondaryOptions('bull')
             } else {
+                invalidateSecondaryOptionsRequest()
+                invalidateFilteredFivsRequest()
+                setSecondaryOptionsLoading(false)
+                setSecondaryOptionsError(null)
+                setHasLoadedSecondaryOptions(false)
+                setFilteredFivsLoading(false)
+                setFilteredFivsError(null)
+                setHasLoadedFilteredFivs(false)
                 setSecondaryCategory(null)
+                secondaryCategoryRef.current = null
+                setSelectedSecondary(null)
+                selectedSecondaryRef.current = null
                 setSecondaryOptions([])
                 setSecondaryPlaceholder('Selecione uma opção')
                 setFilteredItems(items.filter(item => item.status === selectedKey))
@@ -118,6 +317,7 @@ export default ({ navigation }) => {
         const selected = secondaryOptions.find(option => option.key === selectedKey)
         if (selected) {
             setSelectedSecondary(selectedKey)
+            selectedSecondaryRef.current = selectedKey
             fetchFilteredFIVs(selectedKey, secondaryCategory)
         }
     }
@@ -135,6 +335,17 @@ export default ({ navigation }) => {
     }
 
     const toggleCategory = () => {
+        invalidateSecondaryOptionsRequest()
+        invalidateFilteredFivsRequest()
+        setSecondaryOptionsLoading(false)
+        setSecondaryOptionsError(null)
+        setHasLoadedSecondaryOptions(false)
+        setFilteredFivsLoading(false)
+        setFilteredFivsError(null)
+        setHasLoadedFilteredFivs(false)
+        setSelectedSecondary(null)
+        selectedSecondaryRef.current = null
+
         if (icon === 'list-status') {
             setCategories([
                 { key: 'donor', value: 'Doadoras' },
@@ -150,6 +361,7 @@ export default ({ navigation }) => {
             ]);
             setIcon('list-status')
             setSecondaryCategory(null)
+            secondaryCategoryRef.current = null
             setSecondaryOptions([])
             setSecondaryPlaceholder('Selecione uma opção')
 
@@ -189,10 +401,48 @@ export default ({ navigation }) => {
                         inputStyles={style.selectListInput}
                         dropdownStyles={style.selectListDropdownPive}
                     />
+                    {secondaryOptionsLoading && (
+                        <ActivityIndicator size={25} color="#092955" />
+                    )}
+                    {secondaryOptionsError && (
+                        <Text style={{ color: '#B00020', marginTop: 5 }}>
+                            {secondaryOptionsError}
+                        </Text>
+                    )}
+                    {!secondaryOptionsLoading &&
+                        hasLoadedSecondaryOptions &&
+                        !secondaryOptionsError &&
+                        secondaryOptions.length === 0 && (
+                            <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                                Nenhuma opção encontrada.
+                            </Text>
+                        )}
                 </View>
             )}
             <ScrollView style={style.listPive} showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 150 }}>
+                {category !== 'donor' && category !== 'bull' && loadError && (
+                    <Text style={{ color: '#B00020', marginHorizontal: 20, marginTop: 5 }}>
+                        {loadError}
+                    </Text>
+                )}
+                {(category === 'donor' || category === 'bull') && filteredFivsError && (
+                    <Text style={{ color: '#B00020', marginHorizontal: 20, marginTop: 5 }}>
+                        {filteredFivsError}
+                    </Text>
+                )}
+                {category !== 'donor' &&
+                    category !== 'bull' &&
+                    (!hasLoaded || loading) &&
+                    filteredItems.length === 0 && (
+                        <ActivityIndicator size={25} color="#092955" />
+                    )}
+                {(category === 'donor' || category === 'bull') &&
+                    selectedSecondary &&
+                    filteredFivsLoading &&
+                    filteredItems.length === 0 && (
+                        <ActivityIndicator size={25} color="#092955" />
+                    )}
                 {filteredItems.map(item => (
                     <TouchableOpacity
                         key={item.id}
@@ -239,6 +489,31 @@ export default ({ navigation }) => {
                         </View>
                     </TouchableOpacity>
                 ))}
+                {category !== 'donor' &&
+                    category !== 'bull' &&
+                    !loading &&
+                    hasLoaded &&
+                    !loadError &&
+                    filteredItems.length === 0 && (
+                        <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                            Nenhuma FIV encontrada.
+                        </Text>
+                    )}
+                {(category === 'donor' || category === 'bull') &&
+                    selectedSecondary &&
+                    !filteredFivsLoading &&
+                    hasLoadedFilteredFivs &&
+                    !filteredFivsError &&
+                    filteredItems.length === 0 && (
+                        <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                            Nenhuma FIV encontrada.
+                        </Text>
+                    )}
+                {((category !== 'donor' && category !== 'bull' && loading) ||
+                    ((category === 'donor' || category === 'bull') && filteredFivsLoading)) &&
+                    filteredItems.length > 0 && (
+                        <ActivityIndicator size={25} color="#092955" />
+                    )}
             </ScrollView>
             <TouchableOpacity
                 style={[style.listButtonSearch, { paddingTop: '2%',marginTop: '175%', width: '20%', height: '5%', marginLeft: '70%', position: 'absolute', zIndex: 5 }]}
