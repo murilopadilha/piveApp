@@ -26,13 +26,29 @@ export default (props) => {
     const [markedDates, setMarkedDates] = useState({});
     const [selectedDateDetails, setSelectedDateDetails] = useState([]);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [isCreatingSchedule, setIsCreatingSchedule] = useState(false);
+    const [isDeletingSchedule, setIsDeletingSchedule] = useState(false);
+    const isMountedRef = React.useRef(true);
     const isScreenFocusedRef = React.useRef(false);
+    const selectedCalendarDateRef = React.useRef(selectedCalendarDate);
+    const isCreatingScheduleRef = React.useRef(false);
+    const isDeletingScheduleRef = React.useRef(false);
     const scheduledDatesAbortControllerRef = React.useRef(null);
     const scheduledDatesRequestIdRef = React.useRef(0);
     const dateDetailsAbortControllerRef = React.useRef(null);
     const dateDetailsRequestIdRef = React.useRef(0);
 
     const navigation = useNavigation();
+
+    selectedCalendarDateRef.current = selectedCalendarDate;
+
+    React.useEffect(() => {
+        isMountedRef.current = true;
+
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     const categories = [
         { key: 'OOCYTE_COLLECTION', value: 'Coleta de Oócito' },
@@ -84,19 +100,41 @@ export default (props) => {
             return;
         }
 
+        if (isCreatingScheduleRef.current) return;
+
+        const scheduleDate = newScheduleDate;
+        const scheduleCategory = category;
+        isCreatingScheduleRef.current = true;
+        setIsCreatingSchedule(true);
+
         try {
             await createSchedule({
-                procedureType: category,
-                date: newScheduleDate,
+                procedureType: scheduleCategory,
+                date: scheduleDate,
             });
 
+            if (!isScreenFocusedRef.current) return;
+
+            await fetchScheduledDates();
+            if (!isScreenFocusedRef.current) return;
+
+            if (selectedCalendarDateRef.current === scheduleDate) {
+                await fetchDateDetails(scheduleDate);
+            }
+
+            if (!isScreenFocusedRef.current) return;
             Alert.alert("Sucesso", "Agendamento realizado com sucesso!");
-            fetchScheduledDates();
 
         } catch (error) {
             const apiError = normalizeApiError(error, 'Ocorreu um erro ao criar o agendamento.');
             if (apiError.isCanceled) return;
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return;
             Alert.alert("Erro", apiError.message);
+        } finally {
+            isCreatingScheduleRef.current = false;
+            if (isMountedRef.current) {
+                setIsCreatingSchedule(false);
+            }
         }
     };
 
@@ -185,19 +223,37 @@ export default (props) => {
     };
 
     const handleDelete = async (id) => {
+        if (isDeletingScheduleRef.current) return;
+
+        isDeletingScheduleRef.current = true;
+        setIsDeletingSchedule(true);
+
         try {
             await deleteSchedule(id);
 
-            Alert.alert("Sucesso", "Agendamento excluído com sucesso!");
-            fetchScheduledDates();
-            if (selectedCalendarDate) {
-                fetchDateDetails(selectedCalendarDate);
+            if (!isScreenFocusedRef.current) return;
+
+            await fetchScheduledDates();
+            if (!isScreenFocusedRef.current) return;
+
+            const currentSelectedDate = selectedCalendarDateRef.current;
+            if (currentSelectedDate) {
+                await fetchDateDetails(currentSelectedDate);
             }
+
+            if (!isScreenFocusedRef.current) return;
+            Alert.alert("Sucesso", "Agendamento excluído com sucesso!");
 
         } catch (error) {
             const apiError = normalizeApiError(error, 'Ocorreu um erro ao excluir o agendamento.');
             if (apiError.isCanceled) return;
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return;
             Alert.alert("Erro", apiError.message);
+        } finally {
+            isDeletingScheduleRef.current = false;
+            if (isMountedRef.current) {
+                setIsDeletingSchedule(false);
+            }
         }
     };
 
@@ -255,7 +311,7 @@ export default (props) => {
                     onConfirm={handleConfirm}
                     onCancel={hideDatePicker}
                 />
-                <TouchableOpacity onPress={handleSchedule} style={[style.scheduleButton, { display: 'flex', flexDirection: 'row', width: 90 }]}>
+                <TouchableOpacity disabled={isCreatingSchedule} onPress={handleSchedule} style={[style.scheduleButton, { display: 'flex', flexDirection: 'row', width: 90 }]}>
                     <FontAwesome5 name="calendar-check" size={20} color="white" />
                     <Text style={[style.scheduleText, { fontSize: 13, paddingLeft: 5 }]}>Agendar</Text>
                 </TouchableOpacity>
@@ -300,7 +356,7 @@ export default (props) => {
                                     <Text style={{ fontWeight: 'bold' }}>Data:</Text> {detail.date}
                                 </Text>
                                 <View style={{ display: 'flex', flexDirection: 'row' }}>
-                                    <TouchableOpacity onPress={() => handleDelete(detail.id)} style={[style.listButtonEdit, { width: 90 }]}>
+                                    <TouchableOpacity disabled={isDeletingSchedule} onPress={() => handleDelete(detail.id)} style={[style.listButtonEdit, { width: 90 }]}>
                                         <Feather name="x" size={20} color="#E0E0E0" />
                                         <Text style={{ color: '#E0E0E0' }}>Cancelar</Text>
                                     </TouchableOpacity>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { SelectList } from "react-native-dropdown-select-list";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -40,6 +40,28 @@ export default () => {
     const [scheduleDate, setScheduleDate] = useState(detail.date || '')
     const [category, setCategory] = useState(detail.procedureType || '')
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const isSubmittingRef = React.useRef(false)
+    const isMountedRef = React.useRef(true)
+    const isScreenFocusedRef = React.useRef(false)
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+        }
+    }, [])
+
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true
+
+            return () => {
+                isScreenFocusedRef.current = false
+            }
+        }, [])
+    )
 
     const categories = [
         { key: 'OOCYTE_COLLECTION', value: 'Coleta de Oócito' },
@@ -79,11 +101,47 @@ export default () => {
         hideDatePicker()
     }
 
+    const submitSchedule = async () => {
+        if (isSubmittingRef.current) return
+
+        const scheduleId = detail.id
+        const payload = {
+            procedureType: category,
+            date: scheduleDate,
+        }
+
+        isSubmittingRef.current = true
+        setIsSubmitting(true)
+
+        try {
+            const result = await updateSchedule(scheduleId, payload)
+
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return
+
+            Alert.alert("Sucesso", "Agendamento editado com sucesso!")
+            console.log(result)
+            navigation.goBack()
+
+        } catch (error) {
+            const apiError = normalizeApiError(error, 'Ocorreu um erro ao editar o agendamento.')
+            if (apiError.isCanceled) return
+            if (!isMountedRef.current || !isScreenFocusedRef.current) return
+            Alert.alert("Erro", apiError.message)
+        } finally {
+            isSubmittingRef.current = false
+            if (isMountedRef.current) {
+                setIsSubmitting(false)
+            }
+        }
+    }
+
     const handleSchedule = async () => {
         if (!scheduleDate || !category) {
             Alert.alert("Erro", "Por favor, selecione a data e a categoria.")
             return
         }
+
+        if (isSubmittingRef.current) return
 
         Alert.alert(
             "Confirmar Edição",
@@ -95,24 +153,7 @@ export default () => {
                 },
                 {
                     text: "Confirmar",
-                    onPress: async () => {
-                        const scheduleId = detail.id
-
-                        try {
-                            const result = await updateSchedule(scheduleId, {
-                                procedureType: category,
-                                date: scheduleDate,
-                            })
-                            Alert.alert("Sucesso", "Agendamento editado com sucesso!")
-                            console.log(result)
-                            navigation.goBack()
-
-                        } catch (error) {
-                            const apiError = normalizeApiError(error, 'Ocorreu um erro ao editar o agendamento.')
-                            if (apiError.isCanceled) return
-                            Alert.alert("Erro", apiError.message)
-                        }
-                    }
+                    onPress: submitSchedule
                 }
             ]
         );
@@ -148,7 +189,7 @@ export default () => {
                     onConfirm={handleConfirm}
                     onCancel={hideDatePicker}
                 />
-                <TouchableOpacity onPress={handleSchedule} style={[style.scheduleButton, {width: 150, height: 35}]}>
+                <TouchableOpacity disabled={isSubmitting} onPress={handleSchedule} style={[style.scheduleButton, {width: 150, height: 35}]}>
                     <Text style={style.scheduleText}>Editar Agendamento</Text>
                 </TouchableOpacity>
             </View>
