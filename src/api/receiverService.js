@@ -13,6 +13,16 @@ export const searchReceivers = async (registrationNumber, { signal } = {}) => {
     return response.data
 }
 
+export const listAvailableReceivers = async ({ signal } = {}) => {
+    const response = await apiClient.get('/receiver/available', { signal })
+    return response.data
+}
+
+export const listPregnantReceivers = async ({ signal } = {}) => {
+    const response = await apiClient.get('/receiver/pregnant', { signal })
+    return response.data
+}
+
 export const createReceiver = async (payload, { signal } = {}) => {
     const response = await apiClient.post('/receiver', payload, { signal })
     return response.data

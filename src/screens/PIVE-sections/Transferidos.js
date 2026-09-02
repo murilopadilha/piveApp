@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from "react";
-import { Text, View, TouchableOpacity, Alert } from "react-native";
+import React, { useState } from "react";
+import { Text, View, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from "axios";
+import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { IPAdress } from "../../components/APIip";
 import { SelectList } from 'react-native-dropdown-select-list'; 
+import { listTransfersByFiv } from "../../api/transferService";
+import { getOocyteCollection } from "../../api/oocyteCollectionService";
+import { listAvailableReceivers } from "../../api/receiverService";
+import { normalizeApiError } from "../../api/errors";
 
 export default ({ route, navigation }) => {
     const { fiv, id } = route.params
@@ -17,57 +22,220 @@ export default ({ route, navigation }) => {
     const [recipients, setRecipients] = useState([]) 
     const [selectedTransfer, setSelectedTransfer] = useState(null) 
     const [selectedReceiver, setSelectedReceiver] = useState(null)  
+    const [transfersLoading, setTransfersLoading] = useState(true)
+    const [transfersError, setTransfersError] = useState(null)
+    const [hasLoadedTransfers, setHasLoadedTransfers] = useState(false)
+    const [collectionLoading, setCollectionLoading] = useState(true)
+    const [collectionError, setCollectionError] = useState(null)
+    const [hasLoadedCollection, setHasLoadedCollection] = useState(false)
+    const [recipientsLoading, setRecipientsLoading] = useState(true)
+    const [recipientsError, setRecipientsError] = useState(null)
+    const [hasLoadedRecipients, setHasLoadedRecipients] = useState(false)
+    const isScreenFocusedRef = React.useRef(false)
+    const activeFivIdRef = React.useRef(fiv.id)
+    const activeCollectionIdRef = React.useRef(id)
+    const loadedTransfersFivIdRef = React.useRef(null)
     const oocyteCollectionIdRef = React.useRef(null)
+    const transfersAbortControllerRef = React.useRef(null)
+    const transfersRequestIdRef = React.useRef(0)
+    const collectionAbortControllerRef = React.useRef(null)
+    const collectionRequestIdRef = React.useRef(0)
+    const recipientsAbortControllerRef = React.useRef(null)
+    const recipientsRequestIdRef = React.useRef(0)
 
-    useEffect(() => {
-        let isActive = true
+    activeFivIdRef.current = fiv.id
+    activeCollectionIdRef.current = id
 
-        oocyteCollectionIdRef.current = null
-        setOocyteCollection(null)
+    useFocusEffect(
+        React.useCallback(() => {
+            const currentFivId = fiv.id
+            const currentCollectionId = id
+            isScreenFocusedRef.current = true
 
-        const fetchTransfers = async () => {
-            try {
-                const response = await axios.get(`http://${IPAdress}/transfer?fivId=${fiv.id}`)
-                console.log("Transferências recebidas:", response.data)
-                setTransfers(response.data)
-            } catch (error) {
-                Alert.alert("Erro", error.response?.data || "Erro ao buscar transferências")
-                console.error(error)
+            if (loadedTransfersFivIdRef.current !== currentFivId) {
+                loadedTransfersFivIdRef.current = null
+                setTransfers([])
+                setSelectedTransfer(null)
+                setSelectedReceiver(null)
+                setFarm('')
+                setTransfersError(null)
+                setHasLoadedTransfers(false)
+                setTransfersLoading(true)
             }
-        }
 
-        const fetchOocyteCollection = async () => {
-            try {
-                const response = await axios.get(`http://${IPAdress}/oocyte-collection/${id}`)
-                if (isActive) {
-                    setOocyteCollection(response.data)
-                    oocyteCollectionIdRef.current = id
+            if (oocyteCollectionIdRef.current !== currentCollectionId) {
+                oocyteCollectionIdRef.current = null
+                setOocyteCollection(null)
+                setCollectionError(null)
+                setHasLoadedCollection(false)
+                setCollectionLoading(true)
+            }
+
+            const fetchTransfers = async () => {
+                transfersAbortControllerRef.current?.abort()
+                const abortController = new AbortController()
+                transfersAbortControllerRef.current = abortController
+                const requestId = ++transfersRequestIdRef.current
+
+                setTransfersLoading(true)
+
+                try {
+                    const transferData = await listTransfersByFiv(currentFivId, {
+                        signal: abortController.signal,
+                    })
+
+                    if (
+                        requestId !== transfersRequestIdRef.current ||
+                        !isScreenFocusedRef.current ||
+                        activeFivIdRef.current !== currentFivId
+                    ) return
+
+                    console.log("Transferências recebidas:", transferData)
+                    setTransfers(transferData)
+                    loadedTransfersFivIdRef.current = currentFivId
+                    setHasLoadedTransfers(true)
+                    setTransfersError(null)
+                } catch (requestError) {
+                    const apiError = normalizeApiError(
+                        requestError,
+                        'Erro ao buscar transferências'
+                    )
+                    if (apiError.isCanceled) return
+                    if (
+                        requestId !== transfersRequestIdRef.current ||
+                        !isScreenFocusedRef.current ||
+                        activeFivIdRef.current !== currentFivId
+                    ) return
+                    setTransfersError(apiError.message)
+                    Alert.alert("Erro", apiError.message)
+                    console.error(apiError.message)
+                } finally {
+                    if (requestId === transfersRequestIdRef.current) {
+                        transfersAbortControllerRef.current = null
+                        if (
+                            isScreenFocusedRef.current &&
+                            activeFivIdRef.current === currentFivId
+                        ) {
+                            setTransfersLoading(false)
+                        }
+                    }
                 }
-            } catch (error) {
-                if (isActive) {
-                    Alert.alert("Erro", error.response?.data || "Erro ao buscar coleta de oócitos")
-                    console.error(error)
+            }
+
+            const fetchOocyteCollection = async () => {
+                collectionAbortControllerRef.current?.abort()
+                const abortController = new AbortController()
+                collectionAbortControllerRef.current = abortController
+                const requestId = ++collectionRequestIdRef.current
+
+                setCollectionLoading(true)
+
+                try {
+                    const collectionData = await getOocyteCollection(currentCollectionId, {
+                        signal: abortController.signal,
+                    })
+
+                    if (
+                        requestId !== collectionRequestIdRef.current ||
+                        !isScreenFocusedRef.current ||
+                        activeCollectionIdRef.current !== currentCollectionId
+                    ) return
+
+                    setOocyteCollection(collectionData)
+                    oocyteCollectionIdRef.current = currentCollectionId
+                    setHasLoadedCollection(true)
+                    setCollectionError(null)
+                } catch (requestError) {
+                    const apiError = normalizeApiError(
+                        requestError,
+                        'Erro ao buscar coleta de oócitos'
+                    )
+                    if (apiError.isCanceled) return
+                    if (
+                        requestId !== collectionRequestIdRef.current ||
+                        !isScreenFocusedRef.current ||
+                        activeCollectionIdRef.current !== currentCollectionId
+                    ) return
+                    setCollectionError(apiError.message)
+                    Alert.alert("Erro", apiError.message)
+                    console.error(apiError.message)
+                } finally {
+                    if (requestId === collectionRequestIdRef.current) {
+                        collectionAbortControllerRef.current = null
+                        if (
+                            isScreenFocusedRef.current &&
+                            activeCollectionIdRef.current === currentCollectionId
+                        ) {
+                            setCollectionLoading(false)
+                        }
+                    }
                 }
             }
-        }
 
-        const fetchRecipients = async () => {
-            try {
-                const response = await axios.get(`http://${IPAdress}/receiver/available`)
-                setRecipients(response.data)
-            } catch (error) {
-                Alert.alert("Erro", "Não foi possível buscar as receptoras")
+            const fetchRecipients = async () => {
+                recipientsAbortControllerRef.current?.abort()
+                const abortController = new AbortController()
+                recipientsAbortControllerRef.current = abortController
+                const requestId = ++recipientsRequestIdRef.current
+
+                setRecipientsLoading(true)
+
+                try {
+                    const recipientData = await listAvailableReceivers({
+                        signal: abortController.signal,
+                    })
+
+                    if (
+                        requestId !== recipientsRequestIdRef.current ||
+                        !isScreenFocusedRef.current
+                    ) return
+
+                    setRecipients(recipientData)
+                    setHasLoadedRecipients(true)
+                    setRecipientsError(null)
+                } catch (requestError) {
+                    const apiError = normalizeApiError(
+                        requestError,
+                        'Não foi possível buscar as receptoras'
+                    )
+                    if (apiError.isCanceled) return
+                    if (
+                        requestId !== recipientsRequestIdRef.current ||
+                        !isScreenFocusedRef.current
+                    ) return
+                    setRecipientsError(apiError.message)
+                    Alert.alert("Erro", apiError.message)
+                } finally {
+                    if (requestId === recipientsRequestIdRef.current) {
+                        recipientsAbortControllerRef.current = null
+                        if (isScreenFocusedRef.current) {
+                            setRecipientsLoading(false)
+                        }
+                    }
+                }
             }
-        }
 
-        fetchTransfers()
-        fetchRecipients()
-        fetchOocyteCollection()
+            fetchTransfers()
+            fetchRecipients()
+            fetchOocyteCollection()
 
-        return () => {
-            isActive = false
-        }
-    }, [fiv.id, id])
+            return () => {
+                isScreenFocusedRef.current = false
+
+                transfersRequestIdRef.current += 1
+                transfersAbortControllerRef.current?.abort()
+                transfersAbortControllerRef.current = null
+
+                collectionRequestIdRef.current += 1
+                collectionAbortControllerRef.current?.abort()
+                collectionAbortControllerRef.current = null
+
+                recipientsRequestIdRef.current += 1
+                recipientsAbortControllerRef.current?.abort()
+                recipientsAbortControllerRef.current = null
+            }
+        }, [fiv.id, id])
+    )
 
     const postTransfer = async () => {
         const productionId = oocyteCollectionIdRef.current === id
@@ -109,6 +277,15 @@ export default ({ route, navigation }) => {
         value: `${recipient.name} (${recipient.registrationNumber})`
     }))
 
+    const initialLoading =
+        (transfersLoading && !hasLoadedTransfers) ||
+        (collectionLoading && !hasLoadedCollection) ||
+        (recipientsLoading && !hasLoadedRecipients)
+
+    if (initialLoading) {
+        return <ActivityIndicator size="small" color="#092955" />
+    }
+
     return (
         <SafeAreaView style={style.menu}>
             <View style={[style.divTitle, { marginBottom: 0 }]}>
@@ -119,6 +296,24 @@ export default ({ route, navigation }) => {
                 </TouchableOpacity>
                 <Text style={[style.titleText, { marginRight: '20%' }]}>Embriões Transferidos</Text>
             </View>
+            {(transfersLoading || collectionLoading || recipientsLoading) && (
+                <ActivityIndicator size="small" color="#092955" />
+            )}
+            {transfersError && (
+                <Text style={{ color: '#B00020', marginHorizontal: 20 }}>
+                    Error: {transfersError}
+                </Text>
+            )}
+            {collectionError && (
+                <Text style={{ color: '#B00020', marginHorizontal: 20 }}>
+                    Error: {collectionError}
+                </Text>
+            )}
+            {recipientsError && (
+                <Text style={{ color: '#B00020', marginHorizontal: 20 }}>
+                    Error: {recipientsError}
+                </Text>
+            )}
             <View style={style.content}>
                 <Text style={{ marginBottom: 10 }}>Selecionar Transferência:</Text>
                 <SelectList 
@@ -141,6 +336,14 @@ export default ({ route, navigation }) => {
                     inputStyles={style.selectListInput}
                     dropdownStyles={[style.selectListDropdown, { marginLeft: 0, width: 300 }]}
                 />
+                {!transfersLoading &&
+                    hasLoadedTransfers &&
+                    !transfersError &&
+                    transfers.length === 0 && (
+                        <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                            Nenhuma transferência encontrada.
+                        </Text>
+                    )}
                 
                 <Text style={{ marginVertical: 10 }}>Selecionar Receptora:</Text>
                 <SelectList 
@@ -157,6 +360,14 @@ export default ({ route, navigation }) => {
                     inputStyles={style.selectListInput}
                     dropdownStyles={[style.selectListDropdown, { marginLeft: 0, width: 300 }]}
                 />
+                {!recipientsLoading &&
+                    hasLoadedRecipients &&
+                    !recipientsError &&
+                    recipients.length === 0 && (
+                        <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                            Nenhuma receptora disponível.
+                        </Text>
+                    )}
             </View>
             <View style={{ display: 'flex', flexDirection: 'row' }}>
                 <TouchableOpacity

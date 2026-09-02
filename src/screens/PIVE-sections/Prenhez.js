@@ -1,37 +1,116 @@
-import React, { useState, useEffect } from "react";
-import { Text, View, TouchableOpacity, Alert } from "react-native";
+import React, { useState } from "react";
+import { Text, View, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import axios from "axios";
+import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SelectList } from 'react-native-dropdown-select-list';
 import { IPAdress } from "../../components/APIip";
+import { listInProgressPregnancyReceivers } from "../../api/pregnancyService";
+import { normalizeApiError } from "../../api/errors";
 
 export default ({ route, navigation }) => {
     const { fiv } = route.params
     const [recipients, setRecipients] = useState([])
     const [selectedReceiver, setSelectedReceiver] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const [hasLoaded, setHasLoaded] = useState(false)
+    const isScreenFocusedRef = React.useRef(false)
+    const activeFivIdRef = React.useRef(fiv.id)
+    const loadedFivIdRef = React.useRef(null)
+    const abortControllerRef = React.useRef(null)
+    const requestIdRef = React.useRef(0)
 
-    useEffect(() => {
-        const fetchRecipients = async () => {
-            try {
-                console.log(fiv)
-                const response = await axios.get(`http://${IPAdress}/pregnancy/in-progress-receivers/${fiv.id}`)
-                const formattedRecipients = response.data.map(recipient => ({
-                    key: recipient.id.toString(),
-                    value: `${recipient.name} (${recipient.registrationNumber})`
-                }));
-                setRecipients(formattedRecipients);
-            } catch (error) {
-                Alert.alert("Erro", "Não foi possível buscar as receptoras")
-                console.error(error);
+    activeFivIdRef.current = fiv.id
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const currentFivId = fiv.id
+            isScreenFocusedRef.current = true
+
+            if (loadedFivIdRef.current !== currentFivId) {
+                loadedFivIdRef.current = null
+                setRecipients([])
+                setSelectedReceiver(null)
+                setError(null)
+                setHasLoaded(false)
+                setLoading(true)
             }
-        };
 
-        fetchRecipients();
-    }, [])
+            const fetchRecipients = async () => {
+                abortControllerRef.current?.abort()
+                const abortController = new AbortController()
+                abortControllerRef.current = abortController
+                const requestId = ++requestIdRef.current
+
+                setLoading(true)
+
+                try {
+                    console.log(fiv)
+                    const recipientData = await listInProgressPregnancyReceivers(
+                        currentFivId,
+                        { signal: abortController.signal }
+                    )
+                    const formattedRecipients = recipientData.map(recipient => ({
+                        key: recipient.id.toString(),
+                        value: `${recipient.name} (${recipient.registrationNumber})`
+                    }));
+
+                    if (
+                        requestId !== requestIdRef.current ||
+                        !isScreenFocusedRef.current ||
+                        activeFivIdRef.current !== currentFivId
+                    ) return
+
+                    setRecipients(formattedRecipients);
+                    loadedFivIdRef.current = currentFivId
+                    setHasLoaded(true)
+                    setError(null)
+                } catch (requestError) {
+                    const apiError = normalizeApiError(
+                        requestError,
+                        'Não foi possível buscar as receptoras'
+                    )
+                    if (apiError.isCanceled) return
+                    if (
+                        requestId !== requestIdRef.current ||
+                        !isScreenFocusedRef.current ||
+                        activeFivIdRef.current !== currentFivId
+                    ) return
+                    setError(apiError.message)
+                    Alert.alert("Erro", "Não foi possível buscar as receptoras")
+                    console.error(apiError.message);
+                } finally {
+                    if (requestId === requestIdRef.current) {
+                        abortControllerRef.current = null
+                        if (
+                            isScreenFocusedRef.current &&
+                            activeFivIdRef.current === currentFivId
+                        ) {
+                            setLoading(false)
+                        }
+                    }
+                }
+            };
+
+            fetchRecipients();
+
+            return () => {
+                isScreenFocusedRef.current = false
+                requestIdRef.current += 1
+                abortControllerRef.current?.abort()
+                abortControllerRef.current = null
+            }
+        }, [fiv.id])
+    )
+
+    if (loading && !hasLoaded) {
+        return <ActivityIndicator size="small" color="#092955" />
+    }
 
     const postPregnancy = async () => {
         if (!selectedReceiver) {
@@ -63,6 +142,14 @@ export default ({ route, navigation }) => {
                 </TouchableOpacity>
                 <Text style={[style.titleText, { marginRight: '20%' }]}>Registrar prenhez</Text>
             </View>
+            {loading && hasLoaded && (
+                <ActivityIndicator size="small" color="#092955" />
+            )}
+            {error && (
+                <Text style={{ color: '#B00020', marginHorizontal: 20 }}>
+                    Error: {error}
+                </Text>
+            )}
             <View style={style.content}>
                 <Text style={{ marginBottom: 10 }}>Selecionar Receptora:</Text>
                 <SelectList 
@@ -73,6 +160,11 @@ export default ({ route, navigation }) => {
                     inputStyles={style.selectListInput}
                     dropdownStyles={[style.selectListDropdown, { marginLeft: 0, width: 300 }]}
                 />
+                {!loading && hasLoaded && !error && recipients.length === 0 && (
+                    <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                        Nenhuma receptora encontrada.
+                    </Text>
+                )}
             </View>
             <View style={{display:"flex", flexDirection:"row"}}>
             <TouchableOpacity
