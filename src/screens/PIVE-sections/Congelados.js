@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { Text, View, TouchableOpacity, ActivityIndicator, Alert, TextInput } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
-import axios from "axios";
 import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { IPAdress } from "../../components/APIip";
 import { getOocyteCollection } from "../../api/oocyteCollectionService";
+import { freezeEmbryos } from "../../api/embryoService";
 import { normalizeApiError } from "../../api/errors";
 
 export default ({ route, navigation }) => {
@@ -17,13 +16,29 @@ export default ({ route, navigation }) => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [hasLoaded, setHasLoaded] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
+    const isSubmittingRef = React.useRef(false)
+    const mutationAbortControllerRef = React.useRef(null)
     const activeCollectionIdRef = React.useRef(id)
+    const activeProductionIdRef = React.useRef(productionId)
     const productionCollectionIdRef = React.useRef(null)
     const abortControllerRef = React.useRef(null)
     const requestIdRef = React.useRef(0)
 
     activeCollectionIdRef.current = id
+    activeProductionIdRef.current = productionId
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+            mutationAbortControllerRef.current?.abort()
+            mutationAbortControllerRef.current = null
+        }
+    }, [])
 
     useFocusEffect(
         React.useCallback(() => {
@@ -95,11 +110,15 @@ export default ({ route, navigation }) => {
                 requestIdRef.current += 1
                 abortControllerRef.current?.abort()
                 abortControllerRef.current = null
+                mutationAbortControllerRef.current?.abort()
+                mutationAbortControllerRef.current = null
             }
         }, [id])
     )
 
     const postFrozenEmbryos = async () => {
+        if (isSubmittingRef.current) return
+
         if (productionCollectionIdRef.current !== id || !productionId) {
             Alert.alert("Erro", "Não foi possível localizar a produção embrionária necessária para esta operação.")
             return
@@ -110,19 +129,60 @@ export default ({ route, navigation }) => {
             return
         }
 
+        const submittedCollectionId = id
+        const submittedProductionId = productionId
+        const submittedNumber = newNumber
+        const submittedEmbryosQuantity = parseInt(submittedNumber)
+        const frozenEmbryosData = {
+            productionId: submittedProductionId,
+            embryosQuantity: submittedEmbryosQuantity,
+        }
+        const abortController = new AbortController()
+
+        isSubmittingRef.current = true
+        mutationAbortControllerRef.current = abortController
+        setIsSubmitting(true)
+
         try {
-            await axios.post(`http://${IPAdress}/embryo/frozen`, {
-                productionId,
-                embryosQuantity: parseInt(newNumber),
+            await freezeEmbryos(frozenEmbryosData, {
+                signal: abortController.signal,
             })
+
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController ||
+                activeCollectionIdRef.current !== submittedCollectionId ||
+                productionCollectionIdRef.current !== submittedCollectionId ||
+                activeProductionIdRef.current !== submittedProductionId
+            ) return
+
             Alert.alert("Sucesso", "Embriões congelados com sucesso!")
             navigation.goBack()
-        } catch (error) {
-            const responseData = error?.response?.data
-            const message = typeof responseData === 'string'
-                ? responseData
-                : error?.message || 'Não foi possível registrar os embriões congelados.'
-            Alert.alert("Erro", message)
+        } catch (requestError) {
+            const apiError = normalizeApiError(
+                requestError,
+                'Não foi possível registrar os embriões congelados.'
+            )
+            if (apiError.isCanceled) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController ||
+                activeCollectionIdRef.current !== submittedCollectionId ||
+                productionCollectionIdRef.current !== submittedCollectionId ||
+                activeProductionIdRef.current !== submittedProductionId
+            ) return
+
+            Alert.alert("Erro", apiError.message)
+        } finally {
+            if (mutationAbortControllerRef.current === abortController) {
+                mutationAbortControllerRef.current = null
+            }
+            isSubmittingRef.current = false
+            if (isMountedRef.current) {
+                setIsSubmitting(false)
+            }
         }
     }
 
@@ -163,6 +223,7 @@ export default ({ route, navigation }) => {
                 <TouchableOpacity
                     style={[style.button, { display: 'flex', flexDirection: 'row', marginLeft: '40%', marginTop: 0 }]}
                     onPress={postFrozenEmbryos}
+                    disabled={isSubmitting}
                 >
                     <MaterialIcons name="done" size={20} color="#fff" />
                     <Text style={[style.buttonText, { marginLeft: 5, paddingBottom: 2 }]}>Salvar</Text>
