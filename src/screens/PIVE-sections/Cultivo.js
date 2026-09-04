@@ -19,7 +19,11 @@ export default ({ route, navigation }) => {
     const [error, setError] = useState(null)
     const [totalEmbryos, setTotalEmbryos] = useState('')
     const [fivData, setFivData] = useState(null)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
+    const isSubmittingRef = React.useRef(false)
+    const mutationAbortControllerRef = React.useRef(null)
     const isPollingActiveRef = React.useRef(false)
     const appStateRef = React.useRef(AppState.currentState)
     const pollingTimeoutRef = React.useRef(null)
@@ -34,6 +38,16 @@ export default ({ route, navigation }) => {
 
     activeOocyteCollectionIdRef.current = oocyteCollectionId
     totalEmbryosRef.current = totalEmbryos
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+            mutationAbortControllerRef.current?.abort()
+            mutationAbortControllerRef.current = null
+        }
+    }, [])
 
     useFocusEffect(
         React.useCallback(() => {
@@ -190,6 +204,8 @@ export default ({ route, navigation }) => {
 
                 if (nextAppState !== 'active') {
                     isPollingActiveRef.current = false
+                    mutationAbortControllerRef.current?.abort()
+                    mutationAbortControllerRef.current = null
                     if (pollingTimeoutRef.current) {
                         clearTimeout(pollingTimeoutRef.current)
                         pollingTimeoutRef.current = null
@@ -228,6 +244,8 @@ export default ({ route, navigation }) => {
                 pollingRequestIdRef.current += 1
                 pollingAbortControllerRef.current?.abort()
                 pollingAbortControllerRef.current = null
+                mutationAbortControllerRef.current?.abort()
+                mutationAbortControllerRef.current = null
                 appStateSubscription.remove()
             }
         }, [oocyteCollectionId])
@@ -240,16 +258,30 @@ export default ({ route, navigation }) => {
     }
 
     const handleSave = async () => {
+        if (isSubmittingRef.current) return
+
         const submittedOocyteCollectionId = oocyteCollectionId
         const submittedTotalEmbryos = totalEmbryos
+        const payload = {
+            oocyteCollectionId: submittedOocyteCollectionId,
+            totalEmbryos: submittedTotalEmbryos,
+        }
+        const abortController = new AbortController()
+
+        isSubmittingRef.current = true
+        mutationAbortControllerRef.current = abortController
+        setIsSubmitting(true)
 
         try {
-            await createEmbryoProduction({
-                oocyteCollectionId: submittedOocyteCollectionId,
-                totalEmbryos: submittedTotalEmbryos,
+            await createEmbryoProduction(payload, {
+                signal: abortController.signal,
             })
 
             if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                appStateRef.current !== 'active' ||
+                mutationAbortControllerRef.current !== abortController ||
                 activeOocyteCollectionIdRef.current !== submittedOocyteCollectionId
             ) return
 
@@ -263,7 +295,29 @@ export default ({ route, navigation }) => {
         } catch (saveError) {
             const apiError = normalizeApiError(saveError, 'Ocorreu um erro')
             if (apiError.isCanceled) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                appStateRef.current !== 'active' ||
+                mutationAbortControllerRef.current !== abortController ||
+                activeOocyteCollectionIdRef.current !== submittedOocyteCollectionId
+            ) return
+
             Alert.alert('Erro', apiError.message)
+        } finally {
+            const hasNewerMutation =
+                mutationAbortControllerRef.current !== null &&
+                mutationAbortControllerRef.current !== abortController
+
+            if (!hasNewerMutation) {
+                if (mutationAbortControllerRef.current === abortController) {
+                    mutationAbortControllerRef.current = null
+                }
+                isSubmittingRef.current = false
+                if (isMountedRef.current) {
+                    setIsSubmitting(false)
+                }
+            }
         }
     }
 
@@ -351,7 +405,7 @@ export default ({ route, navigation }) => {
                             keyboardType="numeric"
                             placeholder="Digite o total de embriões"
                         />
-                        <TouchableOpacity onPress={handleSave}
+                        <TouchableOpacity onPress={handleSave} disabled={isSubmitting}
                             style={[style.listButtonSearch, { width: '30%', height: '28%', display: 'flex', flexDirection: 'row', marginTop: '5%', marginLeft: '60%' }]}>
                             <MaterialIcons name="done" size={20} color="white" style={{ paddingLeft: 5, paddingTop: 3 }} />
                             <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Salvar</Text>
