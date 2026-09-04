@@ -1,24 +1,36 @@
 import React, { useState } from "react";
 import { Text, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
-import axios from "axios";
 import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { IPAdress } from "../../components/APIip";
-import { listPregnantReceivers } from "../../api/receiverService";
+import { listPregnantReceivers, removePregnantReceiver } from "../../api/receiverService";
 import { normalizeApiError } from "../../api/errors";
 
 export default ({ route, navigation }) => {
     const { fiv } = route.params
-    const baseURL = `http://${IPAdress}/receiver/pregnant`
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [hasLoaded, setHasLoaded] = useState(false)
+    const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
+    const deletingReceiverIdsRef = React.useRef(new Set())
+    const mutationAbortControllersRef = React.useRef(new Map())
     const abortControllerRef = React.useRef(null)
     const requestIdRef = React.useRef(0)
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+            mutationAbortControllersRef.current.forEach(controller => {
+                controller.abort()
+            })
+            mutationAbortControllersRef.current.clear()
+        }
+    }, [])
 
     useFocusEffect(
         React.useCallback(() => {
@@ -30,6 +42,10 @@ export default ({ route, navigation }) => {
                 requestIdRef.current += 1
                 abortControllerRef.current?.abort()
                 abortControllerRef.current = null
+                mutationAbortControllersRef.current.forEach(controller => {
+                    controller.abort()
+                })
+                mutationAbortControllersRef.current.clear()
             }
         }, [])
     )
@@ -91,11 +107,52 @@ export default ({ route, navigation }) => {
     }
 
     async function removeItem(id) {
+        if (deletingReceiverIdsRef.current.has(id)) return
+
+        const submittedReceiverId = id
+        const abortController = new AbortController()
+
+        deletingReceiverIdsRef.current.add(submittedReceiverId)
+        mutationAbortControllersRef.current.set(
+            submittedReceiverId,
+            abortController
+        )
+
         try {
-            await axios.delete(`${baseURL}/${id}`);
-            setData(data.filter(item => item.id !== id));
-        } catch (error) {
-            console.error("Erro ao deletar o item:", error);
+            await removePregnantReceiver(submittedReceiverId, {
+                signal: abortController.signal,
+            })
+
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllersRef.current.get(submittedReceiverId) !==
+                    abortController
+            ) return
+
+            await loadApi()
+        } catch (requestError) {
+            const apiError = normalizeApiError(
+                requestError,
+                'Não foi possível excluir a receptora.'
+            )
+            if (apiError.isCanceled) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllersRef.current.get(submittedReceiverId) !==
+                    abortController
+            ) return
+
+            console.error("Erro ao deletar o item:", apiError.message);
+        } finally {
+            deletingReceiverIdsRef.current.delete(submittedReceiverId)
+            if (
+                mutationAbortControllersRef.current.get(submittedReceiverId) ===
+                abortController
+            ) {
+                mutationAbortControllersRef.current.delete(submittedReceiverId)
+            }
         }
     }
 
