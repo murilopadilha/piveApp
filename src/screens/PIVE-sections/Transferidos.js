@@ -291,6 +291,7 @@ export default ({ route, navigation }) => {
             if (
                 !isMountedRef.current ||
                 !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController ||
                 activeFivIdRef.current !== submittedFivId ||
                 activeCollectionIdRef.current !== submittedCollectionId
             ) return
@@ -303,6 +304,7 @@ export default ({ route, navigation }) => {
             if (
                 !isMountedRef.current ||
                 !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController ||
                 activeFivIdRef.current !== submittedFivId ||
                 activeCollectionIdRef.current !== submittedCollectionId
             ) return
@@ -314,6 +316,7 @@ export default ({ route, navigation }) => {
             if (
                 !isMountedRef.current ||
                 !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController ||
                 activeFivIdRef.current !== submittedFivId ||
                 activeCollectionIdRef.current !== submittedCollectionId
             ) return
