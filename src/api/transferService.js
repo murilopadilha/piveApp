@@ -8,6 +8,11 @@ export const listTransfersByFiv = async (fivId, { signal } = {}) => {
     return response.data
 }
 
+export const createTransfer = async (payload, { signal } = {}) => {
+    const response = await apiClient.post('/transfer', payload, { signal })
+    return response.data
+}
+
 export const createEmbryoTransfer = async (payload, { signal } = {}) => {
     const response = await apiClient.post('/embryo/transfer', payload, { signal })
     return response.data
