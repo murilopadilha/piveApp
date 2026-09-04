@@ -26,7 +26,7 @@ export const getFivDetails = async (id, { signal } = {}) => {
     return response.data
 }
 
-export const createFiv = async ({ signal } = {}) => {
-    const response = await apiClient.post('/fiv', undefined, { signal })
+export const createFiv = async (payload, { signal } = {}) => {
+    const response = await apiClient.post('/fiv', payload, { signal })
     return response.data
 }

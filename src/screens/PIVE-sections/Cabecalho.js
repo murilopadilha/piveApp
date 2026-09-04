@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, Alert, ScrollView } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import axios from "axios";
+import { useFocusEffect } from '@react-navigation/native';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import style from "../../components/style";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { IPAdress } from "../../components/APIip";
+import { createFiv } from "../../api/fivService";
+import { normalizeApiError } from "../../api/errors";
 
 export default ({ route, navigation }) => {
     const [newOocyteCollectionDate, setDateOfOocyteCollection] = useState('');
@@ -17,6 +18,48 @@ export default ({ route, navigation }) => {
     const [technical, setTechnical] = useState('');
     const [TE, setTE] = useState('');
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const isMountedRef = React.useRef(true);
+    const isScreenFocusedRef = React.useRef(false);
+    const isSubmittingRef = React.useRef(false);
+    const mutationAbortControllerRef = React.useRef(null);
+    const dateRef = React.useRef(newOocyteCollectionDate);
+    const farmRef = React.useRef(farm);
+    const laboratoryRef = React.useRef(laboratory);
+    const clientRef = React.useRef(client);
+    const veterinarianRef = React.useRef(veterinarian);
+    const technicalRef = React.useRef(technical);
+    const TERef = React.useRef(TE);
+
+    dateRef.current = newOocyteCollectionDate;
+    farmRef.current = farm;
+    laboratoryRef.current = laboratory;
+    clientRef.current = client;
+    veterinarianRef.current = veterinarian;
+    technicalRef.current = technical;
+    TERef.current = TE;
+
+    React.useEffect(() => {
+        isMountedRef.current = true;
+
+        return () => {
+            isMountedRef.current = false;
+            mutationAbortControllerRef.current?.abort();
+            mutationAbortControllerRef.current = null;
+        };
+    }, []);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true;
+
+            return () => {
+                isScreenFocusedRef.current = false;
+                mutationAbortControllerRef.current?.abort();
+                mutationAbortControllerRef.current = null;
+            };
+        }, [])
+    );
 
     const showDatePicker = () => {
         setDatePickerVisibility(true);
@@ -28,35 +71,95 @@ export default ({ route, navigation }) => {
 
     const handleConfirm = (date) => {
         const formattedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`;
+        dateRef.current = formattedDate;
         setDateOfOocyteCollection(formattedDate);
         hideDatePicker();
     };
 
     const handleSave = async () => {
+        if (isSubmittingRef.current) return;
+
+        const submittedDate = newOocyteCollectionDate;
+        const submittedFarm = farm;
+        const submittedLaboratory = laboratory;
+        const submittedClient = client;
+        const submittedVeterinarian = veterinarian;
+        const submittedTechnical = technical;
+        const submittedTE = TE;
+        const payload = {
+            date: submittedDate,
+            farm: submittedFarm,
+            laboratory: submittedLaboratory,
+            client: submittedClient,
+            veterinarian: submittedVeterinarian,
+            technical: submittedTechnical,
+            TE: submittedTE,
+        };
+        const abortController = new AbortController();
+
+        isSubmittingRef.current = true;
+        mutationAbortControllerRef.current = abortController;
+        setIsSubmitting(true);
+
         try {
-            const response = await axios.post(`http://${IPAdress}/fiv`, {
-                date: newOocyteCollectionDate,
-                farm,
-                laboratory,
-                client,
-                veterinarian,
-                technical,
-                TE,
+            await createFiv(payload, {
+                signal: abortController.signal,
             });
+
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return;
+
             Alert.alert('Sucesso', 'FIV salva com sucesso!');
-            setDateOfOocyteCollection('');
-            setFarm('');
-            setClient('');
-            setLaboratory('');
-            setVeterinarian('');
-            setTechnical('');
-            setTE('');
-        } catch (error) {
-            const responseData = error?.response?.data;
-            const message = typeof responseData === 'string'
-                ? responseData
-                : error?.message || 'Não foi possível salvar a FIV.';
-            Alert.alert('Erro', message);
+
+            if (dateRef.current === submittedDate) {
+                dateRef.current = '';
+                setDateOfOocyteCollection('');
+            }
+            if (farmRef.current === submittedFarm) {
+                farmRef.current = '';
+                setFarm('');
+            }
+            if (clientRef.current === submittedClient) {
+                clientRef.current = '';
+                setClient('');
+            }
+            if (laboratoryRef.current === submittedLaboratory) {
+                laboratoryRef.current = '';
+                setLaboratory('');
+            }
+            if (veterinarianRef.current === submittedVeterinarian) {
+                veterinarianRef.current = '';
+                setVeterinarian('');
+            }
+            if (technicalRef.current === submittedTechnical) {
+                technicalRef.current = '';
+                setTechnical('');
+            }
+            if (TERef.current === submittedTE) {
+                TERef.current = '';
+                setTE('');
+            }
+        } catch (requestError) {
+            const apiError = normalizeApiError(requestError, 'Não foi possível salvar a FIV.');
+            if (apiError.isCanceled) return;
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return;
+
+            Alert.alert('Erro', apiError.message);
+        } finally {
+            if (mutationAbortControllerRef.current === abortController) {
+                mutationAbortControllerRef.current = null;
+            }
+            isSubmittingRef.current = false;
+            if (isMountedRef.current) {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -91,7 +194,10 @@ export default ({ route, navigation }) => {
                         placeholderTextColor="#888"
                         style={style.input}
                         value={farm}
-                        onChangeText={setFarm}
+                        onChangeText={(text) => {
+                            farmRef.current = text;
+                            setFarm(text);
+                        }}
                     />
                     <Text style={style.label}>Cliente:</Text>
                     <TextInput
@@ -99,7 +205,10 @@ export default ({ route, navigation }) => {
                         placeholderTextColor="#888"
                         style={style.input}
                         value={client}
-                        onChangeText={setClient}
+                        onChangeText={(text) => {
+                            clientRef.current = text;
+                            setClient(text);
+                        }}
                     />
                     <Text style={style.label}>Laboratório:</Text>
                     <TextInput
@@ -107,7 +216,10 @@ export default ({ route, navigation }) => {
                         placeholderTextColor="#888"
                         style={style.input}
                         value={laboratory}
-                        onChangeText={setLaboratory}
+                        onChangeText={(text) => {
+                            laboratoryRef.current = text;
+                            setLaboratory(text);
+                        }}
                     />
                     <Text style={style.label}>Veterinário:</Text>
                     <TextInput
@@ -115,7 +227,10 @@ export default ({ route, navigation }) => {
                         placeholderTextColor="#888"
                         style={style.input}
                         value={veterinarian}
-                        onChangeText={setVeterinarian}
+                        onChangeText={(text) => {
+                            veterinarianRef.current = text;
+                            setVeterinarian(text);
+                        }}
                     />
                     <Text style={style.label}>Técnico:</Text>
                     <TextInput
@@ -123,7 +238,10 @@ export default ({ route, navigation }) => {
                         placeholderTextColor="#888"
                         style={style.input}
                         value={technical}
-                        onChangeText={setTechnical}
+                        onChangeText={(text) => {
+                            technicalRef.current = text;
+                            setTechnical(text);
+                        }}
                     />
                     <Text style={style.label}>TE:</Text>
                     <TextInput
@@ -131,10 +249,14 @@ export default ({ route, navigation }) => {
                         placeholderTextColor="#888"
                         style={style.input}
                         value={TE}
-                        onChangeText={setTE}
+                        onChangeText={(text) => {
+                            TERef.current = text;
+                            setTE(text);
+                        }}
                     />
                     <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
                         <TouchableOpacity onPress={handleSave}
+                            disabled={isSubmitting}
                             style={[style.listButtonSearch, { width: '30%', height: '58%', display: 'flex', flexDirection: 'row', marginTop: '5%', marginLeft: '60%' }]}>
                             <MaterialIcons name="done" size={20} color="white" style={{ paddingLeft: 5, paddingTop: 3 }} />
                             <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Salvar</Text>
