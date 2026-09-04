@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, Alert, ScrollView } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -8,6 +8,9 @@ import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { SelectList } from 'react-native-dropdown-select-list';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from '@react-navigation/native';
+import { listAvailableDonors } from '../../api/donorService';
+import { listBulls } from '../../api/bullService';
+import { normalizeApiError } from '../../api/errors';
 
 import { IPAdress } from "../../components/APIip";
 
@@ -19,28 +22,118 @@ export default ({ route, navigation }) => {
     const [donors, setDonors] = useState([])
     const [bulls, setBulls] = useState([])
     const { fiv } = route.params;
+    const isScreenFocusedRef = React.useRef(false)
+    const activeFivIdRef = React.useRef(fiv.id)
+    const donorsAbortControllerRef = React.useRef(null)
+    const donorsRequestIdRef = React.useRef(0)
+    const bullsAbortControllerRef = React.useRef(null)
+    const bullsRequestIdRef = React.useRef(0)
+    const loadErrorAlertShownRef = React.useRef(false)
 
-    useEffect(() => {
-        const fetchDonorsAndBulls = async () => {
-            try {
-                const [donorsResponse, bullsResponse] = await Promise.all([
-                    axios.get(`http://${IPAdress}/donor/${fiv.id}/available`),
-                    axios.get(`http://${IPAdress}/bull`)
-                ])
+    activeFivIdRef.current = fiv.id
 
-                setDonors(donorsResponse.data)
-                setBulls(bullsResponse.data)
-            } catch (error) {
-                const responseData = error?.response?.data
-                const message = typeof responseData === 'string'
-                    ? responseData
-                    : error?.message || 'Não foi possível carregar doadoras e touros.'
-                Alert.alert('Erro', message)
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true
+            loadErrorAlertShownRef.current = false
+            const currentFivId = fiv.id
+
+            const fetchAvailableDonors = async () => {
+                donorsAbortControllerRef.current?.abort()
+                const abortController = new AbortController()
+                donorsAbortControllerRef.current = abortController
+                const requestId = ++donorsRequestIdRef.current
+
+                try {
+                    const donorData = await listAvailableDonors(currentFivId, {
+                        signal: abortController.signal,
+                    })
+
+                    if (
+                        requestId !== donorsRequestIdRef.current ||
+                        !isScreenFocusedRef.current ||
+                        activeFivIdRef.current !== currentFivId
+                    ) return
+
+                    setDonors(donorData)
+                } catch (requestError) {
+                    const apiError = normalizeApiError(
+                        requestError,
+                        'Não foi possível carregar doadoras e touros.'
+                    )
+                    if (apiError.isCanceled) return
+                    if (
+                        requestId !== donorsRequestIdRef.current ||
+                        !isScreenFocusedRef.current ||
+                        activeFivIdRef.current !== currentFivId
+                    ) return
+
+                    if (!loadErrorAlertShownRef.current) {
+                        loadErrorAlertShownRef.current = true
+                        Alert.alert('Erro', apiError.message)
+                    }
+                } finally {
+                    if (requestId === donorsRequestIdRef.current) {
+                        donorsAbortControllerRef.current = null
+                    }
+                }
             }
-        }
 
-        fetchDonorsAndBulls();
-    }, [])
+            const fetchBulls = async () => {
+                bullsAbortControllerRef.current?.abort()
+                const abortController = new AbortController()
+                bullsAbortControllerRef.current = abortController
+                const requestId = ++bullsRequestIdRef.current
+
+                try {
+                    const bullData = await listBulls({
+                        signal: abortController.signal,
+                    })
+
+                    if (
+                        requestId !== bullsRequestIdRef.current ||
+                        !isScreenFocusedRef.current
+                    ) return
+
+                    setBulls(bullData)
+                } catch (requestError) {
+                    const apiError = normalizeApiError(
+                        requestError,
+                        'Não foi possível carregar doadoras e touros.'
+                    )
+                    if (apiError.isCanceled) return
+                    if (
+                        requestId !== bullsRequestIdRef.current ||
+                        !isScreenFocusedRef.current
+                    ) return
+
+                    if (!loadErrorAlertShownRef.current) {
+                        loadErrorAlertShownRef.current = true
+                        Alert.alert('Erro', apiError.message)
+                    }
+                } finally {
+                    if (requestId === bullsRequestIdRef.current) {
+                        bullsAbortControllerRef.current = null
+                    }
+                }
+            }
+
+            fetchAvailableDonors()
+            fetchBulls()
+
+            return () => {
+                isScreenFocusedRef.current = false
+
+                donorsRequestIdRef.current += 1
+                donorsAbortControllerRef.current?.abort()
+                donorsAbortControllerRef.current = null
+
+                bullsRequestIdRef.current += 1
+                bullsAbortControllerRef.current?.abort()
+                bullsAbortControllerRef.current = null
+            }
+        }, [fiv.id])
+    )
 
     function confirmSave() {
         Alert.alert(

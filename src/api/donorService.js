@@ -5,6 +5,11 @@ export const listDonors = async ({ signal } = {}) => {
     return response.data
 }
 
+export const listAvailableDonors = async (fivId, { signal } = {}) => {
+    const response = await apiClient.get(`/donor/${fivId}/available`, { signal })
+    return response.data
+}
+
 export const searchDonors = async (registrationNumber, { signal } = {}) => {
     const response = await apiClient.get('/donor/search', {
         params: { registrationNumber },
