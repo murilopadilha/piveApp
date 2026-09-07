@@ -18,6 +18,8 @@ import {
     listSchedules,
 } from "../api/scheduleService";
 import { normalizeApiError } from "../api/errors";
+import { SCHEDULE_PROCEDURE_TYPES } from "../features/calendar/constants";
+import { formatLocalCalendarDate } from "../utils/date";
 
 export default (props) => {
     const [newScheduleDate, setNewScheduleDate] = useState('');
@@ -50,14 +52,7 @@ export default (props) => {
         };
     }, []);
 
-    const categories = [
-        { key: 'OOCYTE_COLLECTION', value: 'Coleta de Oócito' },
-        { key: 'IN_VITRO_MATURATION', value: 'Maturação In Vitro' },
-        { key: 'IN_VITRO_FERTILIZATION', value: 'Fertilização In Vitro' },
-        { key: 'EMBRYO_TRANSFER', value: 'Transferência de Embrião' },
-    ];
-
-    const categoryData = categories.map(cat => ({
+    const categoryData = SCHEDULE_PROCEDURE_TYPES.map(cat => ({
         key: cat.key,
         value: cat.value
     }));
@@ -74,7 +69,7 @@ export default (props) => {
         : markedDates;
 
     const handleSelect = (selectedKey) => {
-        const selectedCategory = categories.find(cat => cat.key === selectedKey);
+        const selectedCategory = SCHEDULE_PROCEDURE_TYPES.find(cat => cat.key === selectedKey);
         if (selectedCategory) {
             setCategory(selectedCategory.key);
         }
@@ -89,7 +84,7 @@ export default (props) => {
     };
 
     const handleConfirm = (date) => {
-        const formattedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`;
+        const formattedDate = formatLocalCalendarDate(date);
         setNewScheduleDate(formattedDate);
         hideDatePicker();
     };
@@ -202,7 +197,7 @@ export default (props) => {
             const details = data.map(item => ({
                 id: item.id,
                 procedureType: item.procedureType,
-                procedureTypeLabel: categories.find(cat => cat.key === item.procedureType)?.value || item.procedureType,
+                procedureTypeLabel: SCHEDULE_PROCEDURE_TYPES.find(cat => cat.key === item.procedureType)?.value || item.procedureType,
                 date: item.date,
             }));
             setSelectedDateDetails(details);
