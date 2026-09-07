@@ -7,34 +7,26 @@ import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
 import ListFooterLoader from "../../components/ListFooterLoader";
 import ScreenHeader from "../../components/ScreenHeader";
-import {
-    deleteDonor,
-    listDonors,
-    listDonorsByHighestAverageEmbryoPercentage,
-    listDonorsByHighestAverageOocytes,
-    searchDonors,
-} from "../../api/donorService";
-import { listDonorBullCombinations } from "../../api/donorBullCombinationService";
+import { deleteDonor } from "../../api/donorService";
 import { normalizeApiError } from "../../api/errors";
+import useDonorList from "../../features/animals/hooks/useDonorList";
 
 export default ({ navigation }) => {
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(false)
-    const [registrationNumber, setRegistrationNumber] = useState('')
-    const [filterOption, setFilterOption] = useState('all')
-    const [loadError, setLoadError] = useState(null)
-    const [hasLoaded, setHasLoaded] = useState(false)
+    const {
+        visibleData,
+        loading,
+        loadError,
+        hasLoaded,
+        registrationNumber,
+        setRegistrationNumber,
+        filterOption,
+        setFilterOption,
+        reload,
+    } = useDonorList()
     const [deletingDonorIds, setDeletingDonorIds] = useState([])
     const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
-    const registrationNumberRef = React.useRef(registrationNumber)
-    const filterOptionRef = React.useRef(filterOption)
     const deletingDonorIdsRef = React.useRef(new Set())
-    const abortControllerRef = React.useRef(null)
-    const requestIdRef = React.useRef(0)
-
-    registrationNumberRef.current = registrationNumber
-    filterOptionRef.current = filterOption
 
     React.useEffect(() => {
         isMountedRef.current = true
@@ -54,85 +46,12 @@ export default ({ navigation }) => {
     useFocusEffect(
         React.useCallback(() => {
             isScreenFocusedRef.current = true
-            const debounceTimer = setTimeout(() => {
-                loadApi(filterOption, registrationNumber)
-            }, 500)
 
             return () => {
                 isScreenFocusedRef.current = false
-                clearTimeout(debounceTimer)
-                requestIdRef.current += 1
-                abortControllerRef.current?.abort()
-                abortControllerRef.current = null
             }
-        }, [filterOption, registrationNumber])
+        }, [])
     )
-
-    async function loadApi(currentFilterOption, currentRegistrationNumber) {
-        if (!isScreenFocusedRef.current) return
-
-        abortControllerRef.current?.abort()
-        const abortController = new AbortController()
-        abortControllerRef.current = abortController
-        const requestId = ++requestIdRef.current
-
-        setLoading(true);
-        let donors
-
-        try {
-            if (currentFilterOption === 'combination') {
-                donors = await listDonorBullCombinations({ signal: abortController.signal })
-            } else {
-                if (currentRegistrationNumber) {
-                    donors = await searchDonors(currentRegistrationNumber, {
-                        signal: abortController.signal,
-                    })
-                } else {
-                    donors = await getDonorsByFilter(currentFilterOption, {
-                        signal: abortController.signal,
-                    })
-                }
-            }
-
-            if (
-                requestId !== requestIdRef.current ||
-                !isScreenFocusedRef.current
-            ) return
-
-            setData(donors)
-            setLoadError(null)
-            setHasLoaded(true)
-        } catch (error) {
-            const apiError = normalizeApiError(error, 'Não foi possível carregar as doadoras.')
-            if (apiError.isCanceled) return
-            if (
-                requestId !== requestIdRef.current ||
-                !isScreenFocusedRef.current
-            ) return
-            console.error(apiError.message)
-            setLoadError(apiError.message)
-            setHasLoaded(true)
-        } finally {
-            if (requestId === requestIdRef.current) {
-                abortControllerRef.current = null
-                if (isScreenFocusedRef.current) {
-                    setLoading(false)
-                }
-            }
-        }
-    }
-
-    function getDonorsByFilter(currentFilterOption, options) {
-        switch (currentFilterOption) {
-            case 'highest-average-oocytes':
-                return listDonorsByHighestAverageOocytes(options)
-            case 'highest-average-embryo-percentage':
-                return listDonorsByHighestAverageEmbryoPercentage(options)
-            case 'all':
-            default:
-                return listDonors(options)
-        }
-    }
 
     async function removeItem(id) {
         if (deletingDonorIdsRef.current.has(id)) return
@@ -145,10 +64,7 @@ export default ({ navigation }) => {
 
             if (!isScreenFocusedRef.current) return
 
-            await loadApi(
-                filterOptionRef.current,
-                registrationNumberRef.current
-            )
+            await reload()
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível excluir a doadora.')
             if (apiError.isCanceled) return
@@ -161,25 +77,6 @@ export default ({ navigation }) => {
             }
         }
     }
-
-    const filteredData = () => {
-        if (filterOption === 'combination') {
-            return data.filter(item => {
-                if (!item?.donor) return false
-
-                const donorName = String(item?.donor?.name ?? '')
-                const donorRegistrationNumber = String(item?.donor?.registrationNumber ?? '')
-
-                return (
-                    donorName.toLowerCase().includes(registrationNumber.toLowerCase()) ||
-                    donorRegistrationNumber.includes(registrationNumber)
-                )
-            })
-        }
-        return data
-    }
-
-    const visibleData = filteredData()
 
     return (
         <SafeAreaView style={style.menu}>
