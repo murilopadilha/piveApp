@@ -6,28 +6,24 @@ import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
 import ListFooterLoader from "../../components/ListFooterLoader";
 import ScreenHeader from "../../components/ScreenHeader";
-import {
-    deleteReceiver,
-    listReceivers,
-    searchReceivers,
-} from "../../api/receiverService";
+import { deleteReceiver } from "../../api/receiverService";
 import { normalizeApiError } from "../../api/errors";
+import useReceiverList from "../../features/animals/hooks/useReceiverList";
 
 export default ({ navigation }) => {
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(false)
-    const [registrationNumber, setRegistrationNumber] = useState('')
-    const [loadError, setLoadError] = useState(null)
-    const [hasLoaded, setHasLoaded] = useState(false)
+    const {
+        data,
+        loading,
+        loadError,
+        hasLoaded,
+        registrationNumber,
+        setRegistrationNumber,
+        reload,
+    } = useReceiverList()
     const [deletingReceiverIds, setDeletingReceiverIds] = useState([])
     const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
-    const registrationNumberRef = React.useRef(registrationNumber)
     const deletingReceiverIdsRef = React.useRef(new Set())
-    const abortControllerRef = React.useRef(null)
-    const requestIdRef = React.useRef(0)
-
-    registrationNumberRef.current = registrationNumber
 
     React.useEffect(() => {
         isMountedRef.current = true
@@ -40,67 +36,12 @@ export default ({ navigation }) => {
     useFocusEffect(
         React.useCallback(() => {
             isScreenFocusedRef.current = true
-            const debounceTimer = setTimeout(() => {
-                loadApi(registrationNumber)
-            }, 500)
 
             return () => {
                 isScreenFocusedRef.current = false
-                clearTimeout(debounceTimer);
-                requestIdRef.current += 1
-                abortControllerRef.current?.abort()
-                abortControllerRef.current = null
             }
-        }, [registrationNumber])
+        }, [])
     )
-
-    async function loadApi(query = '') {
-        if (!isScreenFocusedRef.current) return
-
-        abortControllerRef.current?.abort()
-        const abortController = new AbortController()
-        abortControllerRef.current = abortController
-        const requestId = ++requestIdRef.current
-
-        setLoading(true)
-
-        try {
-            let receivers
-            if (query) {
-                receivers = await searchReceivers(query, {
-                    signal: abortController.signal,
-                })
-            } else {
-                receivers = await listReceivers({ signal: abortController.signal })
-            }
-
-            if (
-                requestId !== requestIdRef.current ||
-                !isScreenFocusedRef.current
-            ) return
-
-            setData(receivers)
-            setLoadError(null)
-            setHasLoaded(true)
-        } catch (error) {
-            const apiError = normalizeApiError(error, 'Não foi possível carregar as receptoras.')
-            if (apiError.isCanceled) return
-            if (
-                requestId !== requestIdRef.current ||
-                !isScreenFocusedRef.current
-            ) return
-            console.error(apiError.message)
-            setLoadError(apiError.message)
-            setHasLoaded(true)
-        } finally {
-            if (requestId === requestIdRef.current) {
-                abortControllerRef.current = null
-                if (isScreenFocusedRef.current) {
-                    setLoading(false)
-                }
-            }
-        }
-    }
 
     function confirmRemove(id) {
         Alert.alert(
@@ -130,7 +71,7 @@ export default ({ navigation }) => {
 
             if (!isScreenFocusedRef.current) return
 
-            await loadApi(registrationNumberRef.current)
+            await reload()
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível excluir a receptora.')
             if (apiError.isCanceled) return
