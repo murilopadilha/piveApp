@@ -4,8 +4,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import { SelectList } from 'react-native-dropdown-select-list';
 import Octicons from '@expo/vector-icons/Octicons';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import { SafeAreaView } from "react-native-safe-area-context";
+import ListFooterLoader from "../../components/ListFooterLoader";
+import ScreenHeader from "../../components/ScreenHeader";
 import {
     deleteDonor,
     listDonors,
@@ -182,14 +183,10 @@ export default ({ navigation }) => {
 
     return (
         <SafeAreaView style={style.menu}>
-            <View style={style.divTitle}>
-                <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-                    <View style={{ marginRight: '8%' }}>
-                        <AntDesign name="arrowleft" size={24} color="#092955" />
-                    </View>
-                </TouchableOpacity>
-                <Text style={style.titleText}>Doadoras cadastradas</Text>
-            </View>
+            <ScreenHeader
+                title="Doadoras cadastradas"
+                onBack={() => navigation.navigate('Menu')}
+            />
             <View style={style.contentList}>
                 <View style={style.search}>
                     <TextInput
@@ -259,7 +256,9 @@ export default ({ navigation }) => {
                             </Text>
                         )
                     }
-                    ListFooterComponent={<FooterList load={loading && visibleData.length > 0} />}
+                    ListFooterComponent={
+                        <ListFooterLoader loading={loading && visibleData.length > 0} />
+                    }
                 />
             </View>
         </SafeAreaView>
@@ -317,16 +316,6 @@ function ListItem({ data, isDeleting, onRemove, navigation }) {
                     <Octicons name="pencil" size={20} color="#908D8E" />
                 </TouchableOpacity>
             </View>
-        </View>
-    )
-}
-
-function FooterList({ load }) {
-    if (!load) return null
-
-    return (
-        <View>
-            <ActivityIndicator size={25} color="#092955" />
         </View>
     )
 }
