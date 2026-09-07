@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
+import { Text, TextInput, View, FlatList, ActivityIndicator, Alert } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
-import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
 import ListFooterLoader from "../../components/ListFooterLoader";
 import ScreenHeader from "../../components/ScreenHeader";
 import { SelectList } from 'react-native-dropdown-select-list';
 import { deleteBull } from "../../api/bullService";
 import { normalizeApiError } from "../../api/errors";
+import BullListItem from "../../features/animals/components/BullListItem";
 import useBullList from "../../features/animals/hooks/useBullList";
 
 export default ({ navigation }) => {
@@ -152,11 +152,11 @@ export default ({ navigation }) => {
                             )
                         } else {
                             return (
-                                <ListItem
+                                <BullListItem
                                     data={item}
                                     isDeleting={deletingBullIds.includes(item.id)}
                                     onRemove={confirmRemove}
-                                    navigation={navigation}
+                                    onEdit={(bull) => navigation.navigate('EditarTouro', { donor: bull })}
                                 />
                             )
                         }
@@ -176,41 +176,5 @@ export default ({ navigation }) => {
                 />
             </View>
         </SafeAreaView>
-    )
-}
-
-function ListItem({ data, isDeleting, onRemove, navigation }) {
-    return (
-        <View style={style.listItem}>
-            <View style={{ alignSelf: 'center' }}>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Nome: </Text>
-                    {data?.name || '-'}
-                </Text>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Número de registro: </Text>
-                    {data?.registrationNumber || '-'}
-                </Text>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Eficiência emb viáveis: </Text>
-                    {data?.averageEmbryoPercentage ?? '-'}
-                </Text>
-            </View>
-            <View style={style.listButtons}>
-                <TouchableOpacity
-                    disabled={isDeleting}
-                    style={style.listButtonDelete}
-                    onPress={() => onRemove(data.id)}
-                >
-                    <Octicons name="trash" size={20} color="#908D8E" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[style.listButtonDelete, { marginTop: 2 }]}
-                    onPress={() => navigation.navigate('EditarTouro', { donor: data })}
-                >
-                    <Octicons name="pencil" size={20} color="#908D8E" />
-                </TouchableOpacity>
-            </View>
-        </View>
     )
 }
