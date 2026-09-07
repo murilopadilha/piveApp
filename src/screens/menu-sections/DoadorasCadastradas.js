@@ -8,12 +8,12 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
     deleteDonor,
-    listDonorBullCombinations,
     listDonors,
     listDonorsByHighestAverageEmbryoPercentage,
     listDonorsByHighestAverageOocytes,
     searchDonors,
 } from "../../api/donorService";
+import { listDonorBullCombinations } from "../../api/donorBullCombinationService";
 import { normalizeApiError } from "../../api/errors";
 
 export default ({ navigation }) => {

@@ -10,9 +10,9 @@ import {
     deleteBull,
     listBulls,
     listBullsByHighestAverageEmbryoPercentage,
-    listDonorBullCombinations,
     searchBulls,
 } from "../../api/bullService";
+import { listDonorBullCombinations } from "../../api/donorBullCombinationService";
 import { normalizeApiError } from "../../api/errors";
 
 export default ({ navigation }) => {

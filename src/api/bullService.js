@@ -18,11 +18,6 @@ export const listBullsByHighestAverageEmbryoPercentage = async ({ signal } = {})
     return response.data
 }
 
-export const listDonorBullCombinations = async ({ signal } = {}) => {
-    const response = await apiClient.get('/donor-bull-combinations', { signal })
-    return response.data
-}
-
 export const createBull = async (payload, { signal } = {}) => {
     const response = await apiClient.post('/bull', payload, { signal })
     return response.data
