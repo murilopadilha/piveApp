@@ -7,33 +7,26 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ListFooterLoader from "../../components/ListFooterLoader";
 import ScreenHeader from "../../components/ScreenHeader";
 import { SelectList } from 'react-native-dropdown-select-list';
-import {
-    deleteBull,
-    listBulls,
-    listBullsByHighestAverageEmbryoPercentage,
-    searchBulls,
-} from "../../api/bullService";
-import { listDonorBullCombinations } from "../../api/donorBullCombinationService";
+import { deleteBull } from "../../api/bullService";
 import { normalizeApiError } from "../../api/errors";
+import useBullList from "../../features/animals/hooks/useBullList";
 
 export default ({ navigation }) => {
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(false)
-    const [registrationNumber, setRegistrationNumber] = useState('')
-    const [filterOption, setFilterOption] = useState('all')
-    const [loadError, setLoadError] = useState(null)
-    const [hasLoaded, setHasLoaded] = useState(false)
+    const {
+        data,
+        loading,
+        loadError,
+        hasLoaded,
+        registrationNumber,
+        setRegistrationNumber,
+        filterOption,
+        setFilterOption,
+        reload,
+    } = useBullList()
     const [deletingBullIds, setDeletingBullIds] = useState([])
     const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
-    const registrationNumberRef = React.useRef(registrationNumber)
-    const filterOptionRef = React.useRef(filterOption)
     const deletingBullIdsRef = React.useRef(new Set())
-    const abortControllerRef = React.useRef(null)
-    const requestIdRef = React.useRef(0)
-
-    registrationNumberRef.current = registrationNumber
-    filterOptionRef.current = filterOption
 
     React.useEffect(() => {
         isMountedRef.current = true
@@ -52,101 +45,12 @@ export default ({ navigation }) => {
     useFocusEffect(
         React.useCallback(() => {
             isScreenFocusedRef.current = true
-            const debounceTimer = setTimeout(() => {
-                loadApi(filterOption, registrationNumber)
-            }, 500)
 
             return () => {
                 isScreenFocusedRef.current = false
-                clearTimeout(debounceTimer)
-                requestIdRef.current += 1
-                abortControllerRef.current?.abort()
-                abortControllerRef.current = null
             }
-        }, [filterOption, registrationNumber])
+        }, [])
     )
-
-    async function loadApi(currentFilterOption, query = '') {
-        if (!isScreenFocusedRef.current) return
-
-        abortControllerRef.current?.abort()
-        const abortController = new AbortController()
-        abortControllerRef.current = abortController
-        const requestId = ++requestIdRef.current
-
-        setLoading(true)
-
-        try {
-            let bulls
-            if (currentFilterOption === 'combination') {
-                const combinations = await listDonorBullCombinations({
-                    signal: abortController.signal,
-                })
-
-                if (query) {
-                    bulls = combinations.filter(item => {
-                        const donorName = String(item?.donor?.name ?? '')
-                        const bullName = String(item?.bull?.name ?? '')
-                        const donorRegistrationNumber = String(item?.donor?.registrationNumber ?? '')
-                        const bullRegistrationNumber = String(item?.bull?.registrationNumber ?? '')
-
-                        return donorName.includes(query) ||
-                            bullName.includes(query) ||
-                            donorRegistrationNumber.includes(query) ||
-                            bullRegistrationNumber.includes(query)
-                    });
-                } else {
-                    bulls = combinations
-                }
-            } else {
-                if (query) {
-                    bulls = await searchBulls(query, {
-                        signal: abortController.signal,
-                    })
-                } else {
-                    bulls = await getBullsByFilter(currentFilterOption, {
-                        signal: abortController.signal,
-                    })
-                }
-            }
-
-            if (
-                requestId !== requestIdRef.current ||
-                !isScreenFocusedRef.current
-            ) return
-
-            setData(bulls)
-            setLoadError(null)
-            setHasLoaded(true)
-        } catch (error) {
-            const apiError = normalizeApiError(error, 'Não foi possível carregar os touros.')
-            if (apiError.isCanceled) return
-            if (
-                requestId !== requestIdRef.current ||
-                !isScreenFocusedRef.current
-            ) return
-            console.error(apiError.message)
-            setLoadError(apiError.message)
-            setHasLoaded(true)
-        } finally {
-            if (requestId === requestIdRef.current) {
-                abortControllerRef.current = null
-                if (isScreenFocusedRef.current) {
-                    setLoading(false)
-                }
-            }
-        }
-    }
-
-    function getBullsByFilter(currentFilterOption, options) {
-        switch (currentFilterOption) {
-            case 'highest-average-embryo-percentage':
-                return listBullsByHighestAverageEmbryoPercentage(options)
-            case 'all':
-            default:
-                return listBulls(options)
-        }
-    }
 
     function confirmRemove(id) {
         Alert.alert(
@@ -176,10 +80,7 @@ export default ({ navigation }) => {
 
             if (!isScreenFocusedRef.current) return
 
-            await loadApi(
-                filterOptionRef.current,
-                registrationNumberRef.current
-            )
+            await reload()
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível excluir o touro.')
             if (apiError.isCanceled) return
