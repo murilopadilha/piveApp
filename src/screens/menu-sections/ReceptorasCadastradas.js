@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
+import { Text, TextInput, View, FlatList, ActivityIndicator, Alert } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
-import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
 import ListFooterLoader from "../../components/ListFooterLoader";
 import ScreenHeader from "../../components/ScreenHeader";
 import { deleteReceiver } from "../../api/receiverService";
 import { normalizeApiError } from "../../api/errors";
+import ReceiverListItem from "../../features/animals/components/ReceiverListItem";
 import useReceiverList from "../../features/animals/hooks/useReceiverList";
 
 export default ({ navigation }) => {
@@ -113,11 +113,11 @@ export default ({ navigation }) => {
                     data={data}
                     keyExtractor={item => String(item.id)}
                     renderItem={({ item }) => (
-                        <ListItem
+                        <ReceiverListItem
                             data={item}
                             isDeleting={deletingReceiverIds.includes(item.id)}
                             onRemove={confirmRemove}
-                            navigation={navigation}
+                            onEdit={(receiver) => navigation.navigate('EditarReceptora', { donor: receiver })}
                         />
                     )}
                     ListEmptyComponent={
@@ -135,37 +135,5 @@ export default ({ navigation }) => {
                 />
             </View>
         </SafeAreaView>
-    )
-}
-
-function ListItem({ data, isDeleting, onRemove, navigation }) {
-    return (
-        <View style={style.listItem}>
-            <View style={{alignSelf: 'center'}}>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Nome: </Text>
-                    {data.name} ({data.breed})
-                </Text>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Número de registro: </Text>
-                    {data.registrationNumber}
-                </Text>
-            </View>
-            <View style={style.listButtons}>
-                <TouchableOpacity
-                    disabled={isDeleting}
-                    style={style.listButtonDelete}
-                    onPress={() => onRemove(data.id)}
-                >
-                    <Octicons name="trash" size={20} color="#908D8E" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[style.listButtonDelete, { marginTop: 3 }]}
-                    onPress={() => navigation.navigate('EditarReceptora', { donor: data })}
-                >
-                    <Octicons name="pencil" size={20} color="#908D8E" />
-                </TouchableOpacity>
-            </View>
-        </View>
     )
 }
