@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { Text, TextInput, View, FlatList, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
+import { Text, TextInput, View, FlatList, ActivityIndicator, Alert } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import { SelectList } from 'react-native-dropdown-select-list';
-import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
 import ListFooterLoader from "../../components/ListFooterLoader";
 import ScreenHeader from "../../components/ScreenHeader";
 import { deleteDonor } from "../../api/donorService";
 import { normalizeApiError } from "../../api/errors";
+import DonorListItem from "../../features/animals/components/DonorListItem";
 import useDonorList from "../../features/animals/hooks/useDonorList";
 
 export default ({ navigation }) => {
@@ -78,6 +78,17 @@ export default ({ navigation }) => {
         }
     }
 
+    function confirmRemove(id) {
+        Alert.alert(
+            "Confirmar Exclusão",
+            "Você tem certeza de que deseja excluir esta doadora?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                { text: "Excluir", onPress: () => removeItem(id) }
+            ]
+        )
+    }
+
     return (
         <SafeAreaView style={style.menu}>
             <ScreenHeader
@@ -136,11 +147,11 @@ export default ({ navigation }) => {
                             )
                         }
                         return (
-                            <ListItem
+                            <DonorListItem
                                 data={item}
                                 isDeleting={deletingDonorIds.includes(item.id)}
-                                onRemove={removeItem}
-                                navigation={navigation}
+                                onRemove={confirmRemove}
+                                onEdit={(donor) => navigation.navigate('EditarDoadora', { donor })}
                             />
                         )
                     }}
@@ -159,60 +170,5 @@ export default ({ navigation }) => {
                 />
             </View>
         </SafeAreaView>
-    )
-}
-
-function ListItem({ data, isDeleting, onRemove, navigation }) {
-    const confirmDelete = (id) => {
-        Alert.alert(
-            "Confirmar Exclusão",
-            "Você tem certeza de que deseja excluir esta doadora?",
-            [
-                { text: "Cancelar", style: "cancel" },
-                { text: "Excluir", onPress: () => onRemove(id) }
-            ]
-        )
-    }
-
-    return (
-        <View style={style.listItem}>
-            <View style={{ alignSelf: 'center' }}>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Nome: </Text>
-                    {data?.name || '-'} ({data?.breed || '-'})
-                </Text>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Identificação: </Text>
-                    {data?.registrationNumber || '-'}
-                </Text>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Nascimento: </Text>
-                    {data?.birth || '-'}
-                </Text>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Média oócitos viáveis: </Text>
-                    {data?.averageViableOocytes ?? '-'}
-                </Text>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Eficiência emb viáveis: </Text>
-                    {data?.averageEmbryoPercentage ?? '-'}
-                </Text>
-            </View>
-            <View style={style.listButtons}>
-                <TouchableOpacity
-                    disabled={isDeleting}
-                    style={style.listButtonDelete}
-                    onPress={() => confirmDelete(data.id)}
-                >
-                    <Octicons name="trash" size={20} color="#908D8E" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[style.listButtonDelete, { marginTop: 2 }]}
-                    onPress={() => navigation.navigate('EditarDoadora', { donor: data })}
-                >
-                    <Octicons name="pencil" size={20} color="#908D8E" />
-                </TouchableOpacity>
-            </View>
-        </View>
     )
 }
