@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { Text, View, TouchableOpacity, ScrollView, Alert, Platform, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { SelectList } from 'react-native-dropdown-select-list';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import Feather from '@expo/vector-icons/Feather';
 import style from '../components/style';
-import stylesEmbryos from '../components/stylesEmbryos';
 import { createFiv } from '../api/fivService';
 import { normalizeApiError } from '../api/errors';
 import {
@@ -16,6 +11,8 @@ import {
     getPiveSecondaryCategory,
     getPiveSecondaryPlaceholder,
 } from '../features/pive/filters';
+import PiveFilterControls from '../features/pive/components/PiveFilterControls';
+import PiveListItem from '../features/pive/components/PiveListItem';
 import usePiveListData from '../features/pive/hooks/usePiveListData';
 
 export default ({ navigation }) => {
@@ -105,49 +102,19 @@ export default ({ navigation }) => {
                 <Image source={require('../images/menu/logo.png')} style={{width: 40, height: 40, marginRight: '2%'}}/>
                 <Text style={style.titleTextMain}>BovInA</Text>
             </View>
-            <View style={style.searchPive}>
-                <SelectList
-                    setSelected={handleSelect}
-                    data={categoryData}
-                    placeholder={"Selecione a opção para filtrar"}
-                    searchPlaceholder={"Filtros"}
-                    boxStyles={[style.selectListBoxPive, { marginRight: 5 }]}
-                    inputStyles={style.selectListInput}
-                    dropdownStyles={style.selectListDropdownPive}
-                />
-                <TouchableOpacity style={stylesEmbryos.buttonSearchFiv} onPress={toggleCategory}>
-                    <MaterialCommunityIcons name={icon} size={30} color="#092955" />
-                </TouchableOpacity>
-            </View>
-            {secondaryCategory && (
-                <View style={{ marginTop: 1, marginLeft: 20 }}>
-                    <SelectList
-                        setSelected={handleSecondarySelect}
-                        data={secondaryOptions}
-                        placeholder={secondaryPlaceholder}
-                        searchPlaceholder={"Filtros"}
-                        boxStyles={[style.selectListBoxPive, { marginRight: 5 }]}
-                        inputStyles={style.selectListInput}
-                        dropdownStyles={style.selectListDropdownPive}
-                    />
-                    {secondaryOptionsLoading && (
-                        <ActivityIndicator size={25} color="#092955" />
-                    )}
-                    {secondaryOptionsError && (
-                        <Text style={{ color: '#B00020', marginTop: 5 }}>
-                            {secondaryOptionsError}
-                        </Text>
-                    )}
-                    {!secondaryOptionsLoading &&
-                        hasLoadedSecondaryOptions &&
-                        !secondaryOptionsError &&
-                        secondaryOptions.length === 0 && (
-                            <Text style={{ textAlign: 'center', marginTop: 10 }}>
-                                Nenhuma opção encontrada.
-                            </Text>
-                        )}
-                </View>
-            )}
+            <PiveFilterControls
+                primaryOptions={categoryData}
+                icon={icon}
+                onPrimarySelect={handleSelect}
+                onToggleCatalog={toggleCategory}
+                secondaryCategory={secondaryCategory}
+                secondaryOptions={secondaryOptions}
+                secondaryPlaceholder={secondaryPlaceholder}
+                onSecondarySelect={handleSecondarySelect}
+                secondaryOptionsLoading={secondaryOptionsLoading}
+                secondaryOptionsError={secondaryOptionsError}
+                hasLoadedSecondaryOptions={hasLoadedSecondaryOptions}
+            />
             <ScrollView style={style.listPive} showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 150 }}>
                 {activeFilter !== 'donor' && activeFilter !== 'bull' && loadError && (
@@ -173,50 +140,11 @@ export default ({ navigation }) => {
                         <ActivityIndicator size={25} color="#092955" />
                     )}
                 {visibleItems.map(item => (
-                    <TouchableOpacity
+                    <PiveListItem
                         key={item.id}
-                        style={[style.listItemPive, { 
-                            shadowColor: '#000', 
-                            shadowOffset: { width: 0, height: 3 }, 
-                            shadowOpacity: 0.3, 
-                            shadowRadius: 4, 
-                            elevation: 5,
-                        }]}
+                        fiv={item}
                         onPress={() => navigation.navigate('FivInfo', { fiv: item })}
-                    >
-                        <View style={{ display: 'flex', flexDirection: 'column', width: 320 }}>
-                            <View style={{ display: 'flex', flexDirection: 'row', marginBottom: '1%' }}>
-                                <Text style={{ fontWeight: 'bold', fontSize: Platform.OS === 'ios' ? 13 : 10, marginTop: '0.5%'}}>FIV ID: </Text>
-                                <Text style={{fontSize: Platform.OS === 'ios' ? 13 : 10, marginTop: '0.5%'}}>{item.id}</Text>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: '2%' }}>
-                                    <Text style={{ fontWeight: 'bold', fontSize: Platform.OS === 'ios' ? 13 : 10, }}>Coleta dos Oócitos: </Text>
-                                    {item.status === 'OOCYTE_COLLECTION_COMPLETED' || item.status === 'COMPLETED' ? (
-                                        <MaterialIcons name="done" size={20} color="#555" />
-                                    ) : (
-                                        <Feather name="x" size={20} color="#555" />
-                                    )}
-                                </View>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: '0%' }}>
-                                    <Text style={{ fontWeight: 'bold', fontSize: Platform.OS === 'ios' ? 13 : 10, }}>Embriões: </Text>
-                                    {item.status === 'COMPLETED'  ? (
-                                        <MaterialIcons name="done" size={20} color="#555" />
-                                    ) : (
-                                        <Feather name="x" size={20} color="#555" />
-                                    )}
-                                </View>
-                            </View>
-                            <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 5}}>
-                                <Text style={{ fontWeight: 'bold', fontSize: Platform.OS === 'ios' ? 13 : 10, }}>Data Asp: </Text>
-                                <Text style={{fontSize: Platform.OS === 'ios' ? 13 : 10,}}>{item.date ? item.date : '-'}</Text>
-                            </View>
-                            <View style={{display: 'flex', flexDirection: 'row'}}>
-                                <Text style={{ fontWeight: 'bold', fontSize: Platform.OS === 'ios' ? 13 : 10, }}>Cliente/Fazenda: </Text>
-                                <Text style={{fontSize: Platform.OS === 'ios' ? 13 : 10}}>{item.client ? item.client : '-'}</Text>
-                                <Text style={{fontSize: Platform.OS === 'ios' ? 13 : 10}}>/</Text>
-                                <Text style={{fontSize: Platform.OS === 'ios' ? 13 : 10,}}>{item.farm ? item.farm : '-'}</Text>
-                            </View>   
-                        </View>
-                    </TouchableOpacity>
+                    />
                 ))}
                 {activeFilter !== 'donor' &&
                     activeFilter !== 'bull' &&
