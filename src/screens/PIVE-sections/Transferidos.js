@@ -4,11 +4,10 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import { SafeAreaView } from "react-native-safe-area-context";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import { SelectList } from 'react-native-dropdown-select-list'; 
 import { createEmbryoTransfer } from "../../api/transferService";
 import { normalizeApiError } from "../../api/errors";
+import EmbryoTransferActions from '../../features/pive/components/EmbryoTransferActions';
+import EmbryoTransferSelectors from '../../features/pive/components/EmbryoTransferSelectors';
 import useEmbryoTransferData from '../../features/pive/hooks/useEmbryoTransferData';
 
 export default ({ route, navigation }) => {
@@ -81,6 +80,28 @@ export default ({ route, navigation }) => {
             }
         }, [fiv.id, id])
     )
+
+    const handleTransferSelect = selected => {
+        console.log("Transferência selecionada:", selected);
+        setSelectedTransfer(selected);
+
+        const selectedData = transfers.find(item => item.id.toString() === selected)
+        console.log("Dados da transferência selecionada:", selectedData)
+
+        if (selectedData) {
+            setFarm(selectedData.farm);
+        } else {
+            console.log("Transferência não encontrada.");
+        }
+    }
+
+    const handleRecipientSelect = selected => {
+        console.log("Receptora selecionada:", selected);
+        const selectedData = recipients.find(item => item.id.toString() === selected);
+        if (selectedData) {
+            setSelectedReceiver(selectedData.id);
+        }
+    }
 
     const postTransfer = async () => {
         if (isSubmittingRef.current) return
@@ -201,78 +222,29 @@ export default ({ route, navigation }) => {
                     Error: {recipientsError}
                 </Text>
             )}
-            <View style={style.content}>
-                <Text style={{ marginBottom: 10 }}>Selecionar Transferência:</Text>
-                <SelectList 
-                    setSelected={selected => {
-                        console.log("Transferência selecionada:", selected);
-                        setSelectedTransfer(selected);
-
-                        const selectedData = transfers.find(item => item.id.toString() === selected)
-                        console.log("Dados da transferência selecionada:", selectedData)
-
-                        if (selectedData) {
-                            setFarm(selectedData.farm);
-                        } else {
-                            console.log("Transferência não encontrada.");
-                        }
-                    }}
-                    data={transferOptions}
-                    placeholder="Selecione uma transferência"
-                    boxStyles={[style.selectListBox, { height: 45, marginLeft: 0 }]}
-                    inputStyles={style.selectListInput}
-                    dropdownStyles={[style.selectListDropdown, { marginLeft: 0, width: 300 }]}
-                />
-                {!transfersLoading &&
+            <EmbryoTransferSelectors
+                transferOptions={transferOptions}
+                recipientOptions={recipientOptions}
+                showNoTransfers={
+                    !transfersLoading &&
                     hasLoadedTransfers &&
                     !transfersError &&
-                    transfers.length === 0 && (
-                        <Text style={{ textAlign: 'center', marginTop: 10 }}>
-                            Nenhuma transferência encontrada.
-                        </Text>
-                    )}
-                
-                <Text style={{ marginVertical: 10 }}>Selecionar Receptora:</Text>
-                <SelectList 
-                    setSelected={selected => {
-                        console.log("Receptora selecionada:", selected);
-                        const selectedData = recipients.find(item => item.id.toString() === selected);
-                        if (selectedData) {
-                            setSelectedReceiver(selectedData.id);
-                        }
-                    }}
-                    data={recipientOptions}
-                    placeholder="Selecione uma receptora"
-                    boxStyles={[style.selectListBox, { height: 45, marginLeft: 0 }]}
-                    inputStyles={style.selectListInput}
-                    dropdownStyles={[style.selectListDropdown, { marginLeft: 0, width: 300 }]}
-                />
-                {!recipientsLoading &&
+                    transfers.length === 0
+                }
+                showNoRecipients={
+                    !recipientsLoading &&
                     hasLoadedRecipients &&
                     !recipientsError &&
-                    recipients.length === 0 && (
-                        <Text style={{ textAlign: 'center', marginTop: 10 }}>
-                            Nenhuma receptora disponível.
-                        </Text>
-                    )}
-            </View>
-            <View style={{ display: 'flex', flexDirection: 'row' }}>
-                <TouchableOpacity
-                    onPress={() => navigation.navigate('Transferencia', { fiv: fiv })}
-                    style={[style.listButtonEdit, { marginLeft: '10%', marginTop: '5%', height: '60%', width: '35%', paddingTop: '1%' }]}
-                >
-                    <FontAwesome6 name="clipboard-list" size={20} color="#E0E0E0" />
-                    <Text style={{ color: '#E0E0E0', paddingTop: 1, paddingLeft: 5 }}>Transferências</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[style.listButtonEdit, { marginLeft: '20%', marginTop: '5%', height: '60%', width: '23%', paddingTop: '1%' }]}
-                    onPress={postTransfer}
-                    disabled={isSubmitting}
-                >
-                    <MaterialIcons name="done" size={20} color="#fff" />
-                    <Text style={[style.buttonText, { marginLeft: 5, paddingTop: '1%' }]}>Salvar</Text>
-                </TouchableOpacity>
-            </View>
+                    recipients.length === 0
+                }
+                onTransferSelect={handleTransferSelect}
+                onRecipientSelect={handleRecipientSelect}
+            />
+            <EmbryoTransferActions
+                isSubmitting={isSubmitting}
+                onViewTransfers={() => navigation.navigate('Transferencia', { fiv: fiv })}
+                onSubmit={postTransfer}
+            />
         </SafeAreaView>
     )
 }
