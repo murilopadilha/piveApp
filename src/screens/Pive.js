@@ -17,22 +17,21 @@ import {
     listFivsByDonor,
 } from '../api/fivService';
 import { normalizeApiError } from '../api/errors';
+import {
+    PIVE_FILTER_CATALOG_MODES,
+    getPiveFilterToggleIcon,
+    getPivePrimaryFilterOptions,
+    getPiveSecondaryCategory,
+    getPiveSecondaryPlaceholder,
+} from '../features/pive/filters';
 
 export default ({ navigation }) => {
-    const [category, setCategory] = useState('ALL')
+    const [filterCatalogMode, setFilterCatalogMode] = useState(PIVE_FILTER_CATALOG_MODES.STATUS)
+    const [activeFilter, setActiveFilter] = useState('ALL')
     const [items, setItems] = useState([])
     const [filteredItems, setFilteredItems] = useState([])
-    const [categories, setCategories] = useState([
-        { key: 'ALL', value: 'Todas as FIVs'},
-        { key: 'IN_PROCESS', value: 'Em processo' },
-        { key: 'OOCYTE_COLLECTION_COMPLETED', value: 'Coleta de oócitos completa' },
-        { key: 'COMPLETED', value: 'FIV completa' },
-    ])
-    const [icon, setIcon] = useState('list-status')
     const [secondaryOptions, setSecondaryOptions] = useState([])
-    const [secondaryCategory, setSecondaryCategory] = useState(null)
-    const [secondaryPlaceholder, setSecondaryPlaceholder] = useState('Selecione uma opção')
-    const [selectedSecondary, setSelectedSecondary] = useState(null)
+    const [selectedAnimalId, setSelectedAnimalId] = useState(null)
     const [loading, setLoading] = useState(false)
     const [loadError, setLoadError] = useState(null)
     const [hasLoaded, setHasLoaded] = useState(false)
@@ -42,9 +41,13 @@ export default ({ navigation }) => {
     const [filteredFivsLoading, setFilteredFivsLoading] = useState(false)
     const [filteredFivsError, setFilteredFivsError] = useState(null)
     const [hasLoadedFilteredFivs, setHasLoadedFilteredFivs] = useState(false)
+    const primaryFilterOptions = getPivePrimaryFilterOptions(filterCatalogMode)
+    const icon = getPiveFilterToggleIcon(filterCatalogMode)
+    const secondaryCategory = getPiveSecondaryCategory(activeFilter)
+    const secondaryPlaceholder = getPiveSecondaryPlaceholder(secondaryCategory)
     const isScreenFocusedRef = React.useRef(false)
     const secondaryCategoryRef = React.useRef(secondaryCategory)
-    const selectedSecondaryRef = React.useRef(selectedSecondary)
+    const selectedAnimalIdRef = React.useRef(selectedAnimalId)
     const itemsAbortControllerRef = React.useRef(null)
     const itemsRequestIdRef = React.useRef(0)
     const secondaryOptionsAbortControllerRef = React.useRef(null)
@@ -53,9 +56,9 @@ export default ({ navigation }) => {
     const filteredFivsRequestIdRef = React.useRef(0)
 
     secondaryCategoryRef.current = secondaryCategory
-    selectedSecondaryRef.current = selectedSecondary
+    selectedAnimalIdRef.current = selectedAnimalId
 
-    const categoryData = categories.map(cat => ({
+    const categoryData = primaryFilterOptions.map(cat => ({
         key: cat.key,
         value: cat.value
     }))
@@ -179,7 +182,7 @@ export default ({ navigation }) => {
                 requestId !== filteredFivsRequestIdRef.current ||
                 !isScreenFocusedRef.current ||
                 secondaryCategoryRef.current !== type ||
-                selectedSecondaryRef.current !== id
+                selectedAnimalIdRef.current !== id
             ) return
 
             setFilteredItems(fivs)
@@ -192,7 +195,7 @@ export default ({ navigation }) => {
                 requestId !== filteredFivsRequestIdRef.current ||
                 !isScreenFocusedRef.current ||
                 secondaryCategoryRef.current !== type ||
-                selectedSecondaryRef.current !== id
+                selectedAnimalIdRef.current !== id
             ) return
             setFilteredFivsError(apiError.message)
             setHasLoadedFilteredFivs(true)
@@ -225,14 +228,14 @@ export default ({ navigation }) => {
             fetchItems()
 
             const currentSecondaryCategory = secondaryCategoryRef.current
-            const currentSelectedSecondary = selectedSecondaryRef.current
+            const currentSelectedAnimalId = selectedAnimalIdRef.current
 
             if (currentSecondaryCategory) {
                 fetchSecondaryOptions(currentSecondaryCategory, { clearExisting: false })
 
-                if (currentSelectedSecondary) {
+                if (currentSelectedAnimalId) {
                     fetchFilteredFIVs(
-                        currentSelectedSecondary,
+                        currentSelectedAnimalId,
                         currentSecondaryCategory,
                         { clearExisting: false }
                     )
@@ -258,28 +261,26 @@ export default ({ navigation }) => {
     )
 
     useEffect(() => {
-        if (category === 'ALL') {
+        if (activeFilter === 'ALL') {
             setFilteredItems(items)
-        } else if (category !== 'donor' && category !== 'bull') {
-            setFilteredItems(items.filter(item => item.status === category))
+        } else if (activeFilter !== 'donor' && activeFilter !== 'bull') {
+            setFilteredItems(items.filter(item => item.status === activeFilter))
         }
-    }, [category, items])
+    }, [activeFilter, items])
 
     const handleSelect = async (selectedKey) => {
-        const selectedCategory = categories.find(cat => cat.key === selectedKey)
+        const selectedCategory = primaryFilterOptions.find(cat => cat.key === selectedKey)
         if (selectedCategory) {
-            setCategory(selectedCategory.key)
+            setActiveFilter(selectedCategory.key)
             if (selectedKey === 'donor') {
                 invalidateFilteredFivsRequest()
                 setFilteredFivsLoading(false)
                 setFilteredFivsError(null)
                 setHasLoadedFilteredFivs(false)
                 setFilteredItems([])
-                setSelectedSecondary(null)
-                selectedSecondaryRef.current = null
-                setSecondaryCategory('donor')
+                setSelectedAnimalId(null)
+                selectedAnimalIdRef.current = null
                 secondaryCategoryRef.current = 'donor'
-                setSecondaryPlaceholder('Selecione uma doadora')
                 fetchSecondaryOptions('donor')
             } else if (selectedKey === 'bull') {
                 invalidateFilteredFivsRequest()
@@ -287,11 +288,9 @@ export default ({ navigation }) => {
                 setFilteredFivsError(null)
                 setHasLoadedFilteredFivs(false)
                 setFilteredItems([])
-                setSelectedSecondary(null)
-                selectedSecondaryRef.current = null
-                setSecondaryCategory('bull')
+                setSelectedAnimalId(null)
+                selectedAnimalIdRef.current = null
                 secondaryCategoryRef.current = 'bull'
-                setSecondaryPlaceholder('Selecione um touro')
                 fetchSecondaryOptions('bull')
             } else {
                 invalidateSecondaryOptionsRequest()
@@ -302,12 +301,10 @@ export default ({ navigation }) => {
                 setFilteredFivsLoading(false)
                 setFilteredFivsError(null)
                 setHasLoadedFilteredFivs(false)
-                setSecondaryCategory(null)
                 secondaryCategoryRef.current = null
-                setSelectedSecondary(null)
-                selectedSecondaryRef.current = null
+                setSelectedAnimalId(null)
+                selectedAnimalIdRef.current = null
                 setSecondaryOptions([])
-                setSecondaryPlaceholder('Selecione uma opção')
                 setFilteredItems(items.filter(item => item.status === selectedKey))
             }
         }
@@ -316,8 +313,8 @@ export default ({ navigation }) => {
     const handleSecondarySelect = (selectedKey) => {
         const selected = secondaryOptions.find(option => option.key === selectedKey)
         if (selected) {
-            setSelectedSecondary(selectedKey)
-            selectedSecondaryRef.current = selectedKey
+            setSelectedAnimalId(selectedKey)
+            selectedAnimalIdRef.current = selectedKey
             fetchFilteredFIVs(selectedKey, secondaryCategory)
         }
     }
@@ -343,29 +340,17 @@ export default ({ navigation }) => {
         setFilteredFivsLoading(false)
         setFilteredFivsError(null)
         setHasLoadedFilteredFivs(false)
-        setSelectedSecondary(null)
-        selectedSecondaryRef.current = null
+        setSelectedAnimalId(null)
+        selectedAnimalIdRef.current = null
 
-        if (icon === 'list-status') {
-            setCategories([
-                { key: 'donor', value: 'Doadoras' },
-                { key: 'bull', value: 'Touros' },
-            ])
-            setIcon('cow')
+        if (filterCatalogMode === PIVE_FILTER_CATALOG_MODES.STATUS) {
+            setFilterCatalogMode(PIVE_FILTER_CATALOG_MODES.ANIMAL)
         } else {
-            setCategories([
-                { key: 'ALL', value: 'Todas as FIVs' },
-                { key: 'IN_PROCESS', value: 'Em processo' },
-                { key: 'OOCYTE_COLLECTION_COMPLETED', value: 'Coleta de oócitos completa' },
-                { key: 'COMPLETED', value: 'FIV completa' },
-            ]);
-            setIcon('list-status')
-            setSecondaryCategory(null)
+            setFilterCatalogMode(PIVE_FILTER_CATALOG_MODES.STATUS)
             secondaryCategoryRef.current = null
             setSecondaryOptions([])
-            setSecondaryPlaceholder('Selecione uma opção')
 
-            setCategory('ALL')
+            setActiveFilter('ALL')
             setFilteredItems(items)
         }
     }
@@ -421,24 +406,24 @@ export default ({ navigation }) => {
             )}
             <ScrollView style={style.listPive} showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 150 }}>
-                {category !== 'donor' && category !== 'bull' && loadError && (
+                {activeFilter !== 'donor' && activeFilter !== 'bull' && loadError && (
                     <Text style={{ color: '#B00020', marginHorizontal: 20, marginTop: 5 }}>
                         {loadError}
                     </Text>
                 )}
-                {(category === 'donor' || category === 'bull') && filteredFivsError && (
+                {(activeFilter === 'donor' || activeFilter === 'bull') && filteredFivsError && (
                     <Text style={{ color: '#B00020', marginHorizontal: 20, marginTop: 5 }}>
                         {filteredFivsError}
                     </Text>
                 )}
-                {category !== 'donor' &&
-                    category !== 'bull' &&
+                {activeFilter !== 'donor' &&
+                    activeFilter !== 'bull' &&
                     (!hasLoaded || loading) &&
                     filteredItems.length === 0 && (
                         <ActivityIndicator size={25} color="#092955" />
                     )}
-                {(category === 'donor' || category === 'bull') &&
-                    selectedSecondary &&
+                {(activeFilter === 'donor' || activeFilter === 'bull') &&
+                    selectedAnimalId &&
                     filteredFivsLoading &&
                     filteredItems.length === 0 && (
                         <ActivityIndicator size={25} color="#092955" />
@@ -489,8 +474,8 @@ export default ({ navigation }) => {
                         </View>
                     </TouchableOpacity>
                 ))}
-                {category !== 'donor' &&
-                    category !== 'bull' &&
+                {activeFilter !== 'donor' &&
+                    activeFilter !== 'bull' &&
                     !loading &&
                     hasLoaded &&
                     !loadError &&
@@ -499,8 +484,8 @@ export default ({ navigation }) => {
                             Nenhuma FIV encontrada.
                         </Text>
                     )}
-                {(category === 'donor' || category === 'bull') &&
-                    selectedSecondary &&
+                {(activeFilter === 'donor' || activeFilter === 'bull') &&
+                    selectedAnimalId &&
                     !filteredFivsLoading &&
                     hasLoadedFilteredFivs &&
                     !filteredFivsError &&
@@ -509,8 +494,8 @@ export default ({ navigation }) => {
                             Nenhuma FIV encontrada.
                         </Text>
                     )}
-                {((category !== 'donor' && category !== 'bull' && loading) ||
-                    ((category === 'donor' || category === 'bull') && filteredFivsLoading)) &&
+                {((activeFilter !== 'donor' && activeFilter !== 'bull' && loading) ||
+                    ((activeFilter === 'donor' || activeFilter === 'bull') && filteredFivsLoading)) &&
                     filteredItems.length > 0 && (
                         <ActivityIndicator size={25} color="#092955" />
                     )}
