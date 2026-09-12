@@ -33,7 +33,7 @@ export default function useOocyteCollectionSubmission({ fivId }) {
                 mutationAbortControllerRef.current?.abort()
                 mutationAbortControllerRef.current = null
             }
-        }, [])
+        }, [fivId])
     )
 
     const submitOocyteCollection = React.useCallback(async ({
