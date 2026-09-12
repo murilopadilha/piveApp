@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { Text, View, TouchableOpacity, ActivityIndicator, Alert, TextInput } from "react-native";
+import { Text, View, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import { SafeAreaView } from "react-native-safe-area-context";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { getOocyteCollection } from "../../api/oocyteCollectionService";
 import { freezeEmbryos } from "../../api/embryoService";
 import { normalizeApiError } from "../../api/errors";
+import EmbryoDispositionForm from '../../features/pive/components/EmbryoDispositionForm';
 
 export default ({ route, navigation }) => {
     const { id } = route.params
@@ -208,27 +208,14 @@ export default ({ route, navigation }) => {
                     Error: {error}
                 </Text>
             )}
-            <View style={style.content}>
-                <Text style={style.label}>Embriões congelados:</Text>
-                <TextInput
-                    placeholder="Quantidade de embriões congelados"
-                    placeholderTextColor="#888"
-                    keyboardType="numeric"
-                    value={newNumber}
-                    style={style.input}
-                    onChangeText={(text) => setNumber(text)}
-                />
-            </View>
-            <View>
-                <TouchableOpacity
-                    style={[style.button, { display: 'flex', flexDirection: 'row', marginLeft: '40%', marginTop: 0 }]}
-                    onPress={postFrozenEmbryos}
-                    disabled={isSubmitting}
-                >
-                    <MaterialIcons name="done" size={20} color="#fff" />
-                    <Text style={[style.buttonText, { marginLeft: 5, paddingBottom: 2 }]}>Salvar</Text>
-                </TouchableOpacity>
-            </View>
+            <EmbryoDispositionForm
+                label="Embriões congelados:"
+                placeholder="Quantidade de embriões congelados"
+                value={newNumber}
+                isSubmitting={isSubmitting}
+                onChange={setNumber}
+                onSave={postFrozenEmbryos}
+            />
         </SafeAreaView>
     )
 }
