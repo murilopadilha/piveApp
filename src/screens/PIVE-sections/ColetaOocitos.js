@@ -10,7 +10,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { listAvailableDonors } from '../../api/donorService';
 import { listBulls } from '../../api/bullService';
 import { normalizeApiError } from '../../api/errors';
-import { createOocyteCollection } from '../../api/oocyteCollectionService';
+import useOocyteCollectionSubmission from '../../features/pive/hooks/useOocyteCollectionSubmission';
 
 export default ({ route, navigation }) => {
     const [donorCattleId, setDonorCattleId] = useState(null)
@@ -27,30 +27,20 @@ export default ({ route, navigation }) => {
     const bullsAbortControllerRef = React.useRef(null)
     const bullsRequestIdRef = React.useRef(0)
     const loadErrorAlertShownRef = React.useRef(false)
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const isMountedRef = React.useRef(true)
-    const isSubmittingRef = React.useRef(false)
-    const mutationAbortControllerRef = React.useRef(null)
     const donorCattleIdRef = React.useRef(donorCattleId)
     const bullIdRef = React.useRef(bullId)
     const totalOocytesRef = React.useRef(totalOocytes)
     const viableOocytesRef = React.useRef(viableOocytes)
+    const {
+        isSubmitting,
+        submitOocyteCollection,
+    } = useOocyteCollectionSubmission({ fivId: fiv.id })
 
     activeFivIdRef.current = fiv.id
     donorCattleIdRef.current = donorCattleId
     bullIdRef.current = bullId
     totalOocytesRef.current = totalOocytes
     viableOocytesRef.current = viableOocytes
-
-    React.useEffect(() => {
-        isMountedRef.current = true
-
-        return () => {
-            isMountedRef.current = false
-            mutationAbortControllerRef.current?.abort()
-            mutationAbortControllerRef.current = null
-        }
-    }, [])
 
     useFocusEffect(
         React.useCallback(() => {
@@ -151,9 +141,6 @@ export default ({ route, navigation }) => {
                 bullsRequestIdRef.current += 1
                 bullsAbortControllerRef.current?.abort()
                 bullsAbortControllerRef.current = null
-
-                mutationAbortControllerRef.current?.abort()
-                mutationAbortControllerRef.current = null
             }
         }, [fiv.id])
     )
@@ -202,7 +189,6 @@ export default ({ route, navigation }) => {
 
     const handleSave = async () => {
         console.log(totalOocytes)
-        if (isSubmittingRef.current || !isScreenFocusedRef.current) return
 
         const submittedFivId = fiv.id
         const submittedDonorCattleId = donorCattleId
@@ -216,69 +202,37 @@ export default ({ route, navigation }) => {
             totalOocytes: parseInt(submittedTotalOocytes) || 0,
             viableOocytes: parseInt(submittedViableOocytes) || 0,
         }
-        const abortController = new AbortController()
 
-        isSubmittingRef.current = true
-        mutationAbortControllerRef.current = abortController
-        setIsSubmitting(true)
-
-        try {
-            await createOocyteCollection(payload, {
-                signal: abortController.signal,
-            })
-
-            if (
-                !isMountedRef.current ||
-                !isScreenFocusedRef.current ||
-                mutationAbortControllerRef.current !== abortController ||
-                activeFivIdRef.current !== submittedFivId
-            ) return
-
-            Alert.alert('Successo', 'Coleta salva com sucesso!')
-            if (donorCattleIdRef.current === submittedDonorCattleId) {
-                donorCattleIdRef.current = null
-                setDonorCattleId(null)
-            }
-            if (bullIdRef.current === submittedBullId) {
-                bullIdRef.current = null
-                setBullId(null)
-            }
-            if (totalOocytesRef.current === submittedTotalOocytes) {
-                totalOocytesRef.current = ''
-                setTotalOocytes('')
-            }
-            if (viableOocytesRef.current === submittedViableOocytes) {
-                viableOocytesRef.current = ''
-                setViableOocytes('')
-            }
-        } catch (requestError) {
-            const apiError = normalizeApiError(
-                requestError,
-                'Não foi possível salvar a coleta.'
-            )
-            if (apiError.isCanceled) return
-            if (
-                !isMountedRef.current ||
-                !isScreenFocusedRef.current ||
-                mutationAbortControllerRef.current !== abortController ||
-                activeFivIdRef.current !== submittedFivId
-            ) return
-
-            Alert.alert(apiError.message)
-        } finally {
-            if (mutationAbortControllerRef.current === abortController) {
-                mutationAbortControllerRef.current = null
-            }
-            isSubmittingRef.current = false
-            if (isMountedRef.current) {
-                setIsSubmitting(false)
-            }
-        }
+        await submitOocyteCollection({
+            payload,
+            errorFallbackMessage: 'Não foi possível salvar a coleta.',
+            onSuccess: () => {
+                Alert.alert('Successo', 'Coleta salva com sucesso!')
+                if (donorCattleIdRef.current === submittedDonorCattleId) {
+                    donorCattleIdRef.current = null
+                    setDonorCattleId(null)
+                }
+                if (bullIdRef.current === submittedBullId) {
+                    bullIdRef.current = null
+                    setBullId(null)
+                }
+                if (totalOocytesRef.current === submittedTotalOocytes) {
+                    totalOocytesRef.current = ''
+                    setTotalOocytes('')
+                }
+                if (viableOocytesRef.current === submittedViableOocytes) {
+                    viableOocytesRef.current = ''
+                    setViableOocytes('')
+                }
+            },
+            onError: (message) => {
+                Alert.alert(message)
+            },
+        })
     }
 
     const handleSaveAndFinish = async () => {
         console.log(totalOocytes)
-        if (isSubmittingRef.current || !isScreenFocusedRef.current) return
 
         const submittedFivId = fiv.id
         const submittedDonorCattleId = donorCattleId
@@ -293,64 +247,33 @@ export default ({ route, navigation }) => {
             totalOocytes: parseInt(submittedTotalOocytes) || 0,
             viableOocytes: parseInt(submittedViableOocytes) || 0,
         }
-        const abortController = new AbortController()
 
-        isSubmittingRef.current = true
-        mutationAbortControllerRef.current = abortController
-        setIsSubmitting(true)
-
-        try {
-            await createOocyteCollection(payload, {
-                signal: abortController.signal,
-            })
-
-            if (
-                !isMountedRef.current ||
-                !isScreenFocusedRef.current ||
-                mutationAbortControllerRef.current !== abortController ||
-                activeFivIdRef.current !== submittedFivId
-            ) return
-
-            Alert.alert('Successo', 'Coleta salva e concluída com sucesso!')
-            if (donorCattleIdRef.current === submittedDonorCattleId) {
-                donorCattleIdRef.current = null
-                setDonorCattleId(null)
-            }
-            if (bullIdRef.current === submittedBullId) {
-                bullIdRef.current = null
-                setBullId(null)
-            }
-            if (totalOocytesRef.current === submittedTotalOocytes) {
-                totalOocytesRef.current = ''
-                setTotalOocytes('')
-            }
-            if (viableOocytesRef.current === submittedViableOocytes) {
-                viableOocytesRef.current = ''
-                setViableOocytes('')
-            }
-        } catch (requestError) {
-            const apiError = normalizeApiError(
-                requestError,
-                'Não foi possível salvar e concluir a coleta.'
-            )
-            if (apiError.isCanceled) return
-            if (
-                !isMountedRef.current ||
-                !isScreenFocusedRef.current ||
-                mutationAbortControllerRef.current !== abortController ||
-                activeFivIdRef.current !== submittedFivId
-            ) return
-
-            Alert.alert('Erro', apiError.message)
-        } finally {
-            if (mutationAbortControllerRef.current === abortController) {
-                mutationAbortControllerRef.current = null
-            }
-            isSubmittingRef.current = false
-            if (isMountedRef.current) {
-                setIsSubmitting(false)
-            }
-        }
+        await submitOocyteCollection({
+            payload,
+            errorFallbackMessage: 'Não foi possível salvar e concluir a coleta.',
+            onSuccess: () => {
+                Alert.alert('Successo', 'Coleta salva e concluída com sucesso!')
+                if (donorCattleIdRef.current === submittedDonorCattleId) {
+                    donorCattleIdRef.current = null
+                    setDonorCattleId(null)
+                }
+                if (bullIdRef.current === submittedBullId) {
+                    bullIdRef.current = null
+                    setBullId(null)
+                }
+                if (totalOocytesRef.current === submittedTotalOocytes) {
+                    totalOocytesRef.current = ''
+                    setTotalOocytes('')
+                }
+                if (viableOocytesRef.current === submittedViableOocytes) {
+                    viableOocytesRef.current = ''
+                    setViableOocytes('')
+                }
+            },
+            onError: (message) => {
+                Alert.alert('Erro', message)
+            },
+        })
     }
 
     return (
