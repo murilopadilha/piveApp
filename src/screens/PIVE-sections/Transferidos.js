@@ -7,28 +7,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { SelectList } from 'react-native-dropdown-select-list'; 
-import { createEmbryoTransfer, listTransfersByFiv } from "../../api/transferService";
-import { getOocyteCollection } from "../../api/oocyteCollectionService";
-import { listAvailableReceivers } from "../../api/receiverService";
+import { createEmbryoTransfer } from "../../api/transferService";
 import { normalizeApiError } from "../../api/errors";
+import useEmbryoTransferData from '../../features/pive/hooks/useEmbryoTransferData';
 
 export default ({ route, navigation }) => {
     const { fiv, id } = route.params
     const [newFarm, setFarm] = useState('')
-    const [oocyteCollection, setOocyteCollection] = useState(null)
-    const [transfers, setTransfers] = useState([])
-    const [recipients, setRecipients] = useState([]) 
     const [selectedTransfer, setSelectedTransfer] = useState(null) 
     const [selectedReceiver, setSelectedReceiver] = useState(null)  
-    const [transfersLoading, setTransfersLoading] = useState(true)
-    const [transfersError, setTransfersError] = useState(null)
-    const [hasLoadedTransfers, setHasLoadedTransfers] = useState(false)
-    const [collectionLoading, setCollectionLoading] = useState(true)
-    const [collectionError, setCollectionError] = useState(null)
-    const [hasLoadedCollection, setHasLoadedCollection] = useState(false)
-    const [recipientsLoading, setRecipientsLoading] = useState(true)
-    const [recipientsError, setRecipientsError] = useState(null)
-    const [hasLoadedRecipients, setHasLoadedRecipients] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const isScreenFocusedRef = React.useRef(false)
     const isMountedRef = React.useRef(true)
@@ -36,14 +23,38 @@ export default ({ route, navigation }) => {
     const mutationAbortControllerRef = React.useRef(null)
     const activeFivIdRef = React.useRef(fiv.id)
     const activeCollectionIdRef = React.useRef(id)
-    const loadedTransfersFivIdRef = React.useRef(null)
-    const oocyteCollectionIdRef = React.useRef(null)
-    const transfersAbortControllerRef = React.useRef(null)
-    const transfersRequestIdRef = React.useRef(0)
-    const collectionAbortControllerRef = React.useRef(null)
-    const collectionRequestIdRef = React.useRef(0)
-    const recipientsAbortControllerRef = React.useRef(null)
-    const recipientsRequestIdRef = React.useRef(0)
+    const handleLoadError = React.useCallback((message) => {
+        Alert.alert("Erro", message)
+    }, [])
+    const handleTransfersContextReset = React.useCallback(() => {
+        setSelectedTransfer(null)
+        setSelectedReceiver(null)
+        setFarm('')
+    }, [])
+    const {
+        oocyteCollection,
+        loadedOocyteCollectionId,
+        transfers,
+        recipients,
+        transferOptions,
+        recipientOptions,
+        transfersLoading,
+        transfersError,
+        hasLoadedTransfers,
+        collectionLoading,
+        collectionError,
+        hasLoadedCollection,
+        recipientsLoading,
+        recipientsError,
+        hasLoadedRecipients,
+        reloadOocyteCollection,
+        reloadRecipients,
+    } = useEmbryoTransferData({
+        fivId: fiv.id,
+        collectionId: id,
+        onLoadError: handleLoadError,
+        onTransfersContextReset: handleTransfersContextReset,
+    })
 
     activeFivIdRef.current = fiv.id
     activeCollectionIdRef.current = id
@@ -58,204 +69,23 @@ export default ({ route, navigation }) => {
         }
     }, [])
 
-    const fetchOocyteCollection = React.useCallback(async (currentCollectionId) => {
-        collectionAbortControllerRef.current?.abort()
-        const abortController = new AbortController()
-        collectionAbortControllerRef.current = abortController
-        const requestId = ++collectionRequestIdRef.current
-
-        setCollectionLoading(true)
-
-        try {
-            const collectionData = await getOocyteCollection(currentCollectionId, {
-                signal: abortController.signal,
-            })
-
-            if (
-                requestId !== collectionRequestIdRef.current ||
-                !isScreenFocusedRef.current ||
-                activeCollectionIdRef.current !== currentCollectionId
-            ) return
-
-            setOocyteCollection(collectionData)
-            oocyteCollectionIdRef.current = currentCollectionId
-            setHasLoadedCollection(true)
-            setCollectionError(null)
-        } catch (requestError) {
-            const apiError = normalizeApiError(
-                requestError,
-                'Erro ao buscar coleta de oócitos'
-            )
-            if (apiError.isCanceled) return
-            if (
-                requestId !== collectionRequestIdRef.current ||
-                !isScreenFocusedRef.current ||
-                activeCollectionIdRef.current !== currentCollectionId
-            ) return
-            setCollectionError(apiError.message)
-            Alert.alert("Erro", apiError.message)
-            console.error(apiError.message)
-        } finally {
-            if (requestId === collectionRequestIdRef.current) {
-                collectionAbortControllerRef.current = null
-                if (
-                    isScreenFocusedRef.current &&
-                    activeCollectionIdRef.current === currentCollectionId
-                ) {
-                    setCollectionLoading(false)
-                }
-            }
-        }
-    }, [])
-
-    const fetchRecipients = React.useCallback(async () => {
-        recipientsAbortControllerRef.current?.abort()
-        const abortController = new AbortController()
-        recipientsAbortControllerRef.current = abortController
-        const requestId = ++recipientsRequestIdRef.current
-
-        setRecipientsLoading(true)
-
-        try {
-            const recipientData = await listAvailableReceivers({
-                signal: abortController.signal,
-            })
-
-            if (
-                requestId !== recipientsRequestIdRef.current ||
-                !isScreenFocusedRef.current
-            ) return
-
-            setRecipients(recipientData)
-            setHasLoadedRecipients(true)
-            setRecipientsError(null)
-        } catch (requestError) {
-            const apiError = normalizeApiError(
-                requestError,
-                'Não foi possível buscar as receptoras'
-            )
-            if (apiError.isCanceled) return
-            if (
-                requestId !== recipientsRequestIdRef.current ||
-                !isScreenFocusedRef.current
-            ) return
-            setRecipientsError(apiError.message)
-            Alert.alert("Erro", apiError.message)
-        } finally {
-            if (requestId === recipientsRequestIdRef.current) {
-                recipientsAbortControllerRef.current = null
-                if (isScreenFocusedRef.current) {
-                    setRecipientsLoading(false)
-                }
-            }
-        }
-    }, [])
-
     useFocusEffect(
         React.useCallback(() => {
-            const currentFivId = fiv.id
-            const currentCollectionId = id
             isScreenFocusedRef.current = true
-
-            if (loadedTransfersFivIdRef.current !== currentFivId) {
-                loadedTransfersFivIdRef.current = null
-                setTransfers([])
-                setSelectedTransfer(null)
-                setSelectedReceiver(null)
-                setFarm('')
-                setTransfersError(null)
-                setHasLoadedTransfers(false)
-                setTransfersLoading(true)
-            }
-
-            if (oocyteCollectionIdRef.current !== currentCollectionId) {
-                oocyteCollectionIdRef.current = null
-                setOocyteCollection(null)
-                setCollectionError(null)
-                setHasLoadedCollection(false)
-                setCollectionLoading(true)
-            }
-
-            const fetchTransfers = async () => {
-                transfersAbortControllerRef.current?.abort()
-                const abortController = new AbortController()
-                transfersAbortControllerRef.current = abortController
-                const requestId = ++transfersRequestIdRef.current
-
-                setTransfersLoading(true)
-
-                try {
-                    const transferData = await listTransfersByFiv(currentFivId, {
-                        signal: abortController.signal,
-                    })
-
-                    if (
-                        requestId !== transfersRequestIdRef.current ||
-                        !isScreenFocusedRef.current ||
-                        activeFivIdRef.current !== currentFivId
-                    ) return
-
-                    console.log("Transferências recebidas:", transferData)
-                    setTransfers(transferData)
-                    loadedTransfersFivIdRef.current = currentFivId
-                    setHasLoadedTransfers(true)
-                    setTransfersError(null)
-                } catch (requestError) {
-                    const apiError = normalizeApiError(
-                        requestError,
-                        'Erro ao buscar transferências'
-                    )
-                    if (apiError.isCanceled) return
-                    if (
-                        requestId !== transfersRequestIdRef.current ||
-                        !isScreenFocusedRef.current ||
-                        activeFivIdRef.current !== currentFivId
-                    ) return
-                    setTransfersError(apiError.message)
-                    Alert.alert("Erro", apiError.message)
-                    console.error(apiError.message)
-                } finally {
-                    if (requestId === transfersRequestIdRef.current) {
-                        transfersAbortControllerRef.current = null
-                        if (
-                            isScreenFocusedRef.current &&
-                            activeFivIdRef.current === currentFivId
-                        ) {
-                            setTransfersLoading(false)
-                        }
-                    }
-                }
-            }
-
-            fetchTransfers()
-            fetchRecipients()
-            fetchOocyteCollection(currentCollectionId)
 
             return () => {
                 isScreenFocusedRef.current = false
 
-                transfersRequestIdRef.current += 1
-                transfersAbortControllerRef.current?.abort()
-                transfersAbortControllerRef.current = null
-
-                collectionRequestIdRef.current += 1
-                collectionAbortControllerRef.current?.abort()
-                collectionAbortControllerRef.current = null
-
-                recipientsRequestIdRef.current += 1
-                recipientsAbortControllerRef.current?.abort()
-                recipientsAbortControllerRef.current = null
-
                 mutationAbortControllerRef.current?.abort()
                 mutationAbortControllerRef.current = null
             }
-        }, [fiv.id, id, fetchOocyteCollection, fetchRecipients])
+        }, [fiv.id, id])
     )
 
     const postTransfer = async () => {
         if (isSubmittingRef.current) return
 
-        const productionId = oocyteCollectionIdRef.current === id
+        const productionId = loadedOocyteCollectionId === id
             ? oocyteCollection?.embryoProduction?.id
             : null
 
@@ -297,8 +127,8 @@ export default ({ route, navigation }) => {
             ) return
 
             await Promise.all([
-                fetchOocyteCollection(submittedCollectionId),
-                fetchRecipients(),
+                reloadOocyteCollection(submittedCollectionId),
+                reloadRecipients(),
             ])
 
             if (
@@ -333,16 +163,6 @@ export default ({ route, navigation }) => {
             }
         }
     }
-
-    const transferOptions = transfers.map(transfer => ({
-        key: transfer.id.toString(), 
-        value: `${transfer.farm} (${transfer.date})`
-    }))
-    
-    const recipientOptions = recipients.map(recipient => ({
-        key: recipient.id.toString(),
-        value: `${recipient.name} (${recipient.registrationNumber})`
-    }))
 
     const initialLoading =
         (transfersLoading && !hasLoadedTransfers) ||
