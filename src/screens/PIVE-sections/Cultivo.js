@@ -5,36 +5,58 @@ import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { listFivs } from "../../api/fivService";
-import {
-    createEmbryoProduction,
-    getOocyteCollection,
-} from "../../api/oocyteCollectionService";
+import { createEmbryoProduction } from "../../api/oocyteCollectionService";
 import { normalizeApiError } from "../../api/errors";
+import useCultivationSession from '../../features/pive/hooks/useCultivationSession';
 
 export default ({ route, navigation }) => {
     const { oocyteCollectionId } = route.params
-    const [data, setData] = useState(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(null)
     const [totalEmbryos, setTotalEmbryos] = useState('')
-    const [fivData, setFivData] = useState(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
     const isSubmittingRef = React.useRef(false)
     const mutationAbortControllerRef = React.useRef(null)
-    const isPollingActiveRef = React.useRef(false)
     const appStateRef = React.useRef(AppState.currentState)
-    const pollingTimeoutRef = React.useRef(null)
-    const pollingAbortControllerRef = React.useRef(null)
-    const pollingRequestIdRef = React.useRef(0)
     const activeOocyteCollectionIdRef = React.useRef(oocyteCollectionId)
     const draftContextIdRef = React.useRef(null)
     const draftInitializedIdRef = React.useRef(null)
     const isDraftDirtyRef = React.useRef(false)
     const totalEmbryosRef = React.useRef(totalEmbryos)
-    const restartPollingRef = React.useRef(null)
+
+    const handleSessionContextReset = React.useCallback((currentOocyteCollectionId) => {
+        draftContextIdRef.current = currentOocyteCollectionId
+        draftInitializedIdRef.current = null
+        isDraftDirtyRef.current = false
+        totalEmbryosRef.current = ''
+        setTotalEmbryos('')
+    }, [])
+
+    const handleServerTotalEmbryos = React.useCallback((
+        currentOocyteCollectionId,
+        serverTotalEmbryos
+    ) => {
+        if (
+            draftInitializedIdRef.current !== currentOocyteCollectionId ||
+            !isDraftDirtyRef.current
+        ) {
+            draftInitializedIdRef.current = currentOocyteCollectionId
+            totalEmbryosRef.current = serverTotalEmbryos
+            setTotalEmbryos(serverTotalEmbryos)
+        }
+    }, [])
+
+    const {
+        data,
+        loading,
+        error,
+        fivData,
+        restartPolling,
+    } = useCultivationSession({
+        oocyteCollectionId,
+        onSessionContextReset: handleSessionContextReset,
+        onServerTotalEmbryos: handleServerTotalEmbryos,
+    })
 
     activeOocyteCollectionIdRef.current = oocyteCollectionId
     totalEmbryosRef.current = totalEmbryos
@@ -51,175 +73,16 @@ export default ({ route, navigation }) => {
 
     useFocusEffect(
         React.useCallback(() => {
-            const currentOocyteCollectionId = oocyteCollectionId
-
             isScreenFocusedRef.current = true
             appStateRef.current = AppState.currentState
-            isPollingActiveRef.current = AppState.currentState === 'active'
-
-            if (draftContextIdRef.current !== currentOocyteCollectionId) {
-                draftContextIdRef.current = currentOocyteCollectionId
-                draftInitializedIdRef.current = null
-                isDraftDirtyRef.current = false
-                totalEmbryosRef.current = ''
-                setTotalEmbryos('')
-                setData(null)
-                setFivData(null)
-                setError(null)
-                setLoading(true)
-            }
-
-            function scheduleNextPoll() {
-                if (
-                    !isPollingActiveRef.current ||
-                    !isScreenFocusedRef.current ||
-                    appStateRef.current !== 'active' ||
-                    activeOocyteCollectionIdRef.current !== currentOocyteCollectionId
-                ) return
-
-                pollingTimeoutRef.current = setTimeout(() => {
-                    pollingTimeoutRef.current = null
-                    runPollingCycle()
-                }, 3000)
-            }
-
-            async function runPollingCycle() {
-                if (
-                    !isPollingActiveRef.current ||
-                    !isScreenFocusedRef.current ||
-                    appStateRef.current !== 'active' ||
-                    activeOocyteCollectionIdRef.current !== currentOocyteCollectionId
-                ) return
-
-                const abortController = new AbortController()
-                pollingAbortControllerRef.current = abortController
-                const requestId = ++pollingRequestIdRef.current
-
-                try {
-                    const fivList = await listFivs({ signal: abortController.signal })
-
-                    if (
-                        requestId !== pollingRequestIdRef.current ||
-                        !isPollingActiveRef.current ||
-                        !isScreenFocusedRef.current ||
-                        appStateRef.current !== 'active' ||
-                        activeOocyteCollectionIdRef.current !== currentOocyteCollectionId
-                    ) return
-
-                    const foundFiv = fivList.find(fiv =>
-                        fiv.oocyteCollections.some(oocyteCollection =>
-                            oocyteCollection.id === currentOocyteCollectionId
-                        )
-                    )
-
-                    let oocyteCollectionData = null
-                    if (foundFiv) {
-                        oocyteCollectionData = await getOocyteCollection(
-                            currentOocyteCollectionId,
-                            { signal: abortController.signal }
-                        )
-                    }
-
-                    if (
-                        requestId !== pollingRequestIdRef.current ||
-                        !isPollingActiveRef.current ||
-                        !isScreenFocusedRef.current ||
-                        appStateRef.current !== 'active' ||
-                        activeOocyteCollectionIdRef.current !== currentOocyteCollectionId
-                    ) return
-
-                    setFivData(foundFiv)
-
-                    if (foundFiv) {
-                        setData(oocyteCollectionData)
-
-                        const serverTotalEmbryos =
-                            oocyteCollectionData.embryoProduction?.totalEmbryos ?? ''
-
-                        if (
-                            draftInitializedIdRef.current !== currentOocyteCollectionId ||
-                            !isDraftDirtyRef.current
-                        ) {
-                            draftInitializedIdRef.current = currentOocyteCollectionId
-                            totalEmbryosRef.current = serverTotalEmbryos
-                            setTotalEmbryos(serverTotalEmbryos)
-                        }
-                    }
-
-                    setError(null)
-                } catch (requestError) {
-                    const apiError = normalizeApiError(
-                        requestError,
-                        'Não foi possível carregar os dados do cultivo.'
-                    )
-                    if (apiError.isCanceled) return
-                    if (
-                        requestId !== pollingRequestIdRef.current ||
-                        !isPollingActiveRef.current ||
-                        !isScreenFocusedRef.current ||
-                        appStateRef.current !== 'active' ||
-                        activeOocyteCollectionIdRef.current !== currentOocyteCollectionId
-                    ) return
-                    setError(apiError.message)
-                } finally {
-                    if (requestId === pollingRequestIdRef.current) {
-                        pollingAbortControllerRef.current = null
-                        if (
-                            isPollingActiveRef.current &&
-                            isScreenFocusedRef.current &&
-                            appStateRef.current === 'active' &&
-                            activeOocyteCollectionIdRef.current === currentOocyteCollectionId
-                        ) {
-                            setLoading(false)
-                            scheduleNextPoll()
-                        }
-                    }
-                }
-            }
-
-            function restartPolling() {
-                if (
-                    !isPollingActiveRef.current ||
-                    !isScreenFocusedRef.current ||
-                    appStateRef.current !== 'active' ||
-                    activeOocyteCollectionIdRef.current !== currentOocyteCollectionId
-                ) return
-
-                if (pollingTimeoutRef.current) {
-                    clearTimeout(pollingTimeoutRef.current)
-                    pollingTimeoutRef.current = null
-                }
-
-                pollingRequestIdRef.current += 1
-                pollingAbortControllerRef.current?.abort()
-                pollingAbortControllerRef.current = null
-                runPollingCycle()
-            }
-
-            restartPollingRef.current = restartPolling
 
             const handleAppStateChange = (nextAppState) => {
-                const wasActive = appStateRef.current === 'active'
                 appStateRef.current = nextAppState
 
                 if (nextAppState !== 'active') {
-                    isPollingActiveRef.current = false
                     mutationAbortControllerRef.current?.abort()
                     mutationAbortControllerRef.current = null
-                    if (pollingTimeoutRef.current) {
-                        clearTimeout(pollingTimeoutRef.current)
-                        pollingTimeoutRef.current = null
-                    }
-                    pollingRequestIdRef.current += 1
-                    pollingAbortControllerRef.current?.abort()
-                    pollingAbortControllerRef.current = null
-                    return
                 }
-
-                if (!isScreenFocusedRef.current || wasActive) return
-
-                isPollingActiveRef.current = true
-                runPollingCycle()
             }
 
             const appStateSubscription = AppState.addEventListener(
@@ -227,23 +90,8 @@ export default ({ route, navigation }) => {
                 handleAppStateChange
             )
 
-            if (isPollingActiveRef.current) {
-                runPollingCycle()
-            }
-
             return () => {
                 isScreenFocusedRef.current = false
-                isPollingActiveRef.current = false
-                restartPollingRef.current = null
-
-                if (pollingTimeoutRef.current) {
-                    clearTimeout(pollingTimeoutRef.current)
-                    pollingTimeoutRef.current = null
-                }
-
-                pollingRequestIdRef.current += 1
-                pollingAbortControllerRef.current?.abort()
-                pollingAbortControllerRef.current = null
                 mutationAbortControllerRef.current?.abort()
                 mutationAbortControllerRef.current = null
                 appStateSubscription.remove()
@@ -290,7 +138,7 @@ export default ({ route, navigation }) => {
             if (totalEmbryosRef.current === submittedTotalEmbryos) {
                 isDraftDirtyRef.current = false
                 draftInitializedIdRef.current = submittedOocyteCollectionId
-                restartPollingRef.current?.()
+                restartPolling()
             }
         } catch (saveError) {
             const apiError = normalizeApiError(saveError, 'Ocorreu um erro')
