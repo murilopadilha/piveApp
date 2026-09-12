@@ -14,31 +14,37 @@ import style from "../components/style";
 import {
     createSchedule,
     deleteSchedule,
-    getScheduleDetailsByDate,
-    listSchedules,
 } from "../api/scheduleService";
 import { normalizeApiError } from "../api/errors";
 import { SCHEDULE_PROCEDURE_TYPES } from "../features/calendar/constants";
+import useScheduleCalendar from "../features/calendar/hooks/useScheduleCalendar";
 import { formatLocalCalendarDate } from "../utils/date";
 
 export default (props) => {
     const [newScheduleDate, setNewScheduleDate] = useState('');
     const [selectedCalendarDate, setSelectedCalendarDate] = useState('');
     const [category, setCategory] = useState('');
-    const [markedDates, setMarkedDates] = useState({});
-    const [selectedDateDetails, setSelectedDateDetails] = useState([]);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [isCreatingSchedule, setIsCreatingSchedule] = useState(false);
     const [isDeletingSchedule, setIsDeletingSchedule] = useState(false);
+    const handleLoadError = React.useCallback((message) => {
+        Alert.alert("Erro", message);
+    }, []);
+    const {
+        markedDates,
+        selectedDateDetails,
+        reloadScheduledDates,
+        reloadDateDetails,
+        clearDateDetails,
+    } = useScheduleCalendar({
+        selectedCalendarDate,
+        onLoadError: handleLoadError,
+    });
     const isMountedRef = React.useRef(true);
     const isScreenFocusedRef = React.useRef(false);
     const selectedCalendarDateRef = React.useRef(selectedCalendarDate);
     const isCreatingScheduleRef = React.useRef(false);
     const isDeletingScheduleRef = React.useRef(false);
-    const scheduledDatesAbortControllerRef = React.useRef(null);
-    const scheduledDatesRequestIdRef = React.useRef(0);
-    const dateDetailsAbortControllerRef = React.useRef(null);
-    const dateDetailsRequestIdRef = React.useRef(0);
 
     const navigation = useNavigation();
 
@@ -110,11 +116,11 @@ export default (props) => {
 
             if (!isScreenFocusedRef.current) return;
 
-            await fetchScheduledDates();
+            await reloadScheduledDates();
             if (!isScreenFocusedRef.current) return;
 
             if (selectedCalendarDateRef.current === scheduleDate) {
-                await fetchDateDetails(scheduleDate);
+                await reloadDateDetails(scheduleDate);
             }
 
             if (!isScreenFocusedRef.current) return;
@@ -133,90 +139,6 @@ export default (props) => {
         }
     };
 
-    const fetchScheduledDates = async () => {
-        if (!isScreenFocusedRef.current) return;
-
-        scheduledDatesAbortControllerRef.current?.abort();
-        const abortController = new AbortController();
-        scheduledDatesAbortControllerRef.current = abortController;
-        const requestId = ++scheduledDatesRequestIdRef.current;
-
-        try {
-            const data = await listSchedules({ signal: abortController.signal });
-
-            if (
-                requestId !== scheduledDatesRequestIdRef.current ||
-                !isScreenFocusedRef.current
-            ) return;
-
-            const dates = {};
-            data.forEach(item => {
-                dates[item.date] = {
-                    selected: true,
-                    marked: true,
-                    selectedColor: '#092955',
-                };
-            });
-
-            setMarkedDates(dates);
-
-        } catch (error) {
-            if (
-                requestId !== scheduledDatesRequestIdRef.current ||
-                !isScreenFocusedRef.current
-            ) return;
-
-            const apiError = normalizeApiError(error, 'Ocorreu um erro ao buscar datas agendadas.');
-            if (apiError.isCanceled) return;
-            Alert.alert("Erro", apiError.message);
-        } finally {
-            if (requestId === scheduledDatesRequestIdRef.current) {
-                scheduledDatesAbortControllerRef.current = null;
-            }
-        }
-    };
-
-    const fetchDateDetails = async (date) => {
-        if (!isScreenFocusedRef.current) return;
-
-        dateDetailsAbortControllerRef.current?.abort();
-        const abortController = new AbortController();
-        dateDetailsAbortControllerRef.current = abortController;
-        const requestId = ++dateDetailsRequestIdRef.current;
-
-        try {
-            const data = await getScheduleDetailsByDate(date, {
-                signal: abortController.signal,
-            });
-
-            if (
-                requestId !== dateDetailsRequestIdRef.current ||
-                !isScreenFocusedRef.current
-            ) return;
-
-            const details = data.map(item => ({
-                id: item.id,
-                procedureType: item.procedureType,
-                procedureTypeLabel: SCHEDULE_PROCEDURE_TYPES.find(cat => cat.key === item.procedureType)?.value || item.procedureType,
-                date: item.date,
-            }));
-            setSelectedDateDetails(details);
-        } catch (error) {
-            if (
-                requestId !== dateDetailsRequestIdRef.current ||
-                !isScreenFocusedRef.current
-            ) return;
-
-            const apiError = normalizeApiError(error, 'Ocorreu um erro ao buscar detalhes do agendamento.');
-            if (apiError.isCanceled) return;
-            Alert.alert("Erro", apiError.message);
-        } finally {
-            if (requestId === dateDetailsRequestIdRef.current) {
-                dateDetailsAbortControllerRef.current = null;
-            }
-        }
-    };
-
     const handleDelete = async (id) => {
         if (isDeletingScheduleRef.current) return;
 
@@ -228,12 +150,12 @@ export default (props) => {
 
             if (!isScreenFocusedRef.current) return;
 
-            await fetchScheduledDates();
+            await reloadScheduledDates();
             if (!isScreenFocusedRef.current) return;
 
             const currentSelectedDate = selectedCalendarDateRef.current;
             if (currentSelectedDate) {
-                await fetchDateDetails(currentSelectedDate);
+                await reloadDateDetails(currentSelectedDate);
             }
 
             if (!isScreenFocusedRef.current) return;
@@ -255,30 +177,11 @@ export default (props) => {
     useFocusEffect(
         React.useCallback(() => {
             isScreenFocusedRef.current = true;
-            fetchScheduledDates();
 
             return () => {
                 isScreenFocusedRef.current = false;
-
-                scheduledDatesRequestIdRef.current += 1;
-                scheduledDatesAbortControllerRef.current?.abort();
-                scheduledDatesAbortControllerRef.current = null;
             };
         }, [])
-    );
-
-    useFocusEffect(
-        React.useCallback(() => {
-            if (selectedCalendarDate) {
-                fetchDateDetails(selectedCalendarDate);
-            }
-
-            return () => {
-                dateDetailsRequestIdRef.current += 1;
-                dateDetailsAbortControllerRef.current?.abort();
-                dateDetailsAbortControllerRef.current = null;
-            };
-        }, [selectedCalendarDate])
     );
 
     return (
@@ -331,11 +234,7 @@ export default (props) => {
                     markedDates={calendarMarkedDates}
                     onDayPress={(day) => {
                         if (day.dateString !== selectedCalendarDate) {
-                            dateDetailsRequestIdRef.current += 1;
-                            dateDetailsAbortControllerRef.current?.abort();
-                            dateDetailsAbortControllerRef.current = null;
-
-                            setSelectedDateDetails([]);
+                            clearDateDetails();
                         }
                         setSelectedCalendarDate(day.dateString);
                     }}
