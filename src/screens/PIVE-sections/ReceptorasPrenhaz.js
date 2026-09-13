@@ -183,7 +183,7 @@ export default ({ route, navigation }) => {
                     data={data}
                     keyExtractor={item => String(item.id)}
                     renderItem={({ item }) => (
-                        <ListItem data={item} onRemove={confirmRemove} navigation={navigation} />
+                        <ListItem data={item} />
                     )}
                     ListEmptyComponent={
                         !loading && hasLoaded && !error ? (
@@ -199,7 +199,7 @@ export default ({ route, navigation }) => {
     )
 }
 
-function ListItem({ data, onRemove, navigation }) {
+function ListItem({ data }) {
     return (
         <View style={style.listItem}>
             <View style={{ alignSelf: 'center' }}>
