@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, View, TouchableOpacity, ScrollView, Alert, Platform, Image, ActivityIndicator } from 'react-native';
+import { Text, View, TouchableOpacity, ScrollView, Alert, Platform, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import style from '../components/style';
 import { createFiv } from '../api/fivService';
@@ -97,9 +97,9 @@ export default ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={{width: '100%', height: '100%'}}>
+        <SafeAreaView style={styles.screen}>
             <View style={[style.divTitleMain]}>
-                <Image source={require('../images/menu/logo.png')} style={{width: 40, height: 40, marginRight: '2%'}}/>
+                <Image source={require('../images/menu/logo.png')} style={styles.logo}/>
                 <Text style={style.titleTextMain}>BovInA</Text>
             </View>
             <PiveFilterControls
@@ -115,15 +115,15 @@ export default ({ navigation }) => {
                 secondaryOptionsError={secondaryOptionsError}
                 hasLoadedSecondaryOptions={hasLoadedSecondaryOptions}
             />
-            <ScrollView style={style.listPive} showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 150 }}>
+            <ScrollView style={styles.list} showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}>
                 {activeFilter !== 'donor' && activeFilter !== 'bull' && loadError && (
-                    <Text style={{ color: '#B00020', marginHorizontal: 20, marginTop: 5 }}>
+                    <Text style={styles.errorText}>
                         {loadError}
                     </Text>
                 )}
                 {(activeFilter === 'donor' || activeFilter === 'bull') && filteredFivsError && (
-                    <Text style={{ color: '#B00020', marginHorizontal: 20, marginTop: 5 }}>
+                    <Text style={styles.errorText}>
                         {filteredFivsError}
                     </Text>
                 )}
@@ -152,7 +152,7 @@ export default ({ navigation }) => {
                     hasLoaded &&
                     !loadError &&
                     visibleItems.length === 0 && (
-                        <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                        <Text style={styles.emptyText}>
                             Nenhuma FIV encontrada.
                         </Text>
                     )}
@@ -162,7 +162,7 @@ export default ({ navigation }) => {
                     hasLoadedFilteredFivs &&
                     !filteredFivsError &&
                     visibleItems.length === 0 && (
-                        <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                        <Text style={styles.emptyText}>
                             Nenhuma FIV encontrada.
                         </Text>
                     )}
@@ -173,11 +173,57 @@ export default ({ navigation }) => {
                     )}
             </ScrollView>
             <TouchableOpacity
-                style={[style.listButtonSearch, { paddingTop: '2%',marginTop: '175%', width: '20%', height: '5%', marginLeft: '70%', position: 'absolute', zIndex: 5 }]}
+                style={[style.listButtonSearch, styles.newFivButton]}
                 onPress={() => navigation.navigate('Cabecalho')}
             >
-                <Text style={{ fontSize: Platform.OS === 'ios' ? 13 : 10, color: '#FFFFFF', textAlign: 'center', paddingTop: 3 }}>Nova FIV</Text>
+                <Text style={styles.newFivText}>Nova FIV</Text>
             </TouchableOpacity>
         </SafeAreaView>
     )
 }
+
+const styles = StyleSheet.create({
+    screen: {
+        width: '100%',
+        height: '100%',
+    },
+    logo: {
+        width: 40,
+        height: 40,
+        marginRight: '2%',
+    },
+    list: {
+        marginLeft: 20,
+        width: '90%',
+        height: '85%',
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    listContent: {
+        paddingBottom: 150,
+    },
+    errorText: {
+        color: '#B00020',
+        marginHorizontal: 20,
+        marginTop: 5,
+    },
+    emptyText: {
+        textAlign: 'center',
+        marginTop: 10,
+    },
+    newFivButton: {
+        paddingTop: '2%',
+        marginTop: '175%',
+        width: '20%',
+        height: '5%',
+        marginLeft: '70%',
+        position: 'absolute',
+        zIndex: 5,
+    },
+    newFivText: {
+        fontSize: Platform.OS === 'ios' ? 13 : 10,
+        color: '#FFFFFF',
+        textAlign: 'center',
+        paddingTop: 3,
+    },
+})

@@ -9,6 +9,7 @@ import { normalizeApiError } from "../../api/errors";
 import CultivationDraftForm from '../../features/pive/components/CultivationDraftForm';
 import CultivationSummary from '../../features/pive/components/CultivationSummary';
 import useCultivationSession from '../../features/pive/hooks/useCultivationSession';
+import piveStyles from '../../features/pive/styles';
 
 export default ({ route, navigation }) => {
     const { oocyteCollectionId } = route.params
@@ -188,16 +189,16 @@ export default ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={style.menu}>
-            <View style={[style.divTitle, { marginBottom: 0 }]}>
+            <View style={[style.divTitle, piveStyles.sectionHeader]}>
                 <TouchableOpacity onPress={() => navigation.navigate('Embrioes', { fiv: fivData })}>
-                    <View style={{ marginRight: '15%' }}>
+                    <View style={piveStyles.backButton}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
-                <Text style={[style.titleText, { marginRight: '20%' }]}>Total de Embriões</Text>
+                <Text style={[style.titleText, piveStyles.sectionTitle]}>Total de Embriões</Text>
             </View>
             {error && (
-                <Text style={{ color: '#B00020', marginHorizontal: 20 }}>
+                <Text style={piveStyles.loadError}>
                     Error: {error}
                 </Text>
             )}

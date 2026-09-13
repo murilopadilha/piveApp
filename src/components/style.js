@@ -56,10 +56,6 @@ export default StyleSheet.create({
   label: {
     margin: 10,
   },
-  text: {
-    color: '#000',
-    marginBottom: 10,
-  },
   content: {
     margin: 30
   },
@@ -76,39 +72,6 @@ export default StyleSheet.create({
   }, 
   buttonText: {
     color: '#FFFFFF'
-  },
-  menuContent: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    margin: '5%',
-    marginTop: 0,
-    alignItems: 'center',
-    justifyContent: 'space-evenly',
-    height: '100%'
-  },
-  menuContentButton: {
-    backgroundColor: '#FFFFFF',
-    marginTop: '10%',
-    margin: '1%',
-    width: 150,
-    height: 150,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 3 }, 
-    shadowOpacity: 0.3, 
-    shadowRadius: 4, 
-    elevation: 5,
-  },
-  textButtonMenu: {
-    textAlign: 'center',
-    fontSize: Platform.OS === 'ios' ? 12 : 10,
-  },
-  imgsMenu: {
-    width: 125,
-    height: 125,
   },
   bottomBorder: {
     height: 7, 
@@ -272,27 +235,6 @@ export default StyleSheet.create({
   scheduleText: {
     color: '#FFFFFF',
   },
-  safeAreaView: {
-    flex: 1,
-    backgroundColor: '#FFF',
-  },
-  calendarContainer: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 10,
-  },
-  calendar: {
-    width: 350,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: '#E0E0E0',
-  },
-  headerStyle: {
-    backgroundColor: '#E0E0E0',
-    borderBottomWidth: 1,
-    borderBottomColor: '#092955',
-  },
   selectListBox: {
     width: '90%',
     maxWidth: 352, 
@@ -319,69 +261,4 @@ export default StyleSheet.create({
     marginHorizontal: 20,
     fontSize: Platform.OS === 'ios' ? 14 : 10,
   },
-  detailsContainer: {
-    marginBottom: 10,
-    padding: 10,
-    backgroundColor: '#E0E0E0',
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    width: 350
-  },
-  detailItem: {
-    padding: 10,
-    borderBottomColor: '#fff',
-    borderBottomWidth: 1,
-  },
-  detailsText: {
-    paddingLeft: 5,
-    paddingBottom: 3,
-    fontSize: Platform.OS === 'ios' ? 14 : 10,
-    color: '#333',
-  },
-  searchPive: {
-    marginTop: 5,
-    marginLeft: 20,
-    display: 'flex',
-    flexDirection: 'row',
-  },
-  selectListBoxPive: {
-    width: 280, 
-    height: 40,
-    borderRadius: 10,
-    borderWidth: 3,
-    borderColor: 'transparent',
-    backgroundColor: '#FFFFFF',
-    paddingTop: 6,
-    paddingBottom: 6,
-    paddingLeft: 15,
-    marginBottom: 5,
-    fontWeight: 'bold',
-  },
-  selectListDropdownPive: {
-    marginTop: 0,
-    borderRadius: 10,
-    borderWidth: 3,
-    borderColor: 'transparent',
-    backgroundColor: '#FFFFFF',
-    width: 280,
-  },
-  listPive: {
-    marginLeft: 20,
-    width: '90%',
-    height: '85%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  listItemPive: {
-    backgroundColor: '#FFFFFF',
-    padding: 15,
-    marginTop: 10,
-    borderRadius: 10,
-    height: 90,
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  }
 })

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Octicons from '@expo/vector-icons/Octicons'
 
 import style from '../../../components/style'
@@ -7,25 +7,25 @@ import style from '../../../components/style'
 export default function DonorListItem({ data, isDeleting, onEdit, onRemove }) {
     return (
         <View style={style.listItem}>
-            <View style={{ alignSelf: 'center' }}>
+            <View style={styles.content}>
                 <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Nome: </Text>
+                    <Text style={styles.label}>Nome: </Text>
                     {data?.name || '-'} ({data?.breed || '-'})
                 </Text>
                 <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Identificação: </Text>
+                    <Text style={styles.label}>Identificação: </Text>
                     {data?.registrationNumber || '-'}
                 </Text>
                 <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Nascimento: </Text>
+                    <Text style={styles.label}>Nascimento: </Text>
                     {data?.birth || '-'}
                 </Text>
                 <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Média oócitos viáveis: </Text>
+                    <Text style={styles.label}>Média oócitos viáveis: </Text>
                     {data?.averageViableOocytes ?? '-'}
                 </Text>
                 <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Eficiência emb viáveis: </Text>
+                    <Text style={styles.label}>Eficiência emb viáveis: </Text>
                     {data?.averageEmbryoPercentage ?? '-'}
                 </Text>
             </View>
@@ -38,7 +38,7 @@ export default function DonorListItem({ data, isDeleting, onEdit, onRemove }) {
                     <Octicons name="trash" size={20} color="#908D8E" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[style.listButtonDelete, { marginTop: 2 }]}
+                    style={[style.listButtonDelete, styles.deleteButton]}
                     onPress={() => onEdit(data)}
                 >
                     <Octicons name="pencil" size={20} color="#908D8E" />
@@ -47,3 +47,15 @@ export default function DonorListItem({ data, isDeleting, onEdit, onRemove }) {
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    content: {
+        alignSelf: 'center',
+    },
+    label: {
+        fontWeight: 'bold',
+    },
+    deleteButton: {
+        marginTop: 2,
+    },
+})

@@ -5,6 +5,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import style from "../../components/style";
+import piveStyles from "../../features/pive/styles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { createFiv } from "../../api/fivService";
 import { normalizeApiError } from "../../api/errors";
@@ -165,13 +166,13 @@ export default ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={style.menu}>
-            <View style={[style.divTitle, { marginBottom: 0 }]}>
+            <View style={[style.divTitle, piveStyles.sectionHeader]}>
                 <TouchableOpacity onPress={() => navigation.navigate('Pive')}>
                     <View style={{ marginRight: '10%' }}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
-                <Text style={[style.titleText, { marginRight: '20%' }]}>Informações da FIV</Text>
+                <Text style={[style.titleText, piveStyles.sectionTitle]}>Informações da FIV</Text>
             </View>
             <View style={[style.content, { marginTop: 0, paddingTop: 0 }]}>
                 <ScrollView style={{ height: '90%' }}

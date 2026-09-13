@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Text, View, TouchableOpacity, Alert, Image } from "react-native";
+import { Text, View, TouchableOpacity, Alert, Image, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { SelectList } from 'react-native-dropdown-select-list';
@@ -191,9 +191,9 @@ export default (props) => {
     };
 
     return (
-        <SafeAreaView style={[style.safeAreaView, { backgroundColor: '#F1F2F4' }]}>
+        <SafeAreaView style={[styles.safeAreaView, styles.screenBackground]}>
             <View style={style.divTitleMain}>
-                <Image source={require('../images/menu/logo.png')} style={{ width: 40, height: 40, marginRight: '2%' }} />
+                <Image source={require('../images/menu/logo.png')} style={styles.logo} />
                 <Text style={style.titleTextMain}>BovInA</Text>
             </View>
             <View>
@@ -205,9 +205,9 @@ export default (props) => {
                     inputStyles={style.selectListInput}
                     dropdownStyles={style.selectListDropdown}
                 />
-                <TouchableOpacity onPress={showDatePicker} style={[style.dateInput, { marginLeft: 20, marginRight: 20, marginTop: 10 }]}>
+                <TouchableOpacity onPress={showDatePicker} style={[style.dateInput, styles.dateInput]}>
                     <Text style={style.dateText}>{newScheduleDate || "Selecione a Data"}</Text>
-                    <AntDesign style={{ paddingLeft: '20%' }} name="calendar" size={24} color="#000" />
+                    <AntDesign style={styles.calendarIcon} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
                 <DateTimePickerModal
                     isVisible={isDatePickerVisible}
@@ -215,12 +215,12 @@ export default (props) => {
                     onConfirm={handleConfirm}
                     onCancel={hideDatePicker}
                 />
-                <TouchableOpacity disabled={isCreatingSchedule} onPress={handleSchedule} style={[style.scheduleButton, { display: 'flex', flexDirection: 'row', width: 90 }]}>
+                <TouchableOpacity disabled={isCreatingSchedule} onPress={handleSchedule} style={[style.scheduleButton, styles.scheduleButton]}>
                     <FontAwesome5 name="calendar-check" size={20} color="white" />
-                    <Text style={[style.scheduleText, { fontSize: 13, paddingLeft: 5 }]}>Agendar</Text>
+                    <Text style={[style.scheduleText, styles.scheduleText]}>Agendar</Text>
                 </TouchableOpacity>
             </View>
-            <View style={style.calendarContainer}>
+            <View style={styles.calendarContainer}>
                 <ScheduleCalendarView
                     markedDates={calendarMarkedDates}
                     onDayPress={handleDayPress}
@@ -235,3 +235,40 @@ export default (props) => {
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    safeAreaView: {
+        flex: 1,
+        backgroundColor: '#FFF',
+    },
+    screenBackground: {
+        backgroundColor: '#F1F2F4',
+    },
+    logo: {
+        width: 40,
+        height: 40,
+        marginRight: '2%',
+    },
+    dateInput: {
+        marginLeft: 20,
+        marginRight: 20,
+        marginTop: 10,
+    },
+    calendarIcon: {
+        paddingLeft: '20%',
+    },
+    scheduleButton: {
+        display: 'flex',
+        flexDirection: 'row',
+        width: 90,
+    },
+    scheduleText: {
+        fontSize: 13,
+        paddingLeft: 5,
+    },
+    calendarContainer: {
+        flex: 1,
+        alignItems: 'center',
+        paddingHorizontal: 10,
+    },
+});

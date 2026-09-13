@@ -8,6 +8,7 @@ import { SelectList } from 'react-native-dropdown-select-list';
 import { SafeAreaView } from "react-native-safe-area-context";
 import useOocyteCollectionOptions from '../../features/pive/hooks/useOocyteCollectionOptions';
 import useOocyteCollectionSubmission from '../../features/pive/hooks/useOocyteCollectionSubmission';
+import piveStyles from '../../features/pive/styles';
 
 export default ({ route, navigation }) => {
     const [donorCattleId, setDonorCattleId] = useState(null)
@@ -162,7 +163,7 @@ export default ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={style.menu}>
-            <View style={[style.divTitle, {marginBottom: 0}]}>
+            <View style={[style.divTitle, piveStyles.sectionHeader]}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <View style={{ marginRight: 80 }}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />

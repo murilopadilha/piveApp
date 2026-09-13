@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 
 import style from '../../../components/style'
@@ -23,11 +23,31 @@ export default function CultivationDraftForm({
             <TouchableOpacity
                 onPress={onSave}
                 disabled={isSubmitting}
-                style={[style.listButtonSearch, { width: '30%', height: '28%', display: 'flex', flexDirection: 'row', marginTop: '5%', marginLeft: '60%' }]}
+                style={[style.listButtonSearch, styles.saveButton]}
             >
-                <MaterialIcons name="done" size={20} color="white" style={{ paddingLeft: 5, paddingTop: 3 }} />
-                <Text style={{ color: '#FFFFFF', paddingTop: 3, paddingLeft: 10 }}>Salvar</Text>
+                <MaterialIcons name="done" size={20} color="white" style={styles.saveIcon} />
+                <Text style={styles.saveText}>Salvar</Text>
             </TouchableOpacity>
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    saveButton: {
+        width: '30%',
+        height: '28%',
+        display: 'flex',
+        flexDirection: 'row',
+        marginTop: '5%',
+        marginLeft: '60%',
+    },
+    saveIcon: {
+        paddingLeft: 5,
+        paddingTop: 3,
+    },
+    saveText: {
+        color: '#FFFFFF',
+        paddingTop: 3,
+        paddingLeft: 10,
+    },
+})

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 
 import style from '../../../components/style'
@@ -27,14 +27,27 @@ export default function EmbryoDispositionForm({
             </View>
             <View>
                 <TouchableOpacity
-                    style={[style.button, { display: 'flex', flexDirection: 'row', marginLeft: '40%', marginTop: 0 }]}
+                    style={[style.button, styles.saveButton]}
                     onPress={onSave}
                     disabled={isSubmitting}
                 >
                     <MaterialIcons name="done" size={20} color="#fff" />
-                    <Text style={[style.buttonText, { marginLeft: 5, paddingBottom: 2 }]}>Salvar</Text>
+                    <Text style={[style.buttonText, styles.saveText]}>Salvar</Text>
                 </TouchableOpacity>
             </View>
         </>
     )
 }
+
+const styles = StyleSheet.create({
+    saveButton: {
+        display: 'flex',
+        flexDirection: 'row',
+        marginLeft: '40%',
+        marginTop: 0,
+    },
+    saveText: {
+        marginLeft: 5,
+        paddingBottom: 2,
+    },
+})

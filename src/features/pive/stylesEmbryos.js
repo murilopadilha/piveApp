@@ -74,7 +74,6 @@ export default StyleSheet.create({
     modalContent: {
         width: 300,
         padding: 20,
-        backgroundColor: '#fff',
         borderRadius: 10,
         alignItems: 'center',
         backgroundColor: '#F1F2F4',
@@ -148,12 +147,4 @@ export default StyleSheet.create({
         maxHeight: 150,
         fontWeight: 'bold',
     },
-    buttonSearchFiv: {
-        paddingTop: 5,
-        paddingHorizontal: 5,
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        marginBottom: 5,
-        height: 40
-    }
 })

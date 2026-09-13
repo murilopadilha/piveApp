@@ -4,6 +4,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import style from "../../components/style";
+import piveStyles from "../../features/pive/styles";
 import { getFivDetails } from "../../api/fivService";
 import { normalizeApiError } from "../../api/errors";
 
@@ -145,16 +146,16 @@ export default ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={style.menu}>
-            <View style={[style.divTitle, { marginBottom: 0 }]}>
+            <View style={[style.divTitle, piveStyles.sectionHeader]}>
                 <TouchableOpacity onPress={() => navigation.navigate('FivInfo', { fiv: fiv })}>
-                    <View style={{ marginRight: '15%' }}>
+                    <View style={piveStyles.backButton}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
-                <Text style={[style.titleText, { marginRight: '20%' }]}>Coletas realizadas</Text>
+                <Text style={[style.titleText, piveStyles.sectionTitle]}>Coletas realizadas</Text>
             </View>
             {error && (
-                <Text style={{ color: '#B00020', marginHorizontal: 20 }}>
+                <Text style={piveStyles.loadError}>
                     Error: {error}
                 </Text>
             )}

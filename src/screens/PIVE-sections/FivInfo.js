@@ -5,7 +5,8 @@ import Octicons from '@expo/vector-icons/Octicons';
 import axios from "axios";
 import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
-import stylesEmbryos from "../../components/stylesEmbryos";
+import piveStyles from "../../features/pive/styles";
+import stylesEmbryos from "../../features/pive/stylesEmbryos";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { IPAdress } from "../../components/APIip";
@@ -218,14 +219,14 @@ export default ({ route, navigation }) => {
         <SafeAreaView style={stylesEmbryos.container}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Pive')}>
-                    <View style={{ marginRight: '15%' }}>
+                    <View style={piveStyles.backButton}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
                 <Text style={style.titleText}>Informação da FIV</Text>
             </View>
             {error && (
-                <Text style={{ color: '#B00020', marginHorizontal: 20 }}>
+                <Text style={piveStyles.loadError}>
                     Error: {error}
                 </Text>
             )}
@@ -368,21 +369,21 @@ export default ({ route, navigation }) => {
                     <View style={{ display: 'flex', flexDirection: 'row' }}>
                         <TouchableOpacity
                             onPress={() => navigation.navigate('Embrioes', { fiv: fiv })}
-                            style={[style.listButtonEdit, { marginTop: 0, marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
+                            style={[style.listButtonEdit, { marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
                         >
                             <FontAwesome6 name="clipboard-list" size={20} color="#E0E0E0" />
                             <Text style={{ color: '#E0E0E0', paddingTop: 1, paddingLeft: 5 }}>Embriões</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => navigation.navigate('Prenhez', { fiv: fiv })}
-                            style={[style.listButtonEdit, { marginTop: 0, marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
+                            style={[style.listButtonEdit, { marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
                         >
                             <FontAwesome6 name="cow" size={20} color="#E0E0E0" />
                             <Text style={{ color: '#E0E0E0', paddingTop: 1, paddingLeft: 3, paddingRight: 3 }}>Prenhez</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => navigation.navigate('ColetaOocitos', { fiv: fiv })}
-                            style={[style.listButtonEdit, { marginTop: 0, marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
+                            style={[style.listButtonEdit, { marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
                         >
                             <Octicons name="pencil" size={20} color="#E0E0E0" />
                             <Text style={{ color: '#E0E0E0', paddingTop: 1 }}>Registrar</Text>

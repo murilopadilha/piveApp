@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import EmbryoDispositionForm from '../../features/pive/components/EmbryoDispositionForm';
 import useEmbryoProductionContext from '../../features/pive/hooks/useEmbryoProductionContext';
 import useFrozenEmbryoSubmission from '../../features/pive/hooks/useFrozenEmbryoSubmission';
+import piveStyles from '../../features/pive/styles';
 
 export default ({ route, navigation }) => {
     const { id } = route.params
@@ -70,19 +71,19 @@ export default ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={style.menu}>
-            <View style={[style.divTitle, { marginBottom: 0 }]}>
+            <View style={[style.divTitle, piveStyles.sectionHeader]}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <View style={{ marginRight: '15%' }}>
+                    <View style={piveStyles.backButton}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
-                <Text style={[style.titleText, { marginRight: '20%' }]}>Embriões Congelados</Text>
+                <Text style={[style.titleText, piveStyles.sectionTitle]}>Embriões Congelados</Text>
             </View>
             {loading && hasLoaded && (
                 <ActivityIndicator size="small" color="#092955" />
             )}
             {error && (
-                <Text style={{ color: '#B00020', marginHorizontal: 20 }}>
+                <Text style={piveStyles.loadError}>
                     Error: {error}
                 </Text>
             )}

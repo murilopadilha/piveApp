@@ -3,6 +3,7 @@ import { Text, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
+import piveStyles from "../../features/pive/styles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { listPregnantReceivers, removePregnantReceiver } from "../../api/receiverService";
 import { normalizeApiError } from "../../api/errors";
@@ -171,7 +172,7 @@ export default ({ route, navigation }) => {
                 <Text style={style.titleText}>Receptoras Prenhaz</Text>
             </View>
             {error && (
-                <Text style={{ color: '#B00020', marginHorizontal: 20 }}>
+                <Text style={piveStyles.loadError}>
                     Error: {error}
                 </Text>
             )}

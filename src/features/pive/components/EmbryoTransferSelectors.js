@@ -1,5 +1,5 @@
 import React from 'react'
-import { Text, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import { SelectList } from 'react-native-dropdown-select-list'
 
 import style from '../../../components/style'
@@ -14,35 +14,56 @@ export default function EmbryoTransferSelectors({
 }) {
     return (
         <View style={style.content}>
-            <Text style={{ marginBottom: 10 }}>Selecionar Transferência:</Text>
+            <Text style={styles.transferLabel}>Selecionar Transferência:</Text>
             <SelectList
                 setSelected={onTransferSelect}
                 data={transferOptions}
                 placeholder="Selecione uma transferência"
-                boxStyles={[style.selectListBox, { height: 45, marginLeft: 0 }]}
+                boxStyles={[style.selectListBox, styles.selectListBox]}
                 inputStyles={style.selectListInput}
-                dropdownStyles={[style.selectListDropdown, { marginLeft: 0, width: 300 }]}
+                dropdownStyles={[style.selectListDropdown, styles.selectListDropdown]}
             />
             {showNoTransfers && (
-                <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                <Text style={styles.emptyText}>
                     Nenhuma transferência encontrada.
                 </Text>
             )}
 
-            <Text style={{ marginVertical: 10 }}>Selecionar Receptora:</Text>
+            <Text style={styles.recipientLabel}>Selecionar Receptora:</Text>
             <SelectList
                 setSelected={onRecipientSelect}
                 data={recipientOptions}
                 placeholder="Selecione uma receptora"
-                boxStyles={[style.selectListBox, { height: 45, marginLeft: 0 }]}
+                boxStyles={[style.selectListBox, styles.selectListBox]}
                 inputStyles={style.selectListInput}
-                dropdownStyles={[style.selectListDropdown, { marginLeft: 0, width: 300 }]}
+                dropdownStyles={[style.selectListDropdown, styles.selectListDropdown]}
             />
             {showNoRecipients && (
-                <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                <Text style={styles.emptyText}>
                     Nenhuma receptora disponível.
                 </Text>
             )}
         </View>
     )
 }
+
+const styles = StyleSheet.create({
+    transferLabel: {
+        marginBottom: 10,
+    },
+    recipientLabel: {
+        marginVertical: 10,
+    },
+    selectListBox: {
+        height: 45,
+        marginLeft: 0,
+    },
+    selectListDropdown: {
+        marginLeft: 0,
+        width: 300,
+    },
+    emptyText: {
+        textAlign: 'center',
+        marginTop: 10,
+    },
+})
