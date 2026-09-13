@@ -23,12 +23,15 @@ export default () => {
     const isSubmittingRef = React.useRef(false)
     const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
+    const mutationAbortControllerRef = React.useRef(null)
 
     React.useEffect(() => {
         isMountedRef.current = true
 
         return () => {
             isMountedRef.current = false
+            mutationAbortControllerRef.current?.abort()
+            mutationAbortControllerRef.current = null
         }
     }, [])
 
@@ -38,6 +41,8 @@ export default () => {
 
             return () => {
                 isScreenFocusedRef.current = false
+                mutationAbortControllerRef.current?.abort()
+                mutationAbortControllerRef.current = null
             }
         }, [])
     )
@@ -81,14 +86,22 @@ export default () => {
             procedureType: category,
             date: scheduleDate,
         }
+        const abortController = new AbortController()
 
         isSubmittingRef.current = true
+        mutationAbortControllerRef.current = abortController
         setIsSubmitting(true)
 
         try {
-            const result = await updateSchedule(scheduleId, payload)
+            const result = await updateSchedule(scheduleId, payload, {
+                signal: abortController.signal,
+            })
 
-            if (!isMountedRef.current || !isScreenFocusedRef.current) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return
 
             Alert.alert("Sucesso", "Agendamento editado com sucesso!")
             console.log(result)
@@ -97,9 +110,16 @@ export default () => {
         } catch (error) {
             const apiError = normalizeApiError(error, 'Ocorreu um erro ao editar o agendamento.')
             if (apiError.isCanceled) return
-            if (!isMountedRef.current || !isScreenFocusedRef.current) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return
             Alert.alert("Erro", apiError.message)
         } finally {
+            if (mutationAbortControllerRef.current === abortController) {
+                mutationAbortControllerRef.current = null
+            }
             isSubmittingRef.current = false
             if (isMountedRef.current) {
                 setIsSubmitting(false)

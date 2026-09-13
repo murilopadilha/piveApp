@@ -21,12 +21,15 @@ export default ({ route, navigation }) => {
     const isSubmittingRef = React.useRef(false)
     const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
+    const mutationAbortControllerRef = React.useRef(null)
 
     useEffect(() => {
         isMountedRef.current = true
 
         return () => {
             isMountedRef.current = false
+            mutationAbortControllerRef.current?.abort()
+            mutationAbortControllerRef.current = null
         }
     }, [])
 
@@ -36,6 +39,8 @@ export default ({ route, navigation }) => {
 
             return () => {
                 isScreenFocusedRef.current = false
+                mutationAbortControllerRef.current?.abort()
+                mutationAbortControllerRef.current = null
             }
         }, [])
     )
@@ -48,14 +53,22 @@ export default ({ route, navigation }) => {
             "breed": breed,
             "registrationNumber": registrationNumber
         }
+        const abortController = new AbortController()
 
         isSubmittingRef.current = true
+        mutationAbortControllerRef.current = abortController
         setIsSubmitting(true)
 
         try {
-            const result = await updateReceiverRequest(id, donorData)
+            const result = await updateReceiverRequest(id, donorData, {
+                signal: abortController.signal,
+            })
 
-            if (!isMountedRef.current || !isScreenFocusedRef.current) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return
 
             console.log(result)
             Alert.alert('Sucesso', 'Receptora atualizada com sucesso!')
@@ -63,13 +76,20 @@ export default ({ route, navigation }) => {
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível atualizar os dados.')
             if (apiError.isCanceled) return
-            if (!isMountedRef.current || !isScreenFocusedRef.current) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return
             if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
                 Alert.alert('Erro', 'Erro ao enviar dados')
                 return
             }
             Alert.alert('Erro', apiError.message)
         } finally {
+            if (mutationAbortControllerRef.current === abortController) {
+                mutationAbortControllerRef.current = null
+            }
             isSubmittingRef.current = false
             if (isMountedRef.current) {
                 setIsSubmitting(false)

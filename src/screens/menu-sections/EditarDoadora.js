@@ -45,12 +45,15 @@ export default ({ route, navigation }) => {
     const isSubmittingRef = React.useRef(false)
     const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
+    const mutationAbortControllerRef = React.useRef(null)
 
     React.useEffect(() => {
         isMountedRef.current = true
 
         return () => {
             isMountedRef.current = false
+            mutationAbortControllerRef.current?.abort()
+            mutationAbortControllerRef.current = null
         }
     }, [])
 
@@ -60,6 +63,8 @@ export default ({ route, navigation }) => {
 
             return () => {
                 isScreenFocusedRef.current = false
+                mutationAbortControllerRef.current?.abort()
+                mutationAbortControllerRef.current = null
             }
         }, [])
     )
@@ -73,14 +78,22 @@ export default ({ route, navigation }) => {
             "birth": birth,
             "registrationNumber": registrationNumber
         }
+        const abortController = new AbortController()
 
         isSubmittingRef.current = true
+        mutationAbortControllerRef.current = abortController
         setIsSubmitting(true)
 
         try {
-            const result = await updateDonorRequest(id, donorData)
+            const result = await updateDonorRequest(id, donorData, {
+                signal: abortController.signal,
+            })
 
-            if (!isMountedRef.current || !isScreenFocusedRef.current) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return
 
             console.log(result)
             Alert.alert('Sucesso', 'Doadora atualizada com sucesso!')
@@ -88,7 +101,11 @@ export default ({ route, navigation }) => {
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível atualizar os dados.')
             if (apiError.isCanceled) return
-            if (!isMountedRef.current || !isScreenFocusedRef.current) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return
             console.error('Erro ao atualizar o doador:', apiError.message)
             if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
                 Alert.alert('Erro', 'Erro ao enviar dados')
@@ -96,6 +113,9 @@ export default ({ route, navigation }) => {
             }
             Alert.alert('Erro', apiError.message)
         } finally {
+            if (mutationAbortControllerRef.current === abortController) {
+                mutationAbortControllerRef.current = null
+            }
             isSubmittingRef.current = false
             if (isMountedRef.current) {
                 setIsSubmitting(false)

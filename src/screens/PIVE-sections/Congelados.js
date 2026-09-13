@@ -47,9 +47,13 @@ export default ({ route, navigation }) => {
         const submittedCollectionId = id
         const submittedProductionId = productionId
         const submittedNumber = newNumber
-        const submittedEmbryosQuantity = Number.parseInt(submittedNumber, 10)
+        const normalizedSubmittedNumber = submittedNumber.trim()
+        const submittedEmbryosQuantity = Number(normalizedSubmittedNumber)
 
-        if (Number.isNaN(submittedEmbryosQuantity)) {
+        if (
+            !/^[+-]?\d+$/.test(normalizedSubmittedNumber) ||
+            !Number.isSafeInteger(submittedEmbryosQuantity)
+        ) {
             Alert.alert("Erro", "Por favor, preencha todos os campos.")
             return
         }

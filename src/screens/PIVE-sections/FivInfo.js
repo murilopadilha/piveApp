@@ -25,13 +25,17 @@ export default ({ route, navigation }) => {
     const [selectedReceiver, setSelectedReceiver] = useState('')
     const [cultivationId, setCultivationId] = useState(null)
     const [embryosRegistered, setEmbryosRegistered] = useState(0)
-    const [oocyteCollections, setOocyteCollections] = useState([])
+    const [oocyteCollections, setOocyteCollections] = useState({})
     const isScreenFocusedRef = React.useRef(false)
     const isPollingActiveRef = React.useRef(false)
     const appStateRef = React.useRef(AppState.currentState)
     const pollingTimeoutRef = React.useRef(null)
     const pollingAbortControllerRef = React.useRef(null)
     const pollingRequestIdRef = React.useRef(0)
+    const activeFivIdRef = React.useRef(fiv.id)
+    const loadedFivIdRef = React.useRef(null)
+
+    activeFivIdRef.current = fiv.id
 
     const categories = [
         { key: 'true', value: 'Sim' },
@@ -40,15 +44,26 @@ export default ({ route, navigation }) => {
 
     useFocusEffect(
         React.useCallback(() => {
+            const currentFivId = fiv.id
+
             isScreenFocusedRef.current = true
             appStateRef.current = AppState.currentState
             isPollingActiveRef.current = AppState.currentState === 'active'
+
+            if (loadedFivIdRef.current !== currentFivId) {
+                loadedFivIdRef.current = null
+                setData(null)
+                setOocyteCollections({})
+                setError(null)
+                setLoading(true)
+            }
 
             function scheduleNextPoll() {
                 if (
                     !isPollingActiveRef.current ||
                     !isScreenFocusedRef.current ||
-                    appStateRef.current !== 'active'
+                    appStateRef.current !== 'active' ||
+                    activeFivIdRef.current !== currentFivId
                 ) return
 
                 pollingTimeoutRef.current = setTimeout(() => {
@@ -61,7 +76,8 @@ export default ({ route, navigation }) => {
                 if (
                     !isPollingActiveRef.current ||
                     !isScreenFocusedRef.current ||
-                    appStateRef.current !== 'active'
+                    appStateRef.current !== 'active' ||
+                    activeFivIdRef.current !== currentFivId
                 ) return
 
                 const abortController = new AbortController()
@@ -69,7 +85,7 @@ export default ({ route, navigation }) => {
                 const requestId = ++pollingRequestIdRef.current
 
                 try {
-                    const responseData = await getFivDetails(fiv.id, {
+                    const responseData = await getFivDetails(currentFivId, {
                         signal: abortController.signal,
                     })
 
@@ -77,11 +93,13 @@ export default ({ route, navigation }) => {
                         requestId !== pollingRequestIdRef.current ||
                         !isPollingActiveRef.current ||
                         !isScreenFocusedRef.current ||
-                        appStateRef.current !== 'active'
+                        appStateRef.current !== 'active' ||
+                        activeFivIdRef.current !== currentFivId
                     ) return
 
                     setOocyteCollections(responseData ?? {})
                     setData(responseData ?? null)
+                    loadedFivIdRef.current = currentFivId
                     if (responseData?.cultivation) {
                         setCultivationId(responseData.cultivation.id)
                     }
@@ -93,7 +111,8 @@ export default ({ route, navigation }) => {
                         requestId !== pollingRequestIdRef.current ||
                         !isPollingActiveRef.current ||
                         !isScreenFocusedRef.current ||
-                        appStateRef.current !== 'active'
+                        appStateRef.current !== 'active' ||
+                        activeFivIdRef.current !== currentFivId
                     ) return
                     setError(apiError.message)
                 } finally {
@@ -102,7 +121,8 @@ export default ({ route, navigation }) => {
                         if (
                             isPollingActiveRef.current &&
                             isScreenFocusedRef.current &&
-                            appStateRef.current === 'active'
+                            appStateRef.current === 'active' &&
+                            activeFivIdRef.current === currentFivId
                         ) {
                             setLoading(false)
                             scheduleNextPoll()

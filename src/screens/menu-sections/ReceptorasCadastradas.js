@@ -24,12 +24,15 @@ export default ({ navigation }) => {
     const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
     const deletingReceiverIdsRef = React.useRef(new Set())
+    const deleteAbortControllersRef = React.useRef(new Map())
 
     React.useEffect(() => {
         isMountedRef.current = true
 
         return () => {
             isMountedRef.current = false
+            deleteAbortControllersRef.current.forEach((controller) => controller.abort())
+            deleteAbortControllersRef.current.clear()
         }
     }, [])
 
@@ -39,6 +42,8 @@ export default ({ navigation }) => {
 
             return () => {
                 isScreenFocusedRef.current = false
+                deleteAbortControllersRef.current.forEach((controller) => controller.abort())
+                deleteAbortControllersRef.current.clear()
             }
         }, [])
     )
@@ -63,21 +68,35 @@ export default ({ navigation }) => {
     async function removeItem(id) {
         if (deletingReceiverIdsRef.current.has(id)) return
 
+        const abortController = new AbortController()
         deletingReceiverIdsRef.current.add(id)
+        deleteAbortControllersRef.current.set(id, abortController)
         setDeletingReceiverIds(Array.from(deletingReceiverIdsRef.current))
 
         try {
-            await deleteReceiver(id);
+            await deleteReceiver(id, {
+                signal: abortController.signal,
+            });
 
-            if (!isScreenFocusedRef.current) return
+            if (
+                !isScreenFocusedRef.current ||
+                deleteAbortControllersRef.current.get(id) !== abortController
+            ) return
 
             await reload()
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível excluir a receptora.')
             if (apiError.isCanceled) return
-            if (!isMountedRef.current || !isScreenFocusedRef.current) return
-            console.error("Erro ao deletar o item:", apiError.message);
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                deleteAbortControllersRef.current.get(id) !== abortController
+            ) return
+            Alert.alert("Erro", apiError.message)
         } finally {
+            if (deleteAbortControllersRef.current.get(id) === abortController) {
+                deleteAbortControllersRef.current.delete(id)
+            }
             deletingReceiverIdsRef.current.delete(id)
             if (isMountedRef.current) {
                 setDeletingReceiverIds(Array.from(deletingReceiverIdsRef.current))

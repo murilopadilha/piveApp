@@ -86,6 +86,7 @@ export default function useCultivationSession({
                     ) return
 
                     const foundFiv = fivList.find(fiv =>
+                        Array.isArray(fiv?.oocyteCollections) &&
                         fiv.oocyteCollections.some(oocyteCollection =>
                             oocyteCollection.id === currentOocyteCollectionId
                         )
@@ -107,13 +108,12 @@ export default function useCultivationSession({
                         activeOocyteCollectionIdRef.current !== currentOocyteCollectionId
                     ) return
 
-                    setFivData(foundFiv)
+                    setFivData(foundFiv ?? null)
+                    setData(foundFiv ? (oocyteCollectionData ?? null) : null)
 
                     if (foundFiv) {
-                        setData(oocyteCollectionData)
-
                         const serverTotalEmbryos =
-                            oocyteCollectionData.embryoProduction?.totalEmbryos ?? ''
+                            oocyteCollectionData?.embryoProduction?.totalEmbryos ?? ''
 
                         onServerTotalEmbryosRef.current?.(
                             currentOocyteCollectionId,

@@ -40,12 +40,15 @@ export default ({ navigation }) => {
     const isMountedRef = React.useRef(true)
     const isScreenFocusedRef = React.useRef(false)
     const deletingDonorIdsRef = React.useRef(new Set())
+    const deleteAbortControllersRef = React.useRef(new Map())
 
     React.useEffect(() => {
         isMountedRef.current = true
 
         return () => {
             isMountedRef.current = false
+            deleteAbortControllersRef.current.forEach((controller) => controller.abort())
+            deleteAbortControllersRef.current.clear()
         }
     }, [])
 
@@ -62,6 +65,8 @@ export default ({ navigation }) => {
 
             return () => {
                 isScreenFocusedRef.current = false
+                deleteAbortControllersRef.current.forEach((controller) => controller.abort())
+                deleteAbortControllersRef.current.clear()
             }
         }, [])
     )
@@ -69,21 +74,35 @@ export default ({ navigation }) => {
     async function removeItem(id) {
         if (deletingDonorIdsRef.current.has(id)) return
 
+        const abortController = new AbortController()
         deletingDonorIdsRef.current.add(id)
+        deleteAbortControllersRef.current.set(id, abortController)
         setDeletingDonorIds(Array.from(deletingDonorIdsRef.current))
 
         try {
-            await deleteDonor(id)
+            await deleteDonor(id, {
+                signal: abortController.signal,
+            })
 
-            if (!isScreenFocusedRef.current) return
+            if (
+                !isScreenFocusedRef.current ||
+                deleteAbortControllersRef.current.get(id) !== abortController
+            ) return
 
             await reload()
         } catch (error) {
             const apiError = normalizeApiError(error, 'Não foi possível excluir a doadora.')
             if (apiError.isCanceled) return
-            if (!isMountedRef.current || !isScreenFocusedRef.current) return
-            console.error("Error deleting item:", apiError.message)
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                deleteAbortControllersRef.current.get(id) !== abortController
+            ) return
+            Alert.alert("Erro", apiError.message)
         } finally {
+            if (deleteAbortControllersRef.current.get(id) === abortController) {
+                deleteAbortControllersRef.current.delete(id)
+            }
             deletingDonorIdsRef.current.delete(id)
             if (isMountedRef.current) {
                 setDeletingDonorIds(Array.from(deletingDonorIdsRef.current))

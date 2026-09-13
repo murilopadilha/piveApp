@@ -44,6 +44,8 @@ export default (props) => {
     const selectedCalendarDateRef = React.useRef(selectedCalendarDate);
     const isCreatingScheduleRef = React.useRef(false);
     const isDeletingScheduleRef = React.useRef(false);
+    const createScheduleAbortControllerRef = React.useRef(null);
+    const deleteScheduleAbortControllerRef = React.useRef(null);
 
     const navigation = useNavigation();
 
@@ -54,6 +56,10 @@ export default (props) => {
 
         return () => {
             isMountedRef.current = false;
+            createScheduleAbortControllerRef.current?.abort();
+            createScheduleAbortControllerRef.current = null;
+            deleteScheduleAbortControllerRef.current?.abort();
+            deleteScheduleAbortControllerRef.current = null;
         };
     }, []);
 
@@ -104,33 +110,53 @@ export default (props) => {
 
         const scheduleDate = newScheduleDate;
         const scheduleCategory = category;
+        const abortController = new AbortController();
         isCreatingScheduleRef.current = true;
+        createScheduleAbortControllerRef.current = abortController;
         setIsCreatingSchedule(true);
 
         try {
             await createSchedule({
                 procedureType: scheduleCategory,
                 date: scheduleDate,
+            }, {
+                signal: abortController.signal,
             });
 
-            if (!isScreenFocusedRef.current) return;
+            if (
+                !isScreenFocusedRef.current ||
+                createScheduleAbortControllerRef.current !== abortController
+            ) return;
 
             await reloadScheduledDates();
-            if (!isScreenFocusedRef.current) return;
+            if (
+                !isScreenFocusedRef.current ||
+                createScheduleAbortControllerRef.current !== abortController
+            ) return;
 
             if (selectedCalendarDateRef.current === scheduleDate) {
                 await reloadDateDetails(scheduleDate);
             }
 
-            if (!isScreenFocusedRef.current) return;
+            if (
+                !isScreenFocusedRef.current ||
+                createScheduleAbortControllerRef.current !== abortController
+            ) return;
             Alert.alert("Sucesso", "Agendamento realizado com sucesso!");
 
         } catch (error) {
             const apiError = normalizeApiError(error, 'Ocorreu um erro ao criar o agendamento.');
             if (apiError.isCanceled) return;
-            if (!isMountedRef.current || !isScreenFocusedRef.current) return;
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                createScheduleAbortControllerRef.current !== abortController
+            ) return;
             Alert.alert("Erro", apiError.message);
         } finally {
+            if (createScheduleAbortControllerRef.current === abortController) {
+                createScheduleAbortControllerRef.current = null;
+            }
             isCreatingScheduleRef.current = false;
             if (isMountedRef.current) {
                 setIsCreatingSchedule(false);
@@ -142,30 +168,50 @@ export default (props) => {
         if (isDeletingScheduleRef.current) return;
 
         isDeletingScheduleRef.current = true;
+        const abortController = new AbortController();
+        deleteScheduleAbortControllerRef.current = abortController;
         setIsDeletingSchedule(true);
 
         try {
-            await deleteSchedule(id);
+            await deleteSchedule(id, {
+                signal: abortController.signal,
+            });
 
-            if (!isScreenFocusedRef.current) return;
+            if (
+                !isScreenFocusedRef.current ||
+                deleteScheduleAbortControllerRef.current !== abortController
+            ) return;
 
             await reloadScheduledDates();
-            if (!isScreenFocusedRef.current) return;
+            if (
+                !isScreenFocusedRef.current ||
+                deleteScheduleAbortControllerRef.current !== abortController
+            ) return;
 
             const currentSelectedDate = selectedCalendarDateRef.current;
             if (currentSelectedDate) {
                 await reloadDateDetails(currentSelectedDate);
             }
 
-            if (!isScreenFocusedRef.current) return;
+            if (
+                !isScreenFocusedRef.current ||
+                deleteScheduleAbortControllerRef.current !== abortController
+            ) return;
             Alert.alert("Sucesso", "Agendamento excluído com sucesso!");
 
         } catch (error) {
             const apiError = normalizeApiError(error, 'Ocorreu um erro ao excluir o agendamento.');
             if (apiError.isCanceled) return;
-            if (!isMountedRef.current || !isScreenFocusedRef.current) return;
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                deleteScheduleAbortControllerRef.current !== abortController
+            ) return;
             Alert.alert("Erro", apiError.message);
         } finally {
+            if (deleteScheduleAbortControllerRef.current === abortController) {
+                deleteScheduleAbortControllerRef.current = null;
+            }
             isDeletingScheduleRef.current = false;
             if (isMountedRef.current) {
                 setIsDeletingSchedule(false);
@@ -179,6 +225,10 @@ export default (props) => {
 
             return () => {
                 isScreenFocusedRef.current = false;
+                createScheduleAbortControllerRef.current?.abort();
+                createScheduleAbortControllerRef.current = null;
+                deleteScheduleAbortControllerRef.current?.abort();
+                deleteScheduleAbortControllerRef.current = null;
             };
         }, [])
     );

@@ -107,6 +107,15 @@ export default ({ route, navigation }) => {
         setTotalEmbryos(value)
     }
 
+    const handleBack = () => {
+        if (fivData) {
+            navigation.navigate('Embrioes', { fiv: fivData })
+            return
+        }
+
+        navigation.goBack()
+    }
+
     const handleSave = async () => {
         if (isSubmittingRef.current) return
 
@@ -190,7 +199,7 @@ export default ({ route, navigation }) => {
     return (
         <SafeAreaView style={style.menu}>
             <View style={[style.divTitle, piveStyles.sectionHeader]}>
-                <TouchableOpacity onPress={() => navigation.navigate('Embrioes', { fiv: fivData })}>
+                <TouchableOpacity onPress={handleBack}>
                     <View style={piveStyles.backButton}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
