@@ -54,11 +54,13 @@ export default ({ route, navigation }) => {
     )
 
     const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || new Date()
+        setShowDatePicker(false)
+        if (event.type === 'dismissed' || !selectedDate) return
+
+        const currentDate = selectedDate
         const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
         dateRef.current = formattedDate
         setDate(formattedDate)
-        setShowDatePicker(false)
     }
 
     const postTransfer = async () => {

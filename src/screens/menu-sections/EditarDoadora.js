@@ -151,7 +151,7 @@ export default ({ route, navigation }) => {
                 <TextInput
                     placeholder="Nome da doadora"
                     placeholderTextColor="#888"
-                    value={newDonorName}
+                    value={newDonorName == null ? '' : String(newDonorName)}
                     style={style.input}
                     onChangeText={setName}
                 />
@@ -159,7 +159,7 @@ export default ({ route, navigation }) => {
                 <TextInput
                     placeholder="Raça da doadora"
                     placeholderTextColor="#888"
-                    value={newDonorBreed}
+                    value={newDonorBreed == null ? '' : String(newDonorBreed)}
                     style={style.input}
                     onChangeText={setBreed}
                 />
@@ -167,7 +167,7 @@ export default ({ route, navigation }) => {
                 <TextInput
                     placeholder="Identificação da doadora"
                     placeholderTextColor="#888"
-                    value={newDonorIndentification}
+                    value={newDonorIndentification == null ? '' : String(newDonorIndentification)}
                     style={style.input}
                     onChangeText={setNumber}
                 />

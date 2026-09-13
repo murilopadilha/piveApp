@@ -125,7 +125,7 @@ export default ({ route, navigation }) => {
                 <TextInput
                     placeholder="Nome do touro"
                     placeholderTextColor="#888"
-                    value={newDonorName}
+                    value={newDonorName == null ? '' : String(newDonorName)}
                     style={style.input}
                     onChangeText={setName}
                 />
@@ -133,7 +133,7 @@ export default ({ route, navigation }) => {
                 <TextInput
                     placeholder="Identificação do touro"
                     placeholderTextColor="#888"
-                    value={newDonorIndentification}
+                    value={newDonorIndentification == null ? '' : String(newDonorIndentification)}
                     style={style.input}
                     onChangeText={setNumber}
                 />

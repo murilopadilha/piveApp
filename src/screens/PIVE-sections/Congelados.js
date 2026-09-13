@@ -47,7 +47,13 @@ export default ({ route, navigation }) => {
         const submittedCollectionId = id
         const submittedProductionId = productionId
         const submittedNumber = newNumber
-        const submittedEmbryosQuantity = parseInt(submittedNumber)
+        const submittedEmbryosQuantity = Number.parseInt(submittedNumber, 10)
+
+        if (Number.isNaN(submittedEmbryosQuantity)) {
+            Alert.alert("Erro", "Por favor, preencha todos os campos.")
+            return
+        }
+
         const frozenEmbryosData = {
             productionId: submittedProductionId,
             embryosQuantity: submittedEmbryosQuantity,

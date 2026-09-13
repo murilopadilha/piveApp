@@ -14,7 +14,7 @@ export default function CultivationDraftForm({
         <View>
             <TextInput
                 style={style.input}
-                value={value}
+                value={value == null ? '' : String(value)}
                 placeholderTextColor={"#888"}
                 onChangeText={onChange}
                 keyboardType="numeric"
