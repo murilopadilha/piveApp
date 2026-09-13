@@ -188,6 +188,37 @@ describe('useDiscardedEmbryoSubmission', () => {
         expect(onError).not.toHaveBeenCalled()
         expect(result.current.isSubmitting).toBe(false)
     })
+
+    test('emits the discarded fallback error and allows a retry afterwards', async () => {
+        discardEmbryos
+            .mockRejectedValueOnce(new Error())
+            .mockResolvedValueOnce({ id: 3 })
+        const onError = jest.fn()
+        const onSuccess = jest.fn()
+        const { result } = renderHook(() => useDiscardedEmbryoSubmission(submissionProps))
+        const command = {
+            payload: { productionId: 20, embryosQuantity: 2 },
+            submittedCollectionId: 10,
+            onSuccess,
+            onError,
+        }
+
+        await act(async () => {
+            await result.current.submitDiscardedEmbryos(command)
+        })
+
+        expect(onError).toHaveBeenCalledWith(
+            'Não foi possível registrar os embriões descartados.'
+        )
+        expect(result.current.isSubmitting).toBe(false)
+
+        await act(async () => {
+            await result.current.submitDiscardedEmbryos(command)
+        })
+
+        expect(discardEmbryos).toHaveBeenCalledTimes(2)
+        expect(onSuccess).toHaveBeenCalledTimes(1)
+    })
 })
 
 describe('useOocyteCollectionSubmission', () => {
@@ -267,5 +298,35 @@ describe('useOocyteCollectionSubmission', () => {
         expect(onSuccess).not.toHaveBeenCalled()
         expect(onError).not.toHaveBeenCalled()
         expect(result.current.isSubmitting).toBe(false)
+    })
+
+    test('keeps cancellation silent, unlocks, and accepts a later retry', async () => {
+        createOocyteCollection
+            .mockRejectedValueOnce({ code: 'ERR_CANCELED', message: 'canceled' })
+            .mockResolvedValueOnce({ id: 2 })
+        const onSuccess = jest.fn()
+        const onError = jest.fn()
+        const { result } = renderHook(() => useOocyteCollectionSubmission({ fivId: 5 }))
+        const command = {
+            payload: { fivId: 5 },
+            errorFallbackMessage: 'Falha ao salvar coleta',
+            onSuccess,
+            onError,
+        }
+
+        await act(async () => {
+            await result.current.submitOocyteCollection(command)
+        })
+
+        expect(onSuccess).not.toHaveBeenCalled()
+        expect(onError).not.toHaveBeenCalled()
+        expect(result.current.isSubmitting).toBe(false)
+
+        await act(async () => {
+            await result.current.submitOocyteCollection(command)
+        })
+
+        expect(createOocyteCollection).toHaveBeenCalledTimes(2)
+        expect(onSuccess).toHaveBeenCalledTimes(1)
     })
 })

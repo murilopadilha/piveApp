@@ -158,4 +158,116 @@ describe('useCultivationSession', () => {
 
         unmount()
     })
+
+    test('keeps an absent collection as an empty session without requesting its details', async () => {
+        listFivs.mockResolvedValue([
+            { id: 4, oocyteCollections: [{ id: 99 }] },
+            { id: 5, oocyteCollections: null },
+        ])
+        const onServerTotalEmbryos = jest.fn()
+
+        const { result, unmount } = renderHook(() => useCultivationSession({
+            oocyteCollectionId: 18,
+            onServerTotalEmbryos,
+        }))
+        await flushPromises()
+
+        expect(getOocyteCollection).not.toHaveBeenCalled()
+        expect(result.current).toMatchObject({
+            data: null,
+            fivData: null,
+            loading: false,
+            error: null,
+        })
+        expect(onServerTotalEmbryos).not.toHaveBeenCalled()
+
+        unmount()
+    })
+
+    test('rejects a stale FIV response after the collection context changes', async () => {
+        const oldRequest = deferred()
+        let oldSignal
+        listFivs
+            .mockImplementationOnce(options => {
+                oldSignal = options.signal
+                return oldRequest.promise
+            })
+            .mockResolvedValueOnce([])
+        const onSessionContextReset = jest.fn()
+
+        const { result, rerender, unmount } = renderHook(
+            ({ collectionId }) => useCultivationSession({
+                oocyteCollectionId: collectionId,
+                onSessionContextReset,
+            }),
+            { initialProps: { collectionId: 20 } }
+        )
+
+        rerender({ collectionId: 21 })
+        expect(oldSignal.aborted).toBe(true)
+        await flushPromises()
+
+        oldRequest.resolve([
+            { id: 7, oocyteCollections: [{ id: 20 }] },
+        ])
+        await flushPromises()
+
+        expect(getOocyteCollection).not.toHaveBeenCalled()
+        expect(result.current).toMatchObject({
+            data: null,
+            fivData: null,
+            loading: false,
+            error: null,
+        })
+        expect(onSessionContextReset).toHaveBeenNthCalledWith(1, 20)
+        expect(onSessionContextReset).toHaveBeenNthCalledWith(2, 21)
+
+        unmount()
+    })
+
+    test('reports the active polling error and keeps the next sequential cycle scheduled', async () => {
+        listFivs.mockRejectedValue(new Error('Falha ao carregar sessão'))
+
+        const { result, unmount } = renderHook(() => useCultivationSession({
+            oocyteCollectionId: 22,
+        }))
+        await flushPromises()
+
+        expect(result.current).toMatchObject({
+            loading: false,
+            error: 'Falha ao carregar sessão',
+        })
+        expect(jest.getTimerCount()).toBe(1)
+
+        unmount()
+    })
+
+    test('restartPolling cancels the scheduled wait and starts a new cycle immediately', async () => {
+        const restartedRequest = deferred()
+        let restartedSignal
+        listFivs
+            .mockResolvedValueOnce([])
+            .mockImplementationOnce(options => {
+                restartedSignal = options.signal
+                return restartedRequest.promise
+            })
+
+        const { result, unmount } = renderHook(() => useCultivationSession({
+            oocyteCollectionId: 24,
+        }))
+        await flushPromises()
+        expect(jest.getTimerCount()).toBe(1)
+
+        act(() => result.current.restartPolling())
+
+        expect(listFivs).toHaveBeenCalledTimes(2)
+        expect(jest.getTimerCount()).toBe(0)
+
+        unmount()
+        expect(restartedSignal.aborted).toBe(true)
+
+        restartedRequest.resolve([])
+        await flushPromises()
+        expect(jest.getTimerCount()).toBe(0)
+    })
 })
