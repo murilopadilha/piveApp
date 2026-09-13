@@ -275,7 +275,7 @@ export default ({ route, navigation }) => {
                     {oocyteCollections.oocyteCollections.map((collection, index) => {
                         const backgroundColor = index % 2 === 0 ? '#fff' : 'transparent';
                         return (
-                            <View key={index} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', backgroundColor }}>
+                            <View key={collection.id != null ? `collection-${collection.id}` : `collection-index-${index}`} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', backgroundColor }}>
                                 <View style={{ width: '3%' }}>
                                     <Text style={[stylesEmbryos.value, { fontSize: 10 }]}>{index + 1}</Text>
                                 </View>

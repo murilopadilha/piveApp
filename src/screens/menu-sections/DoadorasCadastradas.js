@@ -11,6 +11,19 @@ import { normalizeApiError } from "../../api/errors";
 import DonorListItem from "../../features/animals/components/DonorListItem";
 import useDonorList from "../../features/animals/hooks/useDonorList";
 
+function getDonorListItemKey(item, index) {
+    if (item?.id != null) return String(item.id)
+
+    const donorKey = item?.donor?.id ?? item?.donor?.registrationNumber
+    const bullKey = item?.bull?.id ?? item?.bull?.registrationNumber
+
+    if (donorKey != null || bullKey != null) {
+        return `combination-${donorKey ?? 'donor'}-${bullKey ?? 'bull'}`
+    }
+
+    return `item-${index}`
+}
+
 export default ({ navigation }) => {
     const {
         visibleData,
@@ -124,7 +137,7 @@ export default ({ navigation }) => {
                     style={{ marginTop: 5 }}
                     contentContainerStyle={{ marginHorizontal: 20, paddingBottom: 300 }}
                     data={visibleData}
-                    keyExtractor={(item) => item?.id ? String(item.id) : Math.random().toString()}
+                    keyExtractor={getDonorListItemKey}
                     renderItem={({ item }) => {
                         if (filterOption === 'combination') {
                             return (

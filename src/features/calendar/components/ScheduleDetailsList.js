@@ -15,8 +15,8 @@ export default function ScheduleDetailsList({
 
     return (
         <ScrollView style={style.detailsContainer} contentContainerStyle={{ paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
-            {details.map((detail, index) => (
-                <View key={index} style={style.detailItem}>
+            {details.map(detail => (
+                <View key={detail.id} style={style.detailItem}>
                     <Text style={style.detailsText}>
                         <Text style={{ fontWeight: 'bold' }}>Agendamento:</Text> {detail.procedureTypeLabel}
                     </Text>
