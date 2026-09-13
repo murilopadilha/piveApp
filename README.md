@@ -1,202 +1,143 @@
 # BovInA — frontend mobile
 
-## Resumo
+Frontend mobile do BovInA para os fluxos de animais, agenda e produção in vitro de embriões bovinos (PIVE). O aplicativo tem projetos nativos para Android e iOS e ainda não está configurado para publicação em produção.
 
-O BovInA é uma aplicação mobile de apoio à gestão da produção in vitro de embriões bovinos (PIVE). Este repositório contém o frontend mobile, com suporte obrigatório a Android e iOS.
+## Stack
 
-O projeto está em recuperação e modernização incremental. A baseline atual busca preservar o comportamento existente e tornar a instalação reproduzível antes de mudanças maiores; ela ainda não representa um produto pronto para produção.
+- Expo SDK 51.0.39
+- React Native 0.74.5
+- React 18.2.0
+- JavaScript, Babel e Metro
+- React Navigation 6
+- Axios
+- Jest 29 e React Native Testing Library
+- Node.js 20.20.2 e npm 10.8.2
 
-## Stack principal
-
-- React Native 0.74.3 e React 18.2.0;
-- Expo SDK 51.0.24, com projetos nativos mantidos no repositório;
-- JavaScript, Babel e Metro;
-- React Navigation 6, com navegação por abas e stacks;
-- Hermes habilitado em Android e iOS;
-- Axios e `fetch` para comunicação HTTP;
-- Expo Blur, React Native Calendars e componentes de data e seleção usados pelas telas.
-
-## Baseline atual
-
-| Ferramenta | Versão/política |
-| --- | --- |
-| Node.js | `20.20.2` |
-| npm | `10.8.2` |
-| Expo | `51.0.24` |
-| React Native | `0.74.3` |
-| Package manager | somente npm |
-| Lockfile JavaScript | `package-lock.json` |
-
-O Node 20 é uma baseline legada e transitória, congelada para recuperar a reprodutibilidade do projeto. Não altere essa versão isoladamente sem analisar a compatibilidade da stack completa.
+O projeto usa exclusivamente npm. As versões de Node e npm também estão declaradas em `.nvmrc`, `package.json` e `.npmrc`.
 
 ## Pré-requisitos
 
-### Compartilhados
+Para qualquer plataforma:
 
-- [nvm](https://github.com/nvm-sh/nvm) para selecionar a versão de Node definida em `.nvmrc`;
-- npm 10.8.2, instalado com o Node 20.20.2;
+- Node.js por meio do [nvm](https://github.com/nvm-sh/nvm);
+- npm;
 - Git.
 
-### iOS
+Para iOS:
 
 - macOS;
-- Xcode, Xcode Command Line Tools e um runtime de iOS Simulator compatível instalados localmente;
-- CocoaPods `1.17.0`.
+- Xcode e um iOS Simulator;
+- CocoaPods.
 
-O repositório ainda não fixa uma versão oficial do Xcode nem do runtime do Simulator. Esses itens dependem da toolchain local.
+Para Android:
 
-### Android
+- Android Studio e Android SDK configurado;
+- JDK compatível com o Gradle do projeto;
+- emulador ou dispositivo conectado para instalar e executar o app.
 
-- Android Studio;
-- Android SDK configurado e acessível à build;
-- JDK compatível com o Gradle/Android Gradle Plugin do projeto;
-- emulador iniciado ou dispositivo físico com depuração USB, somente quando for necessário instalar e executar o app.
+O build de iOS Simulator foi validado com as dependências atuais. O ambiente usado nessa validação possui Xcode 26.6, que está fora da faixa oficialmente reconhecida pelo Expo SDK 51; isso não garante compatibilidade com todas as combinações modernas de Xcode e Simulator. O build Android não foi validado nesse ambiente porque o Android SDK não estava disponível.
 
-A versão oficial do JDK e a combinação completa da toolchain Android ainda não estão fixadas no repositório. A configuração Gradle atual declara SDK de compilação/target 34, mas isso não substitui uma baseline formal da toolchain local.
+## Instalação
 
-## Primeira instalação após o clone
-
-Entre na pasta clonada e execute:
+Na raiz do repositório:
 
 ```sh
-cd piveApp
-nvm install
 nvm use
-node --version
-npm --version
 npm ci
 ```
 
-As versões exibidas devem ser, respectivamente, `v20.20.2` e `10.8.2`. O `.npmrc` aplica validação estrita de engines, e o `npm ci` instala exatamente o grafo registrado em `package-lock.json`.
-
-Não use Yarn neste repositório e não gere `yarn.lock` ou artefatos `.yarn/`.
-
-## Como rodar no iOS
-
-Instale os Pods sem atualizar as versões travadas:
+Para sincronizar as dependências nativas do iOS:
 
 ```sh
-pod --version
 cd ios
-pod install --deployment --clean-install
+pod install
 cd ..
 ```
 
-O primeiro comando deve informar `1.17.0`. Depois, com um iOS Simulator disponível:
+Não use Yarn e não execute `expo prebuild`. As pastas `ios/` e `android/` são versionadas e constituem as fontes autoritativas da configuração nativa.
 
-```sh
-npm run ios
-```
+## Execução
 
-Esse comando executa `expo run:ios`, compila o projeto nativo, instala o aplicativo e inicia o fluxo de desenvolvimento. Um runtime de Simulator válido precisa estar instalado. Para dispositivo físico, também são necessários seleção do dispositivo e signing válidos no ambiente Xcode; esse processo ainda não está formalizado como fluxo de release.
-
-## Como rodar no Android
-
-Para compilar o APK Debug sem exigir um emulador ou aparelho conectado:
-
-```sh
-cd android
-./gradlew :app:assembleDebug
-cd ..
-```
-
-Para compilar, instalar e iniciar o aplicativo:
-
-```sh
-npm run android
-```
-
-O segundo fluxo executa `expo run:android` e requer um destino disponível. Pode ser um emulador ou um dispositivo físico reconhecido pelo `adb`; o emulador não é obrigatório.
-
-## Scripts disponíveis
-
-Os scripts abaixo são exatamente os declarados em `package.json`:
-
-| Comando | Estado atual |
+| Comando | Função |
 | --- | --- |
-| `npm start` | Inicia o Metro com `expo start --dev-client`. `expo-dev-client` não é dependência direta; use este fluxo apenas com uma build de desenvolvimento compatível. |
-| `npm run android` | Executa `expo run:android` para compilar, instalar e iniciar o app Android. |
-| `npm run ios` | Executa `expo run:ios` para compilar, instalar e iniciar o app iOS. |
-| `npm run web` | Executa `expo start --web`, mas `react-dom` e `react-native-web` não estão declarados. Web não é um alvo atualmente validado ou suportado. |
-| `npm run json-server` | Inicia o `json-server` usando `db.json`. Esse mock não é conectado automaticamente à configuração atual do app. |
+| `npm start` | Inicia o servidor de desenvolvimento Expo/Metro. |
+| `npm run ios` | Compila e executa o projeto nativo iOS com `expo run:ios`. |
+| `npm run android` | Compila e executa o projeto nativo Android com `expo run:android`. |
+| `npm run mock-api` | Inicia o `json-server` com o conteúdo de `db.json`. |
 
-Não há scripts de lint, formatação ou testes definidos atualmente.
+Não há target web configurado.
 
-## Configuração nativa
+O `db.json` contém somente uma fixture mínima do recurso `donor`. O mock não representa todos os contratos da API e não altera automaticamente a URL usada pelo aplicativo.
 
-As pastas `ios/` e `android/` são versionadas e, nesta fase, são as fontes autoritativas da configuração nativa. Não execute `expo prebuild`, pois ele pode regenerar e sobrescrever essa configuração.
+## Configuração da API
 
-O `ios/Podfile.lock` é versionado e deve permanecer sincronizado com o `Podfile` e com o projeto Xcode. Use `pod install --deployment --clean-install`; não use `pod update` como parte da instalação comum.
-
-## API e ambientes
-
-No estado atual, o endereço da API é definido diretamente em `src/components/APIip.js`, e as telas montam requisições HTTP com Axios e `fetch`. Não existe ainda uma configuração formal e reproduzível por ambiente no frontend.
-
-O script `json-server` fornece um apoio local baseado em `db.json`, mas não substitui nem configura automaticamente a API esperada pelo app. Endereços, transporte seguro e separação de ambientes serão modernizados em etapa futura; não inclua credenciais ou outros dados sensíveis no código.
-
-## Estrutura resumida
+O client HTTP e os services ficam em `src/api/`. A URL base é resolvida por `src/config/api.js`, preferencialmente a partir da variável:
 
 ```text
-index.js                 entrada registrada pelo Expo
-src/App.js               raiz da aplicação e navegação
-src/screens/             telas principais e fluxos de menu, calendário e PIVE
-src/components/          configuração compartilhada e estilos atuais
-src/assets/fonts/        fontes locais
-src/images/              imagens usadas pelas telas
-ios/                     projeto nativo iOS e configuração CocoaPods
-android/                 projeto nativo Android e Gradle Wrapper
-db.json                  dados usados pelo script json-server
+EXPO_PUBLIC_API_URL=<url-da-api>
 ```
 
-O `app.json` referencia ícone, splash e outros arquivos em uma pasta `assets/` na raiz, mas essa pasta não existe atualmente no repositório. Essa inconsistência ainda precisa ser tratada em uma etapa futura.
+Ela pode ser definida no ambiente ou em um arquivo local suportado pelo Expo, como `.env.local`. Não versione credenciais ou configurações privadas.
 
-## Validação básica da instalação
+Quando a variável não é informada, o código ainda usa um endereço HTTP legado como fallback. Esse fallback existe para compatibilidade com o ambiente anterior e não é uma configuração adequada para publicação. Ambientes de deployment devem fornecer explicitamente uma URL HTTPS válida.
 
-Confirme primeiro a baseline compartilhada:
+## Estrutura
+
+```text
+index.js                       entrada registrada pelo Expo
+src/
+├── App.js                     raiz do React e container de navegação
+├── api/                       apiClient, normalização de erros e services
+├── config/                    configuração de runtime, incluindo a API
+├── navigation/                tabs e stacks por domínio
+├── components/                componentes visuais compartilhados
+├── features/
+│   ├── animals/               hooks e componentes de animais
+│   ├── calendar/              hooks, componentes e constantes de agenda
+│   └── pive/                  filtros, hooks, componentes e styles de PIVE
+├── screens/                   route screens e composição dos fluxos
+├── utils/                     helpers compartilhados pequenos
+├── assets/                    fontes locais
+└── images/                    imagens usadas pela interface
+ios/                           projeto nativo iOS e configuração CocoaPods
+android/                       projeto nativo Android e Gradle Wrapper
+db.json                        fixture mínima usada pelo mock-api
+```
+
+As screens concentram intenção do usuário, composição, feedback e navegação. Lifecycles remotos mais complexos vivem em hooks específicos de domínio; os services delimitam o acesso HTTP; componentes de feature cuidam apenas da apresentação e interação visual correspondente.
+
+## Testes
+
+Execute toda a suíte:
 
 ```sh
-node --version
-npm --version
-git status --short
+npm test
 ```
 
-Em um clone limpo, a instalação reproduzível não deve alterar arquivos versionados. Valide cada plataforma quando sua toolchain estiver disponível.
-
-Android — compilação:
+Para gerar o relatório de cobertura:
 
 ```sh
-cd android
-./gradlew :app:assembleDebug
-cd ..
-npm run android
+npm run test:coverage
 ```
 
-iOS — sincronização dos Pods, compilação e inicialização no Simulator:
+A suíte cobre regras puras, datas e filtros, normalização de erros, contratos selecionados de services, lifecycles assíncronos, polling, proteção contra respostas stale, submissions, busca/ranking e alguns componentes interativos. Ela protege os fluxos de maior risco, mas não representa cobertura completa de todas as telas ou plataformas.
 
-```sh
-cd ios
-pod install --deployment --clean-install
-cd ..
-npm run ios
-```
+## Limitações conhecidas
 
-O suporte às duas plataformas é um gate obrigatório: a baseline não é considerada validada se apenas uma delas compilar e iniciar.
+Para desenvolvimento:
 
-Erros como `xcodebuild`, `pod`, Java, Android SDK ou `adb` ausentes, `JAVA_HOME` inválido e falta de Simulator/dispositivo indicam primeiro uma toolchain local incompleta. Erros de compilação depois que essas ferramentas e destinos estão disponíveis devem ser investigados como possível problema do projeto. Finalize repetindo:
+- o Android SDK precisa estar configurado localmente para builds Android;
+- o iOS requer Pods sincronizados e uma combinação funcional de Xcode/Simulator;
+- o Expo SDK 51 é uma stack legada e o verificador de compatibilidade pode sinalizar diferenças ou limitações em toolchains modernas;
+- o mock local cobre apenas uma parte mínima da API.
 
-```sh
-git status --short
-```
+Antes de uma publicação:
 
-## Cuidados importantes
+- substituir o debug signing usado atualmente pelo build release Android;
+- configurar uma URL HTTPS de API por ambiente;
+- confirmar os assets oficiais de branding;
+- confirmar signing, team e bundle identifier do iOS;
+- validar builds e execução em Android e iOS dentro da toolchain escolhida para release;
+- reavaliar os advisories transitivos que dependem de uma futura atualização coordenada do Expo/React Native.
 
-- use `npm ci` para instalações reproduzíveis;
-- não execute `npm audit fix --force`;
-- não execute `expo install --fix`;
-- não execute `expo prebuild`;
-- não atualize Expo, React Native ou outras dependências sem análise prévia de compatibilidade para Android e iOS;
-- não substitua `package-lock.json` nem `ios/Podfile.lock` por locks gerados de forma não controlada.
-
-## Status atual
-
-O frontend original do BovInA está passando por recuperação e modernização incremental. A prioridade atual é estabilizar configuração, builds e ambiente de desenvolvimento preservando o comportamento existente. Arquitetura, ambientes, segurança, testes e demais evoluções serão tratados em etapas posteriores; o projeto não deve ser considerado pronto para produção neste momento.
+Não armazene keystores de release, certificados, tokens ou outros segredos de produção no repositório.
