@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,10 +12,8 @@ import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
 export default ({ route, navigation }) => {
     const { donor } = route.params; 
     const [newDonorName, setName] = useState(donor.name)
-    const [newDonorBreed, setBreed] = useState(donor.breed)
     const [newDonorIndentification, setNumber] = useState(donor.registrationNumber)
-    const [newDonorDateOfBirth, setDateOfBirth] = useState(donor.birth)
-    const [donorId, setDonorId] = useState(donor.id)
+    const [donorId] = useState(donor.id)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const isSubmittingRef = React.useRef(false)
     const isMountedRef = React.useRef(true)
@@ -59,7 +56,7 @@ export default ({ route, navigation }) => {
         setIsSubmitting(true)
 
         try {
-            const result = await updateBullRequest(id, donorData, {
+            await updateBullRequest(id, donorData, {
                 signal: abortController.signal,
             })
 
@@ -69,7 +66,6 @@ export default ({ route, navigation }) => {
                 mutationAbortControllerRef.current !== abortController
             ) return
 
-            console.log(result)
             Alert.alert('Sucesso', 'Touro atualizado com sucesso!')
             navigation.goBack()
         } catch (error) {
@@ -94,21 +90,6 @@ export default ({ route, navigation }) => {
                 setIsSubmitting(false)
             }
         }
-    }
-
-    const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || new Date();
-        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
-        setDateOfBirth(formattedDate)
-    }
-
-    const showDatePicker = () => {
-        DateTimePickerAndroid.open({
-            value: new Date(),
-            mode: 'date',
-            is24Hour: true,
-            onChange: onChangeDate,
-        })
     }
 
     function confirmUpdate() {

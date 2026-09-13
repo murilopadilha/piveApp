@@ -19,7 +19,7 @@ import ScheduleDetailsList from "../features/calendar/components/ScheduleDetails
 import useScheduleCalendar from "../features/calendar/hooks/useScheduleCalendar";
 import { formatLocalCalendarDate } from "../utils/date";
 
-export default (props) => {
+export default () => {
     const [newScheduleDate, setNewScheduleDate] = useState('');
     const [selectedCalendarDate, setSelectedCalendarDate] = useState('');
     const [category, setCategory] = useState('');

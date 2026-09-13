@@ -3,7 +3,6 @@ import { Text, TextInput, View, TouchableOpacity, Alert, ScrollView } from "reac
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import style from "../../components/style";
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { SelectList } from 'react-native-dropdown-select-list';
 import { SafeAreaView } from "react-native-safe-area-context";
 import useOocyteCollectionOptions from '../../features/pive/hooks/useOocyteCollectionOptions';
@@ -57,24 +56,7 @@ export default ({ route, navigation }) => {
         )
     }
 
-    const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || new Date()
-        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
-        setDateOfOocyteCollection(formattedDate)
-    }
-
-    const showDatePicker = () => {
-        DateTimePickerAndroid.open({
-            value: new Date(),
-            mode: 'date',
-            is24Hour: true,
-            onChange: onChangeDate,
-        })
-    }
-
     const handleSave = async () => {
-        console.log(totalOocytes)
-
         const submittedFivId = fiv.id
         const submittedDonorCattleId = donorCattleId
         const submittedBullId = bullId
@@ -92,7 +74,7 @@ export default ({ route, navigation }) => {
             payload,
             errorFallbackMessage: 'Não foi possível salvar a coleta.',
             onSuccess: () => {
-                Alert.alert('Successo', 'Coleta salva com sucesso!')
+                Alert.alert('Sucesso', 'Coleta salva com sucesso!')
                 if (donorCattleIdRef.current === submittedDonorCattleId) {
                     donorCattleIdRef.current = null
                     setDonorCattleId(null)
@@ -117,8 +99,6 @@ export default ({ route, navigation }) => {
     }
 
     const handleSaveAndFinish = async () => {
-        console.log(totalOocytes)
-
         const submittedFivId = fiv.id
         const submittedDonorCattleId = donorCattleId
         const submittedBullId = bullId
@@ -137,7 +117,7 @@ export default ({ route, navigation }) => {
             payload,
             errorFallbackMessage: 'Não foi possível salvar e concluir a coleta.',
             onSuccess: () => {
-                Alert.alert('Successo', 'Coleta salva e concluída com sucesso!')
+                Alert.alert('Sucesso', 'Coleta salva e concluída com sucesso!')
                 if (donorCattleIdRef.current === submittedDonorCattleId) {
                     donorCattleIdRef.current = null
                     setDonorCattleId(null)

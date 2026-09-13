@@ -21,13 +21,11 @@ export default ({ route, navigation }) => {
     const mutationAbortControllerRef = React.useRef(null)
     const appStateRef = React.useRef(AppState.currentState)
     const activeOocyteCollectionIdRef = React.useRef(oocyteCollectionId)
-    const draftContextIdRef = React.useRef(null)
     const draftInitializedIdRef = React.useRef(null)
     const isDraftDirtyRef = React.useRef(false)
     const totalEmbryosRef = React.useRef(totalEmbryos)
 
-    const handleSessionContextReset = React.useCallback((currentOocyteCollectionId) => {
-        draftContextIdRef.current = currentOocyteCollectionId
+    const handleSessionContextReset = React.useCallback(() => {
         draftInitializedIdRef.current = null
         isDraftDirtyRef.current = false
         totalEmbryosRef.current = ''

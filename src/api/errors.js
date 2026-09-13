@@ -8,7 +8,7 @@ export const API_ERROR_TYPES = Object.freeze({
     UNEXPECTED: 'unexpected',
 })
 
-export const isCanceledError = (error) => (
+const isCanceledError = (error) => (
     axios.isCancel(error) || error?.code === AxiosError.ERR_CANCELED
 )
 

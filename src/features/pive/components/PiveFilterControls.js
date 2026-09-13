@@ -1,4 +1,3 @@
-import React from 'react'
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SelectList } from 'react-native-dropdown-select-list'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'

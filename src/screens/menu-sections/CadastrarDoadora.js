@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Text, TextInput, View, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -59,7 +59,7 @@ export default ({ navigation }) => {
         setIsSubmitting(true);
 
         try {
-            const receivers = await createDonor(receiverData, {
+            await createDonor(receiverData, {
                 signal: abortController.signal,
             });
 
@@ -69,7 +69,6 @@ export default ({ navigation }) => {
                 mutationAbortControllerRef.current !== abortController
             ) return;
 
-            console.log(receivers);
             Alert.alert('Sucesso', 'Doadora cadastrada com sucesso!');
             setName('');
             setBreed('');

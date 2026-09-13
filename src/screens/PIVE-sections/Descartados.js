@@ -66,7 +66,7 @@ export default ({ route, navigation }) => {
             payload: discardedEmbryosData,
             submittedCollectionId,
             onSuccess: () => {
-                Alert.alert("Successo", "Embriões descartados com sucesso!")
+                Alert.alert("Sucesso", "Embriões descartados com sucesso!")
                 navigation.goBack()
             },
             onError: (message) => {

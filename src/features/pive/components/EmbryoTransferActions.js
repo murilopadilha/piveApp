@@ -1,4 +1,3 @@
-import React from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6'
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'

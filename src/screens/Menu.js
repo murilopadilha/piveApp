@@ -1,12 +1,7 @@
-import React, {useState} from "react";
 import { Text, View,  TouchableOpacity, StyleSheet, Image, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import LinearGradient from 'react-native-linear-gradient';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-
 import style from "../components/style";
-import CadastrarReceptoras from "./menu-sections/CadastrarReceptora";
 
 export default ({ navigation }) => {
     return (

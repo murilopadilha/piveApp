@@ -1,4 +1,3 @@
-import React from 'react'
 import { View, Platform, StyleSheet } from 'react-native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { BlurView } from 'expo-blur'
@@ -58,7 +57,7 @@ export default function RootTabs() {
         }}>
             <Tab.Screen name="Animais" component={AnimalsStack} options={{
                 headerShown: false,
-                tabBarIcon: ({ color, size, focused }) => {
+                tabBarIcon: ({ focused }) => {
                     if(focused){
                         return <MaterialCommunityIcons name="cow" size={26} color="#092955" />
                     }
@@ -68,7 +67,7 @@ export default function RootTabs() {
             }}/>
             <Tab.Screen name="PIVE" component={PiveStack} options={{
                 headerShown: false,
-                tabBarIcon: ({ color, size, focused }) => {
+                tabBarIcon: ({ focused }) => {
                     if(focused){
                         return <FontAwesome5 name="file-invoice" size={26} color="#092955" />
                     }
@@ -78,7 +77,7 @@ export default function RootTabs() {
             }}/>
             <Tab.Screen name="Calendário" component={CalendarStack} options={{
                 headerShown: false,
-                tabBarIcon: ({ color, size, focused }) => {
+                tabBarIcon: ({ focused }) => {
                     if(focused){
                         return <Entypo name="calendar" size={26} color="#092955" />
                     }

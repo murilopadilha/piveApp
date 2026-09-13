@@ -52,7 +52,6 @@ export default function useReceiverList() {
                 requestId !== requestIdRef.current ||
                 !isScreenFocusedRef.current
             ) return
-            console.error(apiError.message)
             setLoadError(apiError.message)
             setHasLoaded(true)
         } finally {

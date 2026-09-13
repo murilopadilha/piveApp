@@ -3,14 +3,14 @@ export const PIVE_FILTER_CATALOG_MODES = {
     ANIMAL: 'animal',
 }
 
-export const PIVE_STATUS_FILTER_OPTIONS = [
+const PIVE_STATUS_FILTER_OPTIONS = [
     { key: 'ALL', value: 'Todas as FIVs' },
     { key: 'IN_PROCESS', value: 'Em processo' },
     { key: 'OOCYTE_COLLECTION_COMPLETED', value: 'Coleta de oócitos completa' },
     { key: 'COMPLETED', value: 'FIV completa' },
 ]
 
-export const PIVE_ANIMAL_FILTER_OPTIONS = [
+const PIVE_ANIMAL_FILTER_OPTIONS = [
     { key: 'donor', value: 'Doadoras' },
     { key: 'bull', value: 'Touros' },
 ]

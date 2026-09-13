@@ -23,11 +23,6 @@ export const listPregnantReceivers = async ({ signal } = {}) => {
     return response.data
 }
 
-export const removePregnantReceiver = async (id, { signal } = {}) => {
-    const response = await apiClient.delete(`/receiver/pregnant/${id}`, { signal })
-    return response.data
-}
-
 export const createReceiver = async (payload, { signal } = {}) => {
     const response = await apiClient.post('/receiver', payload, { signal })
     return response.data

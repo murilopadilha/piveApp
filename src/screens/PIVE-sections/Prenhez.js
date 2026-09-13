@@ -81,7 +81,6 @@ export default ({ route, navigation }) => {
             ) return
             setError(apiError.message)
             Alert.alert("Erro", "Não foi possível buscar as receptoras")
-            console.error(apiError.message);
         } finally {
             if (requestId === requestIdRef.current) {
                 abortControllerRef.current = null
@@ -185,7 +184,6 @@ export default ({ route, navigation }) => {
             ) return
 
             Alert.alert("Erro", apiError.message)
-            console.error(apiError.message)
         } finally {
             if (mutationAbortControllerRef.current === abortController) {
                 mutationAbortControllerRef.current = null

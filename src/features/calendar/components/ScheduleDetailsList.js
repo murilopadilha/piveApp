@@ -1,4 +1,3 @@
-import React from 'react'
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Feather from '@expo/vector-icons/Feather'
 import Octicons from '@expo/vector-icons/Octicons'

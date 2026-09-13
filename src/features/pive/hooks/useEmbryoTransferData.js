@@ -79,7 +79,6 @@ export default function useEmbryoTransferData({
             ) return
             setCollectionError(apiError.message)
             onLoadErrorRef.current?.(apiError.message)
-            console.error(apiError.message)
         } finally {
             if (requestId === collectionRequestIdRef.current) {
                 collectionAbortControllerRef.current = null
@@ -155,7 +154,6 @@ export default function useEmbryoTransferData({
                 activeFivIdRef.current !== currentFivId
             ) return
 
-            console.log("Transferências recebidas:", transferData)
             setTransfers(transferData)
             loadedTransfersFivIdRef.current = currentFivId
             setHasLoadedTransfers(true)
@@ -173,7 +171,6 @@ export default function useEmbryoTransferData({
             ) return
             setTransfersError(apiError.message)
             onLoadErrorRef.current?.(apiError.message)
-            console.error(apiError.message)
         } finally {
             if (requestId === transfersRequestIdRef.current) {
                 transfersAbortControllerRef.current = null

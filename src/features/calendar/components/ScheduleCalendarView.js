@@ -1,4 +1,3 @@
-import React from 'react'
 import { StyleSheet } from 'react-native'
 import { Calendar } from 'react-native-calendars'
 

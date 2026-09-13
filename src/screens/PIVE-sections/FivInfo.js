@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Alert, AppState } from "react-native";
+import React, { useState } from "react";
+import { Text, View, TouchableOpacity, ScrollView, ActivityIndicator, AppState } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Octicons from '@expo/vector-icons/Octicons';
-import axios from "axios";
 import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
 import piveStyles from "../../features/pive/styles";
 import stylesEmbryos from "../../features/pive/stylesEmbryos";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { IPAdress } from "../../components/APIip";
 import { getFivDetails } from "../../api/fivService";
 import { normalizeApiError } from "../../api/errors";
 
@@ -18,13 +16,6 @@ export default ({ route, navigation }) => {
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [modalVisible, setModalVisible] = useState(false)
-    const [viableEmbryos, setViableEmbryos] = useState([])
-    const [category, setCategory] = useState('')
-    const [receiver, setReceiver] = useState([])
-    const [selectedReceiver, setSelectedReceiver] = useState('')
-    const [cultivationId, setCultivationId] = useState(null)
-    const [embryosRegistered, setEmbryosRegistered] = useState(0)
     const [oocyteCollections, setOocyteCollections] = useState({})
     const isScreenFocusedRef = React.useRef(false)
     const isPollingActiveRef = React.useRef(false)
@@ -36,11 +27,6 @@ export default ({ route, navigation }) => {
     const loadedFivIdRef = React.useRef(null)
 
     activeFivIdRef.current = fiv.id
-
-    const categories = [
-        { key: 'true', value: 'Sim' },
-        { key: 'false', value: 'Não' },
-    ]
 
     useFocusEffect(
         React.useCallback(() => {
@@ -100,9 +86,6 @@ export default ({ route, navigation }) => {
                     setOocyteCollections(responseData ?? {})
                     setData(responseData ?? null)
                     loadedFivIdRef.current = currentFivId
-                    if (responseData?.cultivation) {
-                        setCultivationId(responseData.cultivation.id)
-                    }
                     setError(null)
                 } catch (err) {
                     const apiError = normalizeApiError(err, 'Não foi possível carregar os dados da FIV.')
@@ -179,46 +162,6 @@ export default ({ route, navigation }) => {
         }, [fiv.id])
     )
 
-    useEffect(() => {
-        if (data && data.cultivation) {
-            const embryos = Array.isArray(data.cultivation.viableEmbryos) ? data.cultivation.viableEmbryos : []
-            setViableEmbryos(embryos)
-        }
-    }, [data])
-
-    const openModal = async () => {
-        setModalVisible(true)
-    }
-
-    const handleSave = async () => {
-        if (!cultivationId || category === '' || !selectedReceiver) {
-            Alert.alert("Por favor, preencha todos os campos.")
-            return
-        }
-
-        try {
-            const receiverId = receiver.find(rec => rec.name === selectedReceiver)?.id || 0
-
-            if (embryosRegistered >= (data.cultivation.viableEmbryos || 0)) {
-                Alert.alert("Todos os embriões desse cultivo já foram registrados.")
-                return;
-            }
-
-            const response = await axios.post(`http://${IPAdress}/embryo`, {
-                cultivationId: cultivationId,
-                frozen: category === 'true',
-                receiverCattleId: receiverId
-            })
-
-            await fetchEmbryosRegistered(cultivationId)
-            setCategory('')
-            setSelectedReceiver('')
-            setModalVisible(false)
-        } catch (err) {
-            console.error("Erro ao salvar os dados:", err.message)
-        }
-    }
-
     if (loading) {
         return <ActivityIndicator size="large" color="#092955" />
     }
@@ -227,8 +170,6 @@ export default ({ route, navigation }) => {
         return <Text>Error: {error}</Text>
     }
 
-    const oocyteCollection = data || {}
-    const cultivation = data?.cultivation || {}
     const collections = Array.isArray(oocyteCollections?.oocyteCollections)
         ? oocyteCollections.oocyteCollections
         : []

@@ -13,7 +13,6 @@ import piveStyles from '../../features/pive/styles';
 
 export default ({ route, navigation }) => {
     const { fiv, id } = route.params
-    const [newFarm, setFarm] = useState('')
     const [selectedTransfer, setSelectedTransfer] = useState(null) 
     const [selectedReceiver, setSelectedReceiver] = useState(null)  
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -29,7 +28,6 @@ export default ({ route, navigation }) => {
     const handleTransfersContextReset = React.useCallback(() => {
         setSelectedTransfer(null)
         setSelectedReceiver(null)
-        setFarm('')
     }, [])
     const {
         oocyteCollection,
@@ -83,21 +81,10 @@ export default ({ route, navigation }) => {
     )
 
     const handleTransferSelect = selected => {
-        console.log("Transferência selecionada:", selected);
         setSelectedTransfer(selected);
-
-        const selectedData = transfers.find(item => item.id.toString() === selected)
-        console.log("Dados da transferência selecionada:", selectedData)
-
-        if (selectedData) {
-            setFarm(selectedData.farm);
-        } else {
-            console.log("Transferência não encontrada.");
-        }
     }
 
     const handleRecipientSelect = selected => {
-        console.log("Receptora selecionada:", selected);
         const selectedData = recipients.find(item => item.id.toString() === selected);
         if (selectedData) {
             setSelectedReceiver(selectedData.id);
@@ -161,7 +148,7 @@ export default ({ route, navigation }) => {
                 activeCollectionIdRef.current !== submittedCollectionId
             ) return
 
-            Alert.alert("Successo", "Transferência salva com sucesso.")
+            Alert.alert("Sucesso", "Transferência salva com sucesso.")
         } catch (requestError) {
             const apiError = normalizeApiError(requestError, 'Ocorreu um erro')
             if (apiError.isCanceled) return
@@ -174,7 +161,6 @@ export default ({ route, navigation }) => {
             ) return
 
             Alert.alert("Erro", apiError.message)
-            console.error(apiError.message)
         } finally {
             if (mutationAbortControllerRef.current === abortController) {
                 mutationAbortControllerRef.current = null

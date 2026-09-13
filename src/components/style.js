@@ -1,10 +1,6 @@
 import { Platform, StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
-  app:{
-    margin: 0,
-    padding: 0,
-  },
   menu: {
     backgroundColor: '#F1F2F4',
   },
@@ -73,12 +69,6 @@ export default StyleSheet.create({
   buttonText: {
     color: '#FFFFFF'
   },
-  bottomBorder: {
-    height: 7, 
-  },
-  dateComponent: {
-    width: 350,
-  },
   dateInput: {
     borderColor: 'transparent',
     backgroundColor: '#fff',
@@ -110,15 +100,6 @@ export default StyleSheet.create({
     shadowRadius: 4, 
     elevation: 5,
   },
-  listItemEmbryo: {
-    backgroundColor: '#F1F2F4',
-    padding: 15,
-    marginTop: 10,
-    borderRadius: 10,
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
   listText: {
     fontSize: Platform.OS === 'ios' ? 14 : 10,
     color: '#000'
@@ -147,11 +128,6 @@ export default StyleSheet.create({
     marginLeft: 5,
     textAlign: 'center'
   },
-  listButtonTextEdit: {
-    color: '#FFFFFF',
-    marginLeft: 2,
-    textAlign: "center",
-  },
   listButtonDelete: {
     borderColor: '#ccc',
     padding: '1%',
@@ -163,43 +139,11 @@ export default StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly'
   },
-  listButtonTextDelete: {
-    color: '#FFFFFF',
-    textAlign: 'center'
-  },
   listButtons: {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  listItemDonor: {
-    backgroundColor: '#FFFFFF',
-    padding: 15,
-    marginTop: 10,
-    borderRadius: 10,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between'
-  },
-  listButtonsDonor: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginTop: 2,
-  },
-  listButtonDeleteDonor: {
-    backgroundColor: '#092955',
-    padding: 4,
-    width: 50,
-    borderRadius: 8,
-    marginLeft: 3
-  },
-  listButtonEditDonor: {
-    backgroundColor: '#092955',
-    padding: 4,
-    width: 50,
-    borderRadius: 8,
-    marginBottom: 3
   },
   search: {
     display: 'flex',
@@ -207,18 +151,6 @@ export default StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   }, 
-  inputSelect: {
-    borderColor: '#092955',
-    borderWidth: 3,
-    borderRadius: 8, 
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: 40,
-    marginLeft: 20,
-    marginRight: 20,
-    marginTop: 10,
-    fontSize: Platform.OS === 'ios' ? 14 : 10,
-  },
   scheduleButton: {
     backgroundColor: '#092955',
     width: 70,

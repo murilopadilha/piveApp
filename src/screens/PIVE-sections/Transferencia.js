@@ -95,7 +95,7 @@ export default ({ route, navigation }) => {
                 activeFivIdRef.current !== submittedFivId
             ) return
 
-            Alert.alert("Successo", "Transferência salva com sucesso.")
+            Alert.alert("Sucesso", "Transferência salva com sucesso.")
 
             if (responsibleRef.current === submittedResponsible) {
                 responsibleRef.current = ''

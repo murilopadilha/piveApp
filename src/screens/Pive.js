@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Text, View, TouchableOpacity, ScrollView, Alert, Platform, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import style from '../components/style';
-import { createFiv } from '../api/fivService';
-import { normalizeApiError } from '../api/errors';
 import {
     PIVE_FILTER_CATALOG_MODES,
     getPiveFilterToggleIcon,
@@ -53,7 +51,7 @@ export default ({ navigation }) => {
         value: cat.value
     }))
 
-    const handleSelect = async (selectedKey) => {
+    const handleSelect = (selectedKey) => {
         const selectedCategory = primaryFilterOptions.find(cat => cat.key === selectedKey)
         if (selectedCategory) {
             setActiveFilter(selectedCategory.key)
@@ -67,18 +65,6 @@ export default ({ navigation }) => {
         if (selected) {
             setSelectedAnimalId(selectedKey)
             onSelectedAnimalChange(selectedKey)
-        }
-    }
-
-    const handleNewFIV = async () => {
-        try {
-            await createFiv();
-            Alert.alert("Sucesso", "FIV criada com sucesso!", [{ text: "OK" }])
-        } catch (error) {
-            const apiError = normalizeApiError(error, 'Ocorreu um erro ao processar sua requisição.')
-            if (apiError.isCanceled) return
-            console.error(apiError.message)
-            Alert.alert('Erro', 'Ocorreu um erro ao processar sua requisição.')
         }
     }
 

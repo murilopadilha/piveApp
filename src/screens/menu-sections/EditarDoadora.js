@@ -39,7 +39,7 @@ export default ({ route, navigation }) => {
     const [newDonorBreed, setBreed] = useState(donor.breed)
     const [newDonorIndentification, setNumber] = useState(donor.registrationNumber)
     const [newDonorDateOfBirth, setDateOfBirth] = useState(donor.birth)
-    const [donorId, setDonorId] = useState(donor.id)
+    const [donorId] = useState(donor.id)
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const isSubmittingRef = React.useRef(false)
@@ -85,7 +85,7 @@ export default ({ route, navigation }) => {
         setIsSubmitting(true)
 
         try {
-            const result = await updateDonorRequest(id, donorData, {
+            await updateDonorRequest(id, donorData, {
                 signal: abortController.signal,
             })
 
@@ -95,7 +95,6 @@ export default ({ route, navigation }) => {
                 mutationAbortControllerRef.current !== abortController
             ) return
 
-            console.log(result)
             Alert.alert('Sucesso', 'Doadora atualizada com sucesso!')
             navigation.goBack()
         } catch (error) {
@@ -106,7 +105,6 @@ export default ({ route, navigation }) => {
                 !isScreenFocusedRef.current ||
                 mutationAbortControllerRef.current !== abortController
             ) return
-            console.error('Erro ao atualizar o doador:', apiError.message)
             if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
                 Alert.alert('Erro', 'Erro ao enviar dados')
                 return

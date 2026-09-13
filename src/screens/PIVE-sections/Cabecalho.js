@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { createFiv } from "../../api/fivService";
 import { normalizeApiError } from "../../api/errors";
 
-export default ({ route, navigation }) => {
+export default ({ navigation }) => {
     const [newOocyteCollectionDate, setDateOfOocyteCollection] = useState('');
     const [farm, setFarm] = useState('');
     const [client, setClient] = useState('');

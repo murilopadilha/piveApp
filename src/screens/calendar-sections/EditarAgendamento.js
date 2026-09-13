@@ -93,7 +93,7 @@ export default () => {
         setIsSubmitting(true)
 
         try {
-            const result = await updateSchedule(scheduleId, payload, {
+            await updateSchedule(scheduleId, payload, {
                 signal: abortController.signal,
             })
 
@@ -104,7 +104,6 @@ export default () => {
             ) return
 
             Alert.alert("Sucesso", "Agendamento editado com sucesso!")
-            console.log(result)
             navigation.goBack()
 
         } catch (error) {
@@ -127,7 +126,7 @@ export default () => {
         }
     }
 
-    const handleSchedule = async () => {
+    const handleSchedule = () => {
         if (!scheduleDate || !category) {
             Alert.alert("Erro", "Por favor, selecione a data e a categoria.")
             return
