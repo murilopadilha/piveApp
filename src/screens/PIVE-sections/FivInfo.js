@@ -1,124 +1,194 @@
-import React, { useState, useEffect } from "react";
-import { Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
+import React, { useState } from "react";
+import { Text, View, TouchableOpacity, ScrollView, ActivityIndicator, AppState } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Octicons from '@expo/vector-icons/Octicons';
-import axios from "axios";
+import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
-import stylesEmbryos from "../../components/stylesEmbryos";
+import piveStyles from "../../features/pive/styles";
+import stylesEmbryos from "../../features/pive/stylesEmbryos";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { IPAdress } from "../../components/APIip";
+import { getFivDetails } from "../../api/fivService";
+import { normalizeApiError } from "../../api/errors";
 
 export default ({ route, navigation }) => {
     const { fiv } = route.params
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [modalVisible, setModalVisible] = useState(false)
-    const [viableEmbryos, setViableEmbryos] = useState([])
-    const [category, setCategory] = useState('')
-    const [receiver, setReceiver] = useState([])
-    const [selectedReceiver, setSelectedReceiver] = useState('')
-    const [cultivationId, setCultivationId] = useState(null)
-    const [embryosRegistered, setEmbryosRegistered] = useState(0)
-    const [oocyteCollections, setOocyteCollections] = useState([])
+    const [oocyteCollections, setOocyteCollections] = useState({})
+    const isScreenFocusedRef = React.useRef(false)
+    const isPollingActiveRef = React.useRef(false)
+    const appStateRef = React.useRef(AppState.currentState)
+    const pollingTimeoutRef = React.useRef(null)
+    const pollingAbortControllerRef = React.useRef(null)
+    const pollingRequestIdRef = React.useRef(0)
+    const activeFivIdRef = React.useRef(fiv.id)
+    const loadedFivIdRef = React.useRef(null)
 
-    const categories = [
-        { key: 'true', value: 'Sim' },
-        { key: 'false', value: 'Não' },
-    ]
+    activeFivIdRef.current = fiv.id
 
-    const fetchData = async () => {
-        try {
-            const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`)
-            setOocyteCollections(response.data)
-            if (Array.isArray(response.data) && response.data.length > 0) {
-                const fetchedData = response.data[0]
-                setData(fetchedData)
-                if (fetchedData.cultivation) {
-                    setCultivationId(fetchedData.cultivation.id)
-                }
-            } else {
+    useFocusEffect(
+        React.useCallback(() => {
+            const currentFivId = fiv.id
+
+            isScreenFocusedRef.current = true
+            appStateRef.current = AppState.currentState
+            isPollingActiveRef.current = AppState.currentState === 'active'
+
+            if (loadedFivIdRef.current !== currentFivId) {
+                loadedFivIdRef.current = null
                 setData(null)
-            }
-        } catch (err) {
-            setError(err.message)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    useEffect(() => {
-        fetchData()
-
-        const intervalId = setInterval(() => {
-            fetchData()
-        }, 3000)
-
-        return () => clearInterval(intervalId)
-    }, [fiv])
-
-    useEffect(() => {
-        if (data && data.cultivation) {
-            const embryos = Array.isArray(data.cultivation.viableEmbryos) ? data.cultivation.viableEmbryos : []
-            setViableEmbryos(embryos)
-        }
-    }, [data])
-
-    const openModal = async () => {
-        setModalVisible(true)
-    }
-
-    const handleSave = async () => {
-        if (!cultivationId || category === '' || !selectedReceiver) {
-            Alert.alert("Por favor, preencha todos os campos.")
-            return
-        }
-
-        try {
-            const receiverId = receiver.find(rec => rec.name === selectedReceiver)?.id || 0
-
-            if (embryosRegistered >= (data.cultivation.viableEmbryos || 0)) {
-                Alert.alert("Todos os embriões desse cultivo já foram registrados.")
-                return;
+                setOocyteCollections({})
+                setError(null)
+                setLoading(true)
             }
 
-            const response = await axios.post(`http://${IPAdress}/embryo`, {
-                cultivationId: cultivationId,
-                frozen: category === 'true',
-                receiverCattleId: receiverId
-            })
+            function scheduleNextPoll() {
+                if (
+                    !isPollingActiveRef.current ||
+                    !isScreenFocusedRef.current ||
+                    appStateRef.current !== 'active' ||
+                    activeFivIdRef.current !== currentFivId
+                ) return
 
-            await fetchEmbryosRegistered(cultivationId)
-            setCategory('')
-            setSelectedReceiver('')
-            setModalVisible(false)
-        } catch (err) {
-            console.error("Erro ao salvar os dados:", err.message)
-        }
-    }
+                pollingTimeoutRef.current = setTimeout(() => {
+                    pollingTimeoutRef.current = null
+                    runPollingCycle()
+                }, 3000)
+            }
+
+            async function runPollingCycle() {
+                if (
+                    !isPollingActiveRef.current ||
+                    !isScreenFocusedRef.current ||
+                    appStateRef.current !== 'active' ||
+                    activeFivIdRef.current !== currentFivId
+                ) return
+
+                const abortController = new AbortController()
+                pollingAbortControllerRef.current = abortController
+                const requestId = ++pollingRequestIdRef.current
+
+                try {
+                    const responseData = await getFivDetails(currentFivId, {
+                        signal: abortController.signal,
+                    })
+
+                    if (
+                        requestId !== pollingRequestIdRef.current ||
+                        !isPollingActiveRef.current ||
+                        !isScreenFocusedRef.current ||
+                        appStateRef.current !== 'active' ||
+                        activeFivIdRef.current !== currentFivId
+                    ) return
+
+                    setOocyteCollections(responseData ?? {})
+                    setData(responseData ?? null)
+                    loadedFivIdRef.current = currentFivId
+                    setError(null)
+                } catch (err) {
+                    const apiError = normalizeApiError(err, 'Não foi possível carregar os dados da FIV.')
+                    if (apiError.isCanceled) return
+                    if (
+                        requestId !== pollingRequestIdRef.current ||
+                        !isPollingActiveRef.current ||
+                        !isScreenFocusedRef.current ||
+                        appStateRef.current !== 'active' ||
+                        activeFivIdRef.current !== currentFivId
+                    ) return
+                    setError(apiError.message)
+                } finally {
+                    if (requestId === pollingRequestIdRef.current) {
+                        pollingAbortControllerRef.current = null
+                        if (
+                            isPollingActiveRef.current &&
+                            isScreenFocusedRef.current &&
+                            appStateRef.current === 'active' &&
+                            activeFivIdRef.current === currentFivId
+                        ) {
+                            setLoading(false)
+                            scheduleNextPoll()
+                        }
+                    }
+                }
+            }
+
+            const handleAppStateChange = (nextAppState) => {
+                const wasActive = appStateRef.current === 'active'
+                appStateRef.current = nextAppState
+
+                if (nextAppState !== 'active') {
+                    isPollingActiveRef.current = false
+                    if (pollingTimeoutRef.current) {
+                        clearTimeout(pollingTimeoutRef.current)
+                        pollingTimeoutRef.current = null
+                    }
+                    pollingRequestIdRef.current += 1
+                    pollingAbortControllerRef.current?.abort()
+                    pollingAbortControllerRef.current = null
+                    return
+                }
+
+                if (!isScreenFocusedRef.current || wasActive) return
+
+                isPollingActiveRef.current = true
+                runPollingCycle()
+            }
+
+            const appStateSubscription = AppState.addEventListener(
+                'change',
+                handleAppStateChange
+            )
+
+            if (isPollingActiveRef.current) {
+                runPollingCycle()
+            }
+
+            return () => {
+                isScreenFocusedRef.current = false
+                isPollingActiveRef.current = false
+
+                if (pollingTimeoutRef.current) {
+                    clearTimeout(pollingTimeoutRef.current)
+                    pollingTimeoutRef.current = null
+                }
+
+                pollingRequestIdRef.current += 1
+                pollingAbortControllerRef.current?.abort()
+                pollingAbortControllerRef.current = null
+                appStateSubscription.remove()
+            }
+        }, [fiv.id])
+    )
 
     if (loading) {
         return <ActivityIndicator size="large" color="#092955" />
     }
 
-    if (error) {
+    if (error && !data) {
         return <Text>Error: {error}</Text>
     }
 
-    const oocyteCollection = data || {}
-    const cultivation = data?.cultivation || {}
+    const collections = Array.isArray(oocyteCollections?.oocyteCollections)
+        ? oocyteCollections.oocyteCollections
+        : []
 
     return (
         <SafeAreaView style={stylesEmbryos.container}>
             <View style={style.divTitle}>
                 <TouchableOpacity onPress={() => navigation.navigate('Pive')}>
-                    <View style={{ marginRight: '15%' }}>
+                    <View style={piveStyles.backButton}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
                 <Text style={style.titleText}>Informação da FIV</Text>
             </View>
+            {error && (
+                <Text style={piveStyles.loadError}>
+                    Error: {error}
+                </Text>
+            )}
             <ScrollView style={[stylesEmbryos.scrollContainer, { marginHorizontal: 20 }]} contentContainerStyle={{ paddingBottom: '30%' }}
             showsVerticalScrollIndicator={false}>
                 <View style={stylesEmbryos.section}>
@@ -162,28 +232,28 @@ export default ({ route, navigation }) => {
                         <Text style={stylesEmbryos.label}>Viáveis</Text>
                         <Text style={stylesEmbryos.label}>Emb%</Text>
                     </View>
-                    {oocyteCollections.oocyteCollections.map((collection, index) => {
+                    {collections.map((collection, index) => {
                         const backgroundColor = index % 2 === 0 ? '#fff' : 'transparent';
                         return (
-                            <View key={index} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', backgroundColor }}>
+                            <View key={collection.id != null ? `collection-${collection.id}` : `collection-index-${index}`} style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', backgroundColor }}>
                                 <View style={{ width: '3%' }}>
                                     <Text style={[stylesEmbryos.value, { fontSize: 10 }]}>{index + 1}</Text>
                                 </View>
                                 <View style={{ width: '24%' }}>
-                                    <Text style={stylesEmbryos.value}>{collection.donorCattle.registrationNumber}</Text>
+                                    <Text style={stylesEmbryos.value}>{collection.donorCattle?.registrationNumber || '-'}</Text>
                                 </View>
                                 <View style={{ width: '22%' }}>
-                                    <Text style={stylesEmbryos.value}>{collection.bull.registrationNumber}</Text>
+                                    <Text style={stylesEmbryos.value}>{collection.bull?.registrationNumber || '-'}</Text>
                                 </View>
                                 <View style={{ width: '10%', marginLeft: '5%' }}>
-                                    <Text style={stylesEmbryos.value}>{collection.totalOocytes}</Text>
+                                    <Text style={stylesEmbryos.value}>{collection.totalOocytes ?? '-'}</Text>
                                 </View>
                                 <View style={{ width: '7%', marginLeft: '8%' }}>
-                                    <Text style={stylesEmbryos.value}>{collection.viableOocytes}</Text>
+                                    <Text style={stylesEmbryos.value}>{collection.viableOocytes ?? '-'}</Text>
                                 </View>
                                 <View style={{ width: '20%', marginLeft: '8%' }}>
                                     {collection.embryoProduction
-                                        ? <Text style={stylesEmbryos.value}>{collection.embryoProduction.embryosPercentage || '-'}</Text>
+                                        ? <Text style={stylesEmbryos.value}>{collection.embryoProduction.embryosPercentage ?? '-'}</Text>
                                         : <Text style={stylesEmbryos.value}>-</Text>
                                     }
                                 </View>
@@ -195,11 +265,11 @@ export default ({ route, navigation }) => {
                         <View style={stylesEmbryos.oocytesRow}>
                             <View style={stylesEmbryos.oocytesItem}>
                                 <Text style={stylesEmbryos.label}>Total:</Text>
-                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivTotalOocytesCollected || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivTotalOocytesCollected ?? '-'}</Text>
                             </View>
                             <View style={stylesEmbryos.oocytesItem}>
                                 <Text style={stylesEmbryos.label}>Viáveis:</Text>
-                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivTotalViableOocytesCollected || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivTotalViableOocytesCollected ?? '-'}</Text>
                             </View>
                         </View>
                     </View>
@@ -208,31 +278,31 @@ export default ({ route, navigation }) => {
                         <View style={{display: 'flex', flexDirection: 'row', marginBottom: '4%'}}>
                             <View style={stylesEmbryos.cultivationItem}>
                                 <Text style={stylesEmbryos.label}>Total de Embriões:</Text>
-                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivTotalEmbryos || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivTotalEmbryos ?? '-'}</Text>
                             </View>
                             <View style={stylesEmbryos.cultivationItem}>
                                 <Text style={stylesEmbryos.label}>Porcentual Embriões:</Text>
-                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivEmbryosPercentage || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivEmbryosPercentage ?? '-'}</Text>
                             </View>
                         </View>
                         <View style={{display: 'flex', flexDirection: 'row', marginBottom: '4%'}}>
                             <View style={stylesEmbryos.cultivationItem}>
                                 <Text style={stylesEmbryos.label}>Registrados:</Text>
-                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivEmbryosRegistered || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivEmbryosRegistered ?? '-'}</Text>
                             </View>
                             <View style={stylesEmbryos.cultivationItem}>
                                 <Text style={stylesEmbryos.label}>Transferidos:</Text>
-                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivNumberTransferredEmbryos || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivNumberTransferredEmbryos ?? '-'}</Text>
                             </View>
                         </View>
                         <View style={{display: 'flex', flexDirection: 'row', marginBottom: '3%'}}>
                             <View style={stylesEmbryos.cultivationItem}>
                                 <Text style={stylesEmbryos.label}>Congelados:</Text>
-                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivNumberFrozenEmbryos || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivNumberFrozenEmbryos ?? '-'}</Text>
                             </View>
                             <View style={stylesEmbryos.cultivationItem}>
                                 <Text style={stylesEmbryos.label}>Descartados:</Text>
-                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivNumberDiscardedEmbryos || '-'}</Text>
+                                <Text style={stylesEmbryos.value}>{oocyteCollections.fivNumberDiscardedEmbryos ?? '-'}</Text>
                             </View>
                         </View>
                     </View>
@@ -244,13 +314,13 @@ export default ({ route, navigation }) => {
                             <View style={stylesEmbryos.cultivationItem}>
                                 <Text style={stylesEmbryos.label}>Total de Prenhez:</Text>
                                 <Text style={stylesEmbryos.value}>
-                                    {oocyteCollections.fivNumberPregnancies || '-'}
+                                    {oocyteCollections.fivNumberPregnancies ?? '-'}
                                 </Text>
                             </View>
                             <View style={stylesEmbryos.cultivationItem}>
                                 <Text style={stylesEmbryos.label}>% de Prenhez:</Text>
                                 <Text style={stylesEmbryos.value}>
-                                    {oocyteCollections.fivPregnancyPercentage || '-'}
+                                    {oocyteCollections.fivPregnancyPercentage ?? '-'}
                                 </Text>
                             </View>
                         </View>
@@ -258,21 +328,21 @@ export default ({ route, navigation }) => {
                     <View style={{ display: 'flex', flexDirection: 'row' }}>
                         <TouchableOpacity
                             onPress={() => navigation.navigate('Embrioes', { fiv: fiv })}
-                            style={[style.listButtonEdit, { marginTop: 0, marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
+                            style={[style.listButtonEdit, { marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
                         >
                             <FontAwesome6 name="clipboard-list" size={20} color="#E0E0E0" />
                             <Text style={{ color: '#E0E0E0', paddingTop: 1, paddingLeft: 5 }}>Embriões</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => navigation.navigate('Prenhez', { fiv: fiv })}
-                            style={[style.listButtonEdit, { marginTop: 0, marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
+                            style={[style.listButtonEdit, { marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
                         >
                             <FontAwesome6 name="cow" size={20} color="#E0E0E0" />
                             <Text style={{ color: '#E0E0E0', paddingTop: 1, paddingLeft: 3, paddingRight: 3 }}>Prenhez</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => navigation.navigate('ColetaOocitos', { fiv: fiv })}
-                            style={[style.listButtonEdit, { marginTop: 0, marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
+                            style={[style.listButtonEdit, { marginLeft: 15, marginTop: 40, marginBottom: 10, height: 30, width: 90 }]}
                         >
                             <Octicons name="pencil" size={20} color="#E0E0E0" />
                             <Text style={{ color: '#E0E0E0', paddingTop: 1 }}>Registrar</Text>

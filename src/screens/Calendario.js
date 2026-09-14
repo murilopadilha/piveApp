@@ -1,41 +1,86 @@
-import React, { useState, useEffect } from "react";
-import { Text, View, TouchableOpacity, Alert, ScrollView, Image } from "react-native";
+import React, { useState } from "react";
+import { Text, View, TouchableOpacity, Alert, Image, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Calendar } from 'react-native-calendars';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { SelectList } from 'react-native-dropdown-select-list';
-import { useNavigation } from '@react-navigation/native';
-import Octicons from '@expo/vector-icons/Octicons';
-import Feather from '@expo/vector-icons/Feather';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
 import style from "../components/style"; 
-import { IPAdress } from "../components/APIip";
+import {
+    createSchedule,
+    deleteSchedule,
+} from "../api/scheduleService";
+import { normalizeApiError } from "../api/errors";
+import { SCHEDULE_PROCEDURE_TYPES } from "../features/calendar/constants";
+import ScheduleCalendarView from "../features/calendar/components/ScheduleCalendarView";
+import ScheduleDetailsList from "../features/calendar/components/ScheduleDetailsList";
+import useScheduleCalendar from "../features/calendar/hooks/useScheduleCalendar";
+import { formatLocalCalendarDate } from "../utils/date";
 
-export default (props) => {
-    const [scheduleDate, setScheduleDate] = useState('');
+export default () => {
+    const [newScheduleDate, setNewScheduleDate] = useState('');
+    const [selectedCalendarDate, setSelectedCalendarDate] = useState('');
     const [category, setCategory] = useState('');
-    const [markedDates, setMarkedDates] = useState({});
-    const [selectedDateDetails, setSelectedDateDetails] = useState([]);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [isCreatingSchedule, setIsCreatingSchedule] = useState(false);
+    const [isDeletingSchedule, setIsDeletingSchedule] = useState(false);
+    const handleLoadError = React.useCallback((message) => {
+        Alert.alert("Erro", message);
+    }, []);
+    const {
+        markedDates,
+        selectedDateDetails,
+        reloadScheduledDates,
+        reloadDateDetails,
+        clearDateDetails,
+    } = useScheduleCalendar({
+        selectedCalendarDate,
+        onLoadError: handleLoadError,
+    });
+    const isMountedRef = React.useRef(true);
+    const isScreenFocusedRef = React.useRef(false);
+    const selectedCalendarDateRef = React.useRef(selectedCalendarDate);
+    const isCreatingScheduleRef = React.useRef(false);
+    const isDeletingScheduleRef = React.useRef(false);
+    const createScheduleAbortControllerRef = React.useRef(null);
+    const deleteScheduleAbortControllerRef = React.useRef(null);
 
     const navigation = useNavigation();
 
-    const categories = [
-        { key: 'OOCYTE_COLLECTION', value: 'Coleta de Oócito' },
-        { key: 'IN_VITRO_MATURATION', value: 'Maturação In Vitro' },
-        { key: 'IN_VITRO_FERTILIZATION', value: 'Fertilização In Vitro' },
-        { key: 'EMBRYO_TRANSFER', value: 'Transferência de Embrião' },
-    ];
+    selectedCalendarDateRef.current = selectedCalendarDate;
 
-    const categoryData = categories.map(cat => ({
+    React.useEffect(() => {
+        isMountedRef.current = true;
+
+        return () => {
+            isMountedRef.current = false;
+            createScheduleAbortControllerRef.current?.abort();
+            createScheduleAbortControllerRef.current = null;
+            deleteScheduleAbortControllerRef.current?.abort();
+            deleteScheduleAbortControllerRef.current = null;
+        };
+    }, []);
+
+    const categoryData = SCHEDULE_PROCEDURE_TYPES.map(cat => ({
         key: cat.key,
         value: cat.value
     }));
 
+    const calendarMarkedDates = selectedCalendarDate
+        ? {
+            ...markedDates,
+            [selectedCalendarDate]: {
+                ...markedDates[selectedCalendarDate],
+                selected: true,
+                selectedColor: '#092955',
+            },
+        }
+        : markedDates;
+
     const handleSelect = (selectedKey) => {
-        const selectedCategory = categories.find(cat => cat.key === selectedKey);
+        const selectedCategory = SCHEDULE_PROCEDURE_TYPES.find(cat => cat.key === selectedKey);
         if (selectedCategory) {
             setCategory(selectedCategory.key);
         }
@@ -50,111 +95,155 @@ export default (props) => {
     };
 
     const handleConfirm = (date) => {
-        const formattedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`;
-        setScheduleDate(formattedDate);
+        const formattedDate = formatLocalCalendarDate(date);
+        setNewScheduleDate(formattedDate);
         hideDatePicker();
     };
 
     const handleSchedule = async () => {
-        if (!scheduleDate || !category) {
+        if (!newScheduleDate || !category) {
             Alert.alert("Erro", "Por favor, selecione a data e a categoria.");
             return;
         }
 
+        if (isCreatingScheduleRef.current) return;
+
+        const scheduleDate = newScheduleDate;
+        const scheduleCategory = category;
+        const abortController = new AbortController();
+        isCreatingScheduleRef.current = true;
+        createScheduleAbortControllerRef.current = abortController;
+        setIsCreatingSchedule(true);
+
         try {
-            const response = await fetch(`http://${IPAdress}/schedule`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    procedureType: category,
-                    date: scheduleDate,
-                }),
+            await createSchedule({
+                procedureType: scheduleCategory,
+                date: scheduleDate,
+            }, {
+                signal: abortController.signal,
             });
 
-            if (!response.ok) {
-                throw new Error('Falha na solicitação');
+            if (
+                !isScreenFocusedRef.current ||
+                createScheduleAbortControllerRef.current !== abortController
+            ) return;
+
+            await reloadScheduledDates();
+            if (
+                !isScreenFocusedRef.current ||
+                createScheduleAbortControllerRef.current !== abortController
+            ) return;
+
+            if (selectedCalendarDateRef.current === scheduleDate) {
+                await reloadDateDetails(scheduleDate);
             }
 
+            if (
+                !isScreenFocusedRef.current ||
+                createScheduleAbortControllerRef.current !== abortController
+            ) return;
             Alert.alert("Sucesso", "Agendamento realizado com sucesso!");
-            fetchScheduledDates();
 
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro: ${error.message}`);
-        }
-    };
-
-    const fetchScheduledDates = async () => {
-        try {
-            const response = await fetch(`http://${IPAdress}/schedule`);
-            if (!response.ok) {
-                throw new Error('Falha na solicitação');
+            const apiError = normalizeApiError(error, 'Ocorreu um erro ao criar o agendamento.');
+            if (apiError.isCanceled) return;
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                createScheduleAbortControllerRef.current !== abortController
+            ) return;
+            Alert.alert("Erro", apiError.message);
+        } finally {
+            if (createScheduleAbortControllerRef.current === abortController) {
+                createScheduleAbortControllerRef.current = null;
             }
-            const data = await response.json();
-
-            const dates = {};
-            data.forEach(item => {
-                dates[item.date] = {
-                    selected: true,
-                    marked: true,
-                    selectedColor: '#092955',
-                };
-            });
-
-            setMarkedDates(dates);
-
-        } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao buscar datas agendadas: ${error.message}`);
-        }
-    };
-
-    const fetchDateDetails = async (date) => {
-        try {
-            const response = await fetch(`http://${IPAdress}/schedule/search?date=${date}`);
-            if (!response.ok) {
-                throw new Error('Falha na solicitação');
+            isCreatingScheduleRef.current = false;
+            if (isMountedRef.current) {
+                setIsCreatingSchedule(false);
             }
-            const data = await response.json();
-
-            const details = data.map(item => ({
-                id: item.id,
-                procedureType: categories.find(cat => cat.key === item.procedureType)?.value || item.procedureType,
-                date: item.date,
-            }));
-            setSelectedDateDetails(details);
-        } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao buscar detalhes: ${error.message}`);
         }
     };
 
     const handleDelete = async (id) => {
+        if (isDeletingScheduleRef.current) return;
+
+        isDeletingScheduleRef.current = true;
+        const abortController = new AbortController();
+        deleteScheduleAbortControllerRef.current = abortController;
+        setIsDeletingSchedule(true);
+
         try {
-            const response = await fetch(`http://${IPAdress}/schedule/${id}`, {
-                method: 'DELETE',
+            await deleteSchedule(id, {
+                signal: abortController.signal,
             });
 
-            if (!response.ok) {
-                throw new Error('Falha na solicitação');
+            if (
+                !isScreenFocusedRef.current ||
+                deleteScheduleAbortControllerRef.current !== abortController
+            ) return;
+
+            await reloadScheduledDates();
+            if (
+                !isScreenFocusedRef.current ||
+                deleteScheduleAbortControllerRef.current !== abortController
+            ) return;
+
+            const currentSelectedDate = selectedCalendarDateRef.current;
+            if (currentSelectedDate) {
+                await reloadDateDetails(currentSelectedDate);
             }
 
+            if (
+                !isScreenFocusedRef.current ||
+                deleteScheduleAbortControllerRef.current !== abortController
+            ) return;
             Alert.alert("Sucesso", "Agendamento excluído com sucesso!");
-            fetchScheduledDates();
-            fetchDateDetails(scheduleDate);
 
         } catch (error) {
-            Alert.alert("Erro", `Ocorreu um erro ao excluir o agendamento: ${error.message}`);
+            const apiError = normalizeApiError(error, 'Ocorreu um erro ao excluir o agendamento.');
+            if (apiError.isCanceled) return;
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                deleteScheduleAbortControllerRef.current !== abortController
+            ) return;
+            Alert.alert("Erro", apiError.message);
+        } finally {
+            if (deleteScheduleAbortControllerRef.current === abortController) {
+                deleteScheduleAbortControllerRef.current = null;
+            }
+            isDeletingScheduleRef.current = false;
+            if (isMountedRef.current) {
+                setIsDeletingSchedule(false);
+            }
         }
     };
 
-    useEffect(() => {
-        fetchScheduledDates();
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true;
+
+            return () => {
+                isScreenFocusedRef.current = false;
+                createScheduleAbortControllerRef.current?.abort();
+                createScheduleAbortControllerRef.current = null;
+                deleteScheduleAbortControllerRef.current?.abort();
+                deleteScheduleAbortControllerRef.current = null;
+            };
+        }, [])
+    );
+
+    const handleDayPress = (day) => {
+        if (day.dateString !== selectedCalendarDate) {
+            clearDateDetails();
+        }
+        setSelectedCalendarDate(day.dateString);
+    };
 
     return (
-        <SafeAreaView style={[style.safeAreaView, { backgroundColor: '#F1F2F4' }]}>
+        <SafeAreaView style={[styles.safeAreaView, styles.screenBackground]}>
             <View style={style.divTitleMain}>
-                <Image source={require('../images/menu/logo.png')} style={{ width: 40, height: 40, marginRight: '2%' }} />
+                <Image source={require('../images/menu/logo.png')} style={styles.logo} />
                 <Text style={style.titleTextMain}>BovInA</Text>
             </View>
             <View>
@@ -166,9 +255,9 @@ export default (props) => {
                     inputStyles={style.selectListInput}
                     dropdownStyles={style.selectListDropdown}
                 />
-                <TouchableOpacity onPress={showDatePicker} style={[style.dateInput, { marginLeft: 20, marginRight: 20, marginTop: 10 }]}>
-                    <Text style={style.dateText}>{scheduleDate || "Selecione a Data"}</Text>
-                    <AntDesign style={{ paddingLeft: '20%' }} name="calendar" size={24} color="#000" />
+                <TouchableOpacity onPress={showDatePicker} style={[style.dateInput, styles.dateInput]}>
+                    <Text style={style.dateText}>{newScheduleDate || "Selecione a Data"}</Text>
+                    <AntDesign style={styles.calendarIcon} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
                 <DateTimePickerModal
                     isVisible={isDatePickerVisible}
@@ -176,58 +265,60 @@ export default (props) => {
                     onConfirm={handleConfirm}
                     onCancel={hideDatePicker}
                 />
-                <TouchableOpacity onPress={handleSchedule} style={[style.scheduleButton, { display: 'flex', flexDirection: 'row', width: 90 }]}>
+                <TouchableOpacity disabled={isCreatingSchedule} onPress={handleSchedule} style={[style.scheduleButton, styles.scheduleButton]}>
                     <FontAwesome5 name="calendar-check" size={20} color="white" />
-                    <Text style={[style.scheduleText, { fontSize: 13, paddingLeft: 5 }]}>Agendar</Text>
+                    <Text style={[style.scheduleText, styles.scheduleText]}>Agendar</Text>
                 </TouchableOpacity>
             </View>
-            <View style={style.calendarContainer}>
-                <Calendar
-                    style={style.calendar}
-                    headerStyle={style.headerStyle}
-                    theme={{
-                        todayTextColor: '#092955',
-                        monthTextColor: '#000',
-                        selectedDayBackgroundColor: '#092955',
-                        selectedDayTextColor: '#FFFFFF',
-                        dayTextColor: '#000',
-                        fontSize: 16,
-                        calendarBackground: '#E0E0E0',
-                        textSectionTitleColor: '#000',
-                        arrowColor: '#092955',
-                    }}
-                    monthFormat={'yyyy MMMM'}
-                    firstDay={1}
-                    markedDates={markedDates}
-                    onDayPress={(day) => {
-                        fetchDateDetails(day.dateString);
-                    }}
+            <View style={styles.calendarContainer}>
+                <ScheduleCalendarView
+                    markedDates={calendarMarkedDates}
+                    onDayPress={handleDayPress}
                 />
-                {selectedDateDetails.length > 0 && (
-                    <ScrollView style={style.detailsContainer} contentContainerStyle={{ paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
-                        {selectedDateDetails.map((detail, index) => (
-                            <View key={index} style={style.detailItem}>
-                                <Text style={style.detailsText}>
-                                    <Text style={{ fontWeight: 'bold' }}>Agendamento:</Text> {detail.procedureType}
-                                </Text>
-                                <Text style={[style.detailsText, { marginBottom: 5 }]}>
-                                    <Text style={{ fontWeight: 'bold' }}>Data:</Text> {detail.date}
-                                </Text>
-                                <View style={{ display: 'flex', flexDirection: 'row' }}>
-                                    <TouchableOpacity onPress={() => handleDelete(detail.id)} style={[style.listButtonEdit, { width: 90 }]}>
-                                        <Feather name="x" size={20} color="#E0E0E0" />
-                                        <Text style={{ color: '#E0E0E0' }}>Cancelar</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => navigation.navigate('EditarAgendamento', { detail })} style={[style.listButtonEdit, { marginTop: 0, height: 30 }]}>
-                                        <Octicons name="pencil" size={20} color="#E0E0E0" />
-                                        <Text style={{ color: '#E0E0E0' }}>Editar</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        ))}
-                    </ScrollView>
-                )}
+                <ScheduleDetailsList
+                    details={selectedDateDetails}
+                    isDeleting={isDeletingSchedule}
+                    onDelete={handleDelete}
+                    onEdit={(detail) => navigation.navigate('EditarAgendamento', { detail })}
+                />
             </View>
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    safeAreaView: {
+        flex: 1,
+        backgroundColor: '#FFF',
+    },
+    screenBackground: {
+        backgroundColor: '#F1F2F4',
+    },
+    logo: {
+        width: 40,
+        height: 40,
+        marginRight: '2%',
+    },
+    dateInput: {
+        marginLeft: 20,
+        marginRight: 20,
+        marginTop: 10,
+    },
+    calendarIcon: {
+        paddingLeft: '20%',
+    },
+    scheduleButton: {
+        display: 'flex',
+        flexDirection: 'row',
+        width: 90,
+    },
+    scheduleText: {
+        fontSize: 13,
+        paddingLeft: 5,
+    },
+    calendarContainer: {
+        flex: 1,
+        alignItems: 'center',
+        paddingHorizontal: 10,
+    },
+});

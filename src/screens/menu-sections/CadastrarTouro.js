@@ -2,48 +2,96 @@ import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import style from "../../components/style";
-import { IPAdress } from "../../components/APIip";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from '@react-navigation/native';
+import { createBull } from "../../api/bullService";
+import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
 
 export default ({ navigation }) => {
     const [newBullName, setName] = useState('')
     const [newBullIndentification, setNumber] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const isSubmittingRef = React.useRef(false)
+    const isMountedRef = React.useRef(true)
+    const isScreenFocusedRef = React.useRef(false)
+    const mutationAbortControllerRef = React.useRef(null)
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+            mutationAbortControllerRef.current?.abort()
+            mutationAbortControllerRef.current = null
+        }
+    }, [])
+
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true
+
+            return () => {
+                isScreenFocusedRef.current = false
+                mutationAbortControllerRef.current?.abort()
+                mutationAbortControllerRef.current = null
+            }
+        }, [])
+    )
 
     async function postBulls(name, registrationNumber) {
+        if (isSubmittingRef.current) return
+
         const bullsData = {
             "name": name,
             "registrationNumber": registrationNumber
         }
+        const abortController = new AbortController()
+
+        isSubmittingRef.current = true
+        mutationAbortControllerRef.current = abortController
+        setIsSubmitting(true)
 
         try {
-            const response = await fetch(`http://${IPAdress}/bull`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(bullsData)
+            await createBull(bullsData, {
+                signal: abortController.signal,
             })
 
-            if (response.ok) { 
-                const result = await response.json();
-                
-                Alert.alert(
-                    "Sucesso",
-                    "Cadastro realizado com sucesso!",
-                    [{ text: "OK" }]
-                )
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return
 
-                setName('')
-                setNumber('')
-            } else if (response.status == '409') {
-                const errorMessage = await response.text()
-                Alert.alert('Erro', errorMessage);
-            } else {
-                Alert.alert('Erro', "Erro ao enviar dados")
-            }
+            Alert.alert(
+                "Sucesso",
+                "Cadastro realizado com sucesso!",
+                [{ text: "OK" }]
+            )
+
+            setName('')
+            setNumber('')
         } catch (error) {
-            Alert.alert('Erro', error.message)
+            const apiError = normalizeApiError(error, 'Erro ao enviar dados')
+            if (apiError.isCanceled) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return
+            if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
+                Alert.alert('Erro', 'Erro ao enviar dados')
+                return
+            }
+            Alert.alert('Erro', apiError.message)
+        } finally {
+            if (mutationAbortControllerRef.current === abortController) {
+                mutationAbortControllerRef.current = null
+            }
+            isSubmittingRef.current = false
+            if (isMountedRef.current) {
+                setIsSubmitting(false)
+            }
         }
     }
 
@@ -76,6 +124,7 @@ export default ({ navigation }) => {
                 />
                 <View>
                     <TouchableOpacity
+                        disabled={isSubmitting}
                         style={[style.button, {display: 'flex', flexDirection: 'row'}]}
                         onPress={() => postBulls(newBullName, newBullIndentification)}
                     >

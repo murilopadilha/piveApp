@@ -1,19 +1,56 @@
-import React, { useState, useEffect } from "react";
-import { Text, TextInput, View, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
-import AntDesign from '@expo/vector-icons/AntDesign';
-import axios from "axios";
+import React, { useState } from "react";
+import { Text, TextInput, View, FlatList, ActivityIndicator, Alert } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
-import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
+import ListFooterLoader from "../../components/ListFooterLoader";
+import ScreenHeader from "../../components/ScreenHeader";
 import { SelectList } from 'react-native-dropdown-select-list';
-import { IPAdress } from "../../components/APIip";
+import { deleteBull } from "../../api/bullService";
+import { normalizeApiError } from "../../api/errors";
+import BullListItem from "../../features/animals/components/BullListItem";
+import useBullList from "../../features/animals/hooks/useBullList";
+
+function getBullListItemKey(item, index) {
+    if (item?.id != null) return String(item.id)
+
+    const donorKey = item?.donor?.id ?? item?.donor?.registrationNumber
+    const bullKey = item?.bull?.id ?? item?.bull?.registrationNumber
+
+    if (donorKey != null || bullKey != null) {
+        return `combination-${donorKey ?? 'donor'}-${bullKey ?? 'bull'}`
+    }
+
+    return `item-${index}`
+}
 
 export default ({ navigation }) => {
-    const baseURL = `http://${IPAdress}`
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(false)
-    const [registrationNumber, setRegistrationNumber] = useState('')
-    const [filterOption, setFilterOption] = useState('all')
+    const {
+        data,
+        loading,
+        loadError,
+        hasLoaded,
+        registrationNumber,
+        setRegistrationNumber,
+        filterOption,
+        setFilterOption,
+        reload,
+    } = useBullList()
+    const [deletingBullIds, setDeletingBullIds] = useState([])
+    const isMountedRef = React.useRef(true)
+    const isScreenFocusedRef = React.useRef(false)
+    const deletingBullIdsRef = React.useRef(new Set())
+    const deleteAbortControllersRef = React.useRef(new Map())
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+            deleteAbortControllersRef.current.forEach((controller) => controller.abort())
+            deleteAbortControllersRef.current.clear()
+        }
+    }, [])
 
     const filterOptions = [
         { key: 'all', value: 'Todos os touros' },
@@ -21,67 +58,17 @@ export default ({ navigation }) => {
         { key: 'combination', value: 'Combinação de touros com doadoras' },
     ]
 
-    useEffect(() => {
-        loadApi();
-    }, [filterOption])
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true
 
-    useEffect(() => {
-        const debounceTimer = setTimeout(() => {
-            loadApi(registrationNumber)
-        }, 500)
-
-        return () => clearTimeout(debounceTimer)
-    }, [registrationNumber])
-
-    async function loadApi(query = '') {
-        if (loading) return
-
-        setLoading(true)
-
-        try {
-            let response;
-            let apiUrl = getApiUrl()
-
-            if (filterOption === 'combination') {
-                apiUrl = `${baseURL}/donor-bull-combinations`
-                response = await axios.get(apiUrl)
-
-                if (query) {
-                    const filteredData = response.data.filter(item => 
-                        (item.donor.name && item.donor.name.includes(query)) ||
-                        (item.bull.name && item.bull.name.includes(query)) ||
-                        (item.donor.registrationNumber && item.donor.registrationNumber.includes(query)) ||
-                        (item.bull.registrationNumber && item.bull.registrationNumber.includes(query))
-                    );
-                    setData(filteredData)
-                } else {
-                    setData(response.data)
-                }
-            } else {
-                if (query) {
-                    response = await axios.get(`${baseURL}/bull/search?registrationNumber=${query}`)
-                    setData(response.data)
-                } else {
-                    response = await axios.get(apiUrl)
-                    setData(response.data)
-                }
+            return () => {
+                isScreenFocusedRef.current = false
+                deleteAbortControllersRef.current.forEach((controller) => controller.abort())
+                deleteAbortControllersRef.current.clear()
             }
-        } catch (error) {
-            console.error(error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    function getApiUrl() {
-        switch (filterOption) {
-            case 'highest-average-embryo-percentage':
-                return `${baseURL}/bull/highest-average-embryo-percentage`
-            case 'all':
-            default:
-                return `${baseURL}/bull`
-        }
-    }
+        }, [])
+    )
 
     function confirmRemove(id) {
         Alert.alert(
@@ -101,24 +88,50 @@ export default ({ navigation }) => {
     }
 
     async function removeItem(id) {
+        if (deletingBullIdsRef.current.has(id)) return
+
+        const abortController = new AbortController()
+        deletingBullIdsRef.current.add(id)
+        deleteAbortControllersRef.current.set(id, abortController)
+        setDeletingBullIds(Array.from(deletingBullIdsRef.current))
+
         try {
-            await axios.delete(`${baseURL}/bull/${id}`);
-            setData(data.filter(item => item.id !== id));
+            await deleteBull(id, {
+                signal: abortController.signal,
+            });
+
+            if (
+                !isScreenFocusedRef.current ||
+                deleteAbortControllersRef.current.get(id) !== abortController
+            ) return
+
+            await reload()
         } catch (error) {
-            console.error("Erro ao deletar o item:", error);
+            const apiError = normalizeApiError(error, 'Não foi possível excluir o touro.')
+            if (apiError.isCanceled) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                deleteAbortControllersRef.current.get(id) !== abortController
+            ) return
+            Alert.alert("Erro", apiError.message)
+        } finally {
+            if (deleteAbortControllersRef.current.get(id) === abortController) {
+                deleteAbortControllersRef.current.delete(id)
+            }
+            deletingBullIdsRef.current.delete(id)
+            if (isMountedRef.current) {
+                setDeletingBullIds(Array.from(deletingBullIdsRef.current))
+            }
         }
     }
 
     return (
         <SafeAreaView style={style.menu}>
-            <View style={style.divTitle}>
-                <TouchableOpacity onPress={() => navigation.navigate('Menu')}>
-                    <View style={{ marginRight: '8%' }}>
-                        <AntDesign name="arrowleft" size={24} color="#092955" />
-                    </View>
-                </TouchableOpacity>
-                <Text style={style.titleText}>Touros cadastrados</Text>
-            </View>
+            <ScreenHeader
+                title="Touros cadastrados"
+                onBack={() => navigation.navigate('Menu')}
+            />
             <View style={style.contentList}>
                 <View style={style.search}>
                     <TextInput
@@ -138,88 +151,62 @@ export default ({ navigation }) => {
                     inputStyles={style.selectListInput}
                     dropdownStyles={style.selectListDropdown}
                 />
+                {loadError && (
+                    <Text style={{ color: '#B00020', marginHorizontal: 20, marginTop: 5 }}>
+                        {loadError}
+                    </Text>
+                )}
                 <FlatList
                     showsVerticalScrollIndicator={false}
                     style={{ marginTop: 5 }}
                     contentContainerStyle={{ marginHorizontal: 20, paddingBottom: 300 }}
                     data={data}
-                    keyExtractor={item => item?.id ? String(item.id) : Math.random().toString()}
+                    keyExtractor={getBullListItemKey}
                     renderItem={({ item }) => {
                         if (filterOption === 'combination') {
-                            if (item.donor && item.bull) {
-                                return (
-                                    <View style={style.listItem}>
-                                        <View style={style.listText}>
-                                            <Text style={style.listText}>
-                                                <Text style={{ fontWeight: 'bold' }}>Doadora: </Text>
-                                                {item.donor.name || 'N/A'} ({item.donor.registrationNumber || 'N/A'})
-                                            </Text>
-                                            <Text style={style.listText}>
-                                                <Text style={{ fontWeight: 'bold' }}>Touro: </Text>
-                                                {item.bull.name || 'N/A'} ({item.bull.registrationNumber || 'N/A'}) 
-                                            </Text>
-                                            <Text style={style.listText}>
-                                                <Text style={{ fontWeight: 'bold' }}>Eficiência emb viáveis: </Text>
-                                                {item.averageCombinationEmbryosPercentage || 'N/A'}
-                                            </Text>
-                                        </View>
+                            return (
+                                <View style={style.listItem}>
+                                    <View style={style.listText}>
+                                        <Text style={style.listText}>
+                                            <Text style={{ fontWeight: 'bold' }}>Doadora: </Text>
+                                            {item?.donor?.name || '-'} ({item?.donor?.registrationNumber || '-'})
+                                        </Text>
+                                        <Text style={style.listText}>
+                                            <Text style={{ fontWeight: 'bold' }}>Touro: </Text>
+                                            {item?.bull?.name || '-'} ({item?.bull?.registrationNumber || '-'})
+                                        </Text>
+                                        <Text style={style.listText}>
+                                            <Text style={{ fontWeight: 'bold' }}>Eficiência emb viáveis: </Text>
+                                            {item?.averageCombinationEmbryosPercentage ?? '-'}
+                                        </Text>
                                     </View>
-                                )
-                            } else {
-                                return <Text style={style.listText}>Dados incompletos</Text>
-                            }
+                                </View>
+                            )
                         } else {
-                            return <ListItem data={item} onRemove={confirmRemove} navigation={navigation} />
+                            return (
+                                <BullListItem
+                                    data={item}
+                                    isDeleting={deletingBullIds.includes(item.id)}
+                                    onRemove={confirmRemove}
+                                    onEdit={(bull) => navigation.navigate('EditarTouro', { donor: bull })}
+                                />
+                            )
                         }
                     }}
-                    ListFooterComponent={<FooterList load={loading} />}
+                    ListEmptyComponent={
+                        !hasLoaded || loading ? (
+                            <ActivityIndicator size={25} color="#092955" />
+                        ) : loadError ? null : (
+                            <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                                Nenhum touro encontrado.
+                            </Text>
+                        )
+                    }
+                    ListFooterComponent={
+                        <ListFooterLoader loading={loading && data.length > 0} />
+                    }
                 />
             </View>
         </SafeAreaView>
-    )
-}
-
-function ListItem({ data, onRemove, navigation }) {
-    return (
-        <View style={style.listItem}>
-            <View style={{ alignSelf: 'center' }}>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Nome: </Text>
-                    {data.name}
-                </Text>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Número de registro: </Text>
-                    {data.registrationNumber}
-                </Text>
-                <Text style={style.listText}>
-                    <Text style={{ fontWeight: 'bold' }}>Eficiência emb viáveis: </Text>
-                    {data.averageEmbryoPercentage}
-                </Text>
-            </View>
-            <View style={style.listButtons}>
-                <TouchableOpacity
-                    style={style.listButtonDelete}
-                    onPress={() => onRemove(data.id)}
-                >
-                    <Octicons name="trash" size={20} color="#908D8E" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[style.listButtonDelete, { marginTop: 2 }]}
-                    onPress={() => navigation.navigate('EditarTouro', { donor: data })}
-                >
-                    <Octicons name="pencil" size={20} color="#908D8E" />
-                </TouchableOpacity>
-            </View>
-        </View>
-    )
-}
-
-function FooterList({ load }) {
-    if (!load) return null
-
-    return (
-        <View>
-            <ActivityIndicator size={25} color="#092955" />
-        </View>
     )
 }

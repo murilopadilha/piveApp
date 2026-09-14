@@ -2,46 +2,95 @@ import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import style from "../../components/style";
-import { IPAdress } from "../../components/APIip";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from '@react-navigation/native';
+import { createReceiver } from "../../api/receiverService";
+import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
 
 export default ({ navigation }) => {
     const [newReceiverName, setName] = useState('')
     const [newReceiverBreed, setBreed] = useState('')
     const [newReceiverIdentification, setIdentification] = useState('')
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const isSubmittingRef = React.useRef(false)
+    const isMountedRef = React.useRef(true)
+    const isScreenFocusedRef = React.useRef(false)
+    const mutationAbortControllerRef = React.useRef(null)
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+            mutationAbortControllerRef.current?.abort()
+            mutationAbortControllerRef.current = null
+        }
+    }, [])
+
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true
+
+            return () => {
+                isScreenFocusedRef.current = false
+                mutationAbortControllerRef.current?.abort()
+                mutationAbortControllerRef.current = null
+            }
+        }, [])
+    )
 
     async function postReceivers(name, breed, registrationNumber) {
+        if (isSubmittingRef.current) return
+
         const receiverData = {
             "name": name,
             "breed": breed,
             "registrationNumber": registrationNumber
         }
+        const abortController = new AbortController()
+
+        isSubmittingRef.current = true
+        mutationAbortControllerRef.current = abortController
+        setIsSubmitting(true)
 
         try {
-            const response = await fetch(`http://${IPAdress}/receiver`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(receiverData)
+            await createReceiver(receiverData, {
+                signal: abortController.signal,
             })
 
-            if (response.ok) {
-                const receivers = await response.json()
-                Alert.alert('Sucesso', 'Receptora cadastrada com sucesso!')
-                
-                setName('')
-                setBreed('')
-                setIdentification('')
-            } else if (response.status == '409') {
-                const errorMessage = await response.text()
-                Alert.alert('Erro', errorMessage);
-            } else {
-                Alert.alert('Erro', "Erro ao enviar dados")
-            }
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return
+
+            Alert.alert('Sucesso', 'Receptora cadastrada com sucesso!')
+
+            setName('')
+            setBreed('')
+            setIdentification('')
         } catch (error) {
-            Alert.alert('Erro', 'Ocorreu um erro')
+            const apiError = normalizeApiError(error, 'Ocorreu um erro')
+            if (apiError.isCanceled) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return
+            if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
+                Alert.alert('Erro', 'Erro ao enviar dados')
+                return
+            }
+            Alert.alert('Erro', apiError.message)
+        } finally {
+            if (mutationAbortControllerRef.current === abortController) {
+                mutationAbortControllerRef.current = null
+            }
+            isSubmittingRef.current = false
+            if (isMountedRef.current) {
+                setIsSubmitting(false)
+            }
         }
     }
 
@@ -82,6 +131,7 @@ export default ({ navigation }) => {
                 />
                 <View>
                     <TouchableOpacity 
+                        disabled={isSubmitting}
                         style={[style.button, {display: 'flex', flexDirection: 'row'}]} 
                         onPress={() => postReceivers(newReceiverName, newReceiverBreed, newReceiverIdentification)}
                     >

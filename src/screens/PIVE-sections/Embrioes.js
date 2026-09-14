@@ -1,33 +1,100 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Text, View, TouchableOpacity, ActivityIndicator, FlatList, StyleSheet, Platform } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
-import axios from "axios";
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import style from "../../components/style";
-import { IPAdress } from "../../components/APIip";
+import piveStyles from "../../features/pive/styles";
+import { getFivDetails } from "../../api/fivService";
+import { normalizeApiError } from "../../api/errors";
 
 export default ({ route, navigation }) => {
     const { fiv } = route.params
     const [oocyteCollections, setOocyteCollections] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [hasLoaded, setHasLoaded] = useState(false)
+    const isScreenFocusedRef = React.useRef(false)
+    const activeFivIdRef = React.useRef(fiv.id)
+    const loadedFivIdRef = React.useRef(null)
+    const abortControllerRef = React.useRef(null)
+    const requestIdRef = React.useRef(0)
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get(`http://${IPAdress}/fiv/${fiv.id}`)
-                setOocyteCollections(response.data.oocyteCollections)
-                setLoading(false)
-            } catch (error) {
-                setError(error)
-                setLoading(false)
+    activeFivIdRef.current = fiv.id
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const currentFivId = fiv.id
+            isScreenFocusedRef.current = true
+
+            if (loadedFivIdRef.current !== currentFivId) {
+                loadedFivIdRef.current = null
+                setOocyteCollections([])
+                setError(null)
+                setHasLoaded(false)
+                setLoading(true)
             }
-        }
 
-        fetchData()
-    }, [fiv.id])
+            const fetchData = async () => {
+                abortControllerRef.current?.abort()
+                const abortController = new AbortController()
+                abortControllerRef.current = abortController
+                const requestId = ++requestIdRef.current
 
-    if (loading) {
+                setLoading(true)
+
+                try {
+                    const responseData = await getFivDetails(currentFivId, {
+                        signal: abortController.signal,
+                    })
+
+                    if (
+                        requestId !== requestIdRef.current ||
+                        !isScreenFocusedRef.current ||
+                        activeFivIdRef.current !== currentFivId
+                    ) return
+
+                    setOocyteCollections(responseData.oocyteCollections)
+                    loadedFivIdRef.current = currentFivId
+                    setHasLoaded(true)
+                    setError(null)
+                } catch (requestError) {
+                    const apiError = normalizeApiError(
+                        requestError,
+                        'Não foi possível carregar as coletas de oócitos.'
+                    )
+                    if (apiError.isCanceled) return
+                    if (
+                        requestId !== requestIdRef.current ||
+                        !isScreenFocusedRef.current ||
+                        activeFivIdRef.current !== currentFivId
+                    ) return
+                    setError(apiError.message)
+                } finally {
+                    if (requestId === requestIdRef.current) {
+                        abortControllerRef.current = null
+                        if (
+                            isScreenFocusedRef.current &&
+                            activeFivIdRef.current === currentFivId
+                        ) {
+                            setLoading(false)
+                        }
+                    }
+                }
+            }
+
+            fetchData()
+
+            return () => {
+                isScreenFocusedRef.current = false
+                requestIdRef.current += 1
+                abortControllerRef.current?.abort()
+                abortControllerRef.current = null
+            }
+        }, [fiv.id])
+    )
+
+    if (loading && !hasLoaded) {
         return (
             <SafeAreaView style={style.menu}>
                 <ActivityIndicator size="small" color="#092955" />
@@ -35,10 +102,10 @@ export default ({ route, navigation }) => {
         )
     }
 
-    if (error) {
+    if (error && !hasLoaded) {
         return (
             <SafeAreaView style={style.menu}>
-                <Text>Error: {error.message}</Text>
+                <Text>Error: {error}</Text>
             </SafeAreaView>
         )
     }
@@ -52,11 +119,11 @@ export default ({ route, navigation }) => {
             <TouchableOpacity style={styles.item} onPress={() => handlePress(item.id)}>
                 <View style={styles.row}>
                     <Text style={styles.label}>Doadora:</Text>
-                    <Text style={styles.value}>{item.donorCattle.registrationNumber}</Text>
+                    <Text style={styles.value}>{item.donorCattle?.registrationNumber || '-'}</Text>
                 </View>
                 <View style={styles.row}>
                     <Text style={styles.label}>Touro:</Text>
-                    <Text style={styles.value}>{item.bull.registrationNumber}</Text>
+                    <Text style={styles.value}>{item.bull?.registrationNumber || '-'}</Text>
                 </View>
                 <View style={styles.row}>
                     <Text style={styles.label}>Total Oócitos:</Text>
@@ -69,7 +136,7 @@ export default ({ route, navigation }) => {
                 <View style={styles.row}>
                     <Text style={styles.label}>Aproveitamento Embriões:</Text>
                     {item.embryoProduction
-                        ? <Text style={styles.value}>{item.embryoProduction.embryosPercentage || '-'}</Text>
+                        ? <Text style={styles.value}>{item.embryoProduction.embryosPercentage ?? '-'}</Text>
                         : <Text style={styles.value}>-</Text>
                     }
                 </View>
@@ -79,19 +146,36 @@ export default ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={style.menu}>
-            <View style={[style.divTitle, { marginBottom: 0 }]}>
+            <View style={[style.divTitle, piveStyles.sectionHeader]}>
                 <TouchableOpacity onPress={() => navigation.navigate('FivInfo', { fiv: fiv })}>
-                    <View style={{ marginRight: '15%' }}>
+                    <View style={piveStyles.backButton}>
                         <AntDesign name="arrowleft" size={24} color='#092955' />
                     </View>
                 </TouchableOpacity>
-                <Text style={[style.titleText, { marginRight: '20%' }]}>Coletas realizadas</Text>
+                <Text style={[style.titleText, piveStyles.sectionTitle]}>Coletas realizadas</Text>
             </View>
+            {error && (
+                <Text style={piveStyles.loadError}>
+                    Error: {error}
+                </Text>
+            )}
             <FlatList
                 data={oocyteCollections}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.listContainer}
+                ListEmptyComponent={
+                    !loading && hasLoaded && !error ? (
+                        <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                            Nenhuma coleta encontrada.
+                        </Text>
+                    ) : null
+                }
+                ListFooterComponent={
+                    loading && hasLoaded ? (
+                        <ActivityIndicator size="small" color="#092955" />
+                    ) : null
+                }
             />
         </SafeAreaView>
     )

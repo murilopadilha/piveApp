@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { Text, TextInput, View, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from '@react-navigation/native';
 import style from "../../components/style";
-import { IPAdress } from "../../components/APIip";
+import { createDonor } from "../../api/donorService";
+import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
 
 export default ({ navigation }) => {
     const [newDonorName, setName] = useState('');
@@ -13,40 +15,86 @@ export default ({ navigation }) => {
     const [newDonorIdentification, setIdentification] = useState('');
     const [newDonorDateOfBirth, setDateOfBirth] = useState('');
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const isSubmittingRef = React.useRef(false);
+    const isMountedRef = React.useRef(true);
+    const isScreenFocusedRef = React.useRef(false);
+    const mutationAbortControllerRef = React.useRef(null);
+
+    React.useEffect(() => {
+        isMountedRef.current = true;
+
+        return () => {
+            isMountedRef.current = false;
+            mutationAbortControllerRef.current?.abort();
+            mutationAbortControllerRef.current = null;
+        };
+    }, []);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true;
+
+            return () => {
+                isScreenFocusedRef.current = false;
+                mutationAbortControllerRef.current?.abort();
+                mutationAbortControllerRef.current = null;
+            };
+        }, [])
+    );
 
     const postDonors = async (name, breed, registrationNumber, birth) => {
+        if (isSubmittingRef.current) return;
+
         const receiverData = {
             "name": name,
             "breed": breed,
             "birth": birth,
             "registrationNumber": registrationNumber
         };
+        const abortController = new AbortController();
+
+        isSubmittingRef.current = true;
+        mutationAbortControllerRef.current = abortController;
+        setIsSubmitting(true);
 
         try {
-            const response = await fetch(`http://${IPAdress}/donor`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(receiverData)
+            await createDonor(receiverData, {
+                signal: abortController.signal,
             });
 
-            if (response.ok) {
-                const receivers = await response.json();
-                console.log(receivers);
-                Alert.alert('Sucesso', 'Doadora cadastrada com sucesso!');
-                setName('');
-                setBreed('');
-                setIdentification('');
-                setDateOfBirth('');
-            } else if (response.status === 409) {
-                const errorMessage = await response.text();
-                Alert.alert('Erro', errorMessage);
-            } else {
-                Alert.alert('Erro', "Erro ao enviar dados");
-            }
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return;
+
+            Alert.alert('Sucesso', 'Doadora cadastrada com sucesso!');
+            setName('');
+            setBreed('');
+            setIdentification('');
+            setDateOfBirth('');
         } catch (error) {
-            Alert.alert('Erro', error.message);
+            const apiError = normalizeApiError(error, 'Erro ao enviar dados');
+            if (apiError.isCanceled) return;
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return;
+            if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
+                Alert.alert('Erro', 'Erro ao enviar dados');
+                return;
+            }
+            Alert.alert('Erro', apiError.message);
+        } finally {
+            if (mutationAbortControllerRef.current === abortController) {
+                mutationAbortControllerRef.current = null;
+            }
+            isSubmittingRef.current = false;
+            if (isMountedRef.current) {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -112,6 +160,7 @@ export default ({ navigation }) => {
                 />
                 <View>
                     <TouchableOpacity
+                        disabled={isSubmitting}
                         style={[style.button, { display: 'flex', flexDirection: 'row' }]}
                         onPress={() => postDonors(newDonorName, newDonorBreed, newDonorIdentification, newDonorDateOfBirth)}
                     >

@@ -1,10 +1,6 @@
 import { Platform, StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
-  app:{
-    margin: 0,
-    padding: 0,
-  },
   menu: {
     backgroundColor: '#F1F2F4',
   },
@@ -56,10 +52,6 @@ export default StyleSheet.create({
   label: {
     margin: 10,
   },
-  text: {
-    color: '#000',
-    marginBottom: 10,
-  },
   content: {
     margin: 30
   },
@@ -76,45 +68,6 @@ export default StyleSheet.create({
   }, 
   buttonText: {
     color: '#FFFFFF'
-  },
-  menuContent: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    margin: '5%',
-    marginTop: 0,
-    alignItems: 'center',
-    justifyContent: 'space-evenly',
-    height: '100%'
-  },
-  menuContentButton: {
-    backgroundColor: '#FFFFFF',
-    marginTop: '10%',
-    margin: '1%',
-    width: 150,
-    height: 150,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 3 }, 
-    shadowOpacity: 0.3, 
-    shadowRadius: 4, 
-    elevation: 5,
-  },
-  textButtonMenu: {
-    textAlign: 'center',
-    fontSize: Platform.OS === 'ios' ? 12 : 10,
-  },
-  imgsMenu: {
-    width: 125,
-    height: 125,
-  },
-  bottomBorder: {
-    height: 7, 
-  },
-  dateComponent: {
-    width: 350,
   },
   dateInput: {
     borderColor: 'transparent',
@@ -147,15 +100,6 @@ export default StyleSheet.create({
     shadowRadius: 4, 
     elevation: 5,
   },
-  listItemEmbryo: {
-    backgroundColor: '#F1F2F4',
-    padding: 15,
-    marginTop: 10,
-    borderRadius: 10,
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
   listText: {
     fontSize: Platform.OS === 'ios' ? 14 : 10,
     color: '#000'
@@ -184,11 +128,6 @@ export default StyleSheet.create({
     marginLeft: 5,
     textAlign: 'center'
   },
-  listButtonTextEdit: {
-    color: '#FFFFFF',
-    marginLeft: 2,
-    textAlign: "center",
-  },
   listButtonDelete: {
     borderColor: '#ccc',
     padding: '1%',
@@ -200,43 +139,11 @@ export default StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly'
   },
-  listButtonTextDelete: {
-    color: '#FFFFFF',
-    textAlign: 'center'
-  },
   listButtons: {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  listItemDonor: {
-    backgroundColor: '#FFFFFF',
-    padding: 15,
-    marginTop: 10,
-    borderRadius: 10,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between'
-  },
-  listButtonsDonor: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginTop: 2,
-  },
-  listButtonDeleteDonor: {
-    backgroundColor: '#092955',
-    padding: 4,
-    width: 50,
-    borderRadius: 8,
-    marginLeft: 3
-  },
-  listButtonEditDonor: {
-    backgroundColor: '#092955',
-    padding: 4,
-    width: 50,
-    borderRadius: 8,
-    marginBottom: 3
   },
   search: {
     display: 'flex',
@@ -244,18 +151,6 @@ export default StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   }, 
-  inputSelect: {
-    borderColor: '#092955',
-    borderWidth: 3,
-    borderRadius: 8, 
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: 40,
-    marginLeft: 20,
-    marginRight: 20,
-    marginTop: 10,
-    fontSize: Platform.OS === 'ios' ? 14 : 10,
-  },
   scheduleButton: {
     backgroundColor: '#092955',
     width: 70,
@@ -271,27 +166,6 @@ export default StyleSheet.create({
   },
   scheduleText: {
     color: '#FFFFFF',
-  },
-  safeAreaView: {
-    flex: 1,
-    backgroundColor: '#FFF',
-  },
-  calendarContainer: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 10,
-  },
-  calendar: {
-    width: 350,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: '#E0E0E0',
-  },
-  headerStyle: {
-    backgroundColor: '#E0E0E0',
-    borderBottomWidth: 1,
-    borderBottomColor: '#092955',
   },
   selectListBox: {
     width: '90%',
@@ -319,69 +193,4 @@ export default StyleSheet.create({
     marginHorizontal: 20,
     fontSize: Platform.OS === 'ios' ? 14 : 10,
   },
-  detailsContainer: {
-    marginBottom: 10,
-    padding: 10,
-    backgroundColor: '#E0E0E0',
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    width: 350
-  },
-  detailItem: {
-    padding: 10,
-    borderBottomColor: '#fff',
-    borderBottomWidth: 1,
-  },
-  detailsText: {
-    paddingLeft: 5,
-    paddingBottom: 3,
-    fontSize: Platform.OS === 'ios' ? 14 : 10,
-    color: '#333',
-  },
-  searchPive: {
-    marginTop: 5,
-    marginLeft: 20,
-    display: 'flex',
-    flexDirection: 'row',
-  },
-  selectListBoxPive: {
-    width: 280, 
-    height: 40,
-    borderRadius: 10,
-    borderWidth: 3,
-    borderColor: 'transparent',
-    backgroundColor: '#FFFFFF',
-    paddingTop: 6,
-    paddingBottom: 6,
-    paddingLeft: 15,
-    marginBottom: 5,
-    fontWeight: 'bold',
-  },
-  selectListDropdownPive: {
-    marginTop: 0,
-    borderRadius: 10,
-    borderWidth: 3,
-    borderColor: 'transparent',
-    backgroundColor: '#FFFFFF',
-    width: 280,
-  },
-  listPive: {
-    marginLeft: 20,
-    width: '90%',
-    height: '85%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  listItemPive: {
-    backgroundColor: '#FFFFFF',
-    padding: 15,
-    marginTop: 10,
-    borderRadius: 10,
-    height: 90,
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  }
 })

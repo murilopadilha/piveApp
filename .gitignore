@@ -2,6 +2,7 @@
 
 # dependencies
 node_modules/
+.yarn/
 
 # Expo
 .expo/
@@ -130,14 +131,10 @@ dist
 
 # Build output
 android/app/build
-ios/Pods
 ios/build
 ios/DerivedData
 
 # CocoaPods
-ios/Podfile.lock
-ios/Pods/
-ios/Podfile.lock
 ios/Pods/
 *.xcodeproj/*
 !*.xcodeproj/project.pbxproj

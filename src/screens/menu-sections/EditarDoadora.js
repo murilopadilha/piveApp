@@ -1,12 +1,37 @@
 import React, { useState } from "react";
 import { Text, TextInput, View, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
-import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import style from "../../components/style";
 import Octicons from '@expo/vector-icons/Octicons';
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from '@react-navigation/native';
 
-import { IPAdress } from "../../components/APIip";
+import { updateDonor as updateDonorRequest } from "../../api/donorService";
+import { API_ERROR_TYPES, normalizeApiError } from "../../api/errors";
+
+const parseLocalDate = (value) => {
+    const match = typeof value === 'string' && value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+
+    if (!match) {
+        return new Date()
+    }
+
+    const year = Number(match[1])
+    const month = Number(match[2])
+    const day = Number(match[3])
+    const date = new Date(year, month - 1, day)
+
+    if (
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+    ) {
+        return new Date()
+    }
+
+    return date
+}
 
 export default ({ route, navigation }) => {
     const { donor } = route.params
@@ -14,42 +39,91 @@ export default ({ route, navigation }) => {
     const [newDonorBreed, setBreed] = useState(donor.breed)
     const [newDonorIndentification, setNumber] = useState(donor.registrationNumber)
     const [newDonorDateOfBirth, setDateOfBirth] = useState(donor.birth)
-    const [donorId, setDonorId] = useState(donor.id)
+    const [donorId] = useState(donor.id)
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const isSubmittingRef = React.useRef(false)
+    const isMountedRef = React.useRef(true)
+    const isScreenFocusedRef = React.useRef(false)
+    const mutationAbortControllerRef = React.useRef(null)
+
+    React.useEffect(() => {
+        isMountedRef.current = true
+
+        return () => {
+            isMountedRef.current = false
+            mutationAbortControllerRef.current?.abort()
+            mutationAbortControllerRef.current = null
+        }
+    }, [])
+
+    useFocusEffect(
+        React.useCallback(() => {
+            isScreenFocusedRef.current = true
+
+            return () => {
+                isScreenFocusedRef.current = false
+                mutationAbortControllerRef.current?.abort()
+                mutationAbortControllerRef.current = null
+            }
+        }, [])
+    )
 
     async function updateDonor(id, name, breed, registrationNumber, birth) {
+        if (isSubmittingRef.current) return
+
         const donorData = {
             "name": name,
             "breed": breed,
             "birth": birth,
             "registrationNumber": registrationNumber
         }
+        const abortController = new AbortController()
+
+        isSubmittingRef.current = true
+        mutationAbortControllerRef.current = abortController
+        setIsSubmitting(true)
 
         try {
-            const response = await fetch(`http://${IPAdress}/donor/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(donorData)
+            await updateDonorRequest(id, donorData, {
+                signal: abortController.signal,
             })
-            if (response.ok) {
-                const result = await response.json();
-                console.log(result)
-                Alert.alert('Sucesso', 'Doadora atualizada com sucesso!')
-                navigation.goBack()
-            } else if (response.status == '409') {
-                const errorMessage = await response.text()
-                Alert.alert('Erro', errorMessage);
-            } else {
-                Alert.alert('Erro', "Erro ao enviar dados")
-            }
+
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return
+
+            Alert.alert('Sucesso', 'Doadora atualizada com sucesso!')
+            navigation.goBack()
         } catch (error) {
-            console.error('Erro ao atualizar o doador:', error)
-            Alert.alert('Erro', 'Não foi possível atualizar os dados.')
+            const apiError = normalizeApiError(error, 'Não foi possível atualizar os dados.')
+            if (apiError.isCanceled) return
+            if (
+                !isMountedRef.current ||
+                !isScreenFocusedRef.current ||
+                mutationAbortControllerRef.current !== abortController
+            ) return
+            if (apiError.type === API_ERROR_TYPES.HTTP && apiError.status !== 409) {
+                Alert.alert('Erro', 'Erro ao enviar dados')
+                return
+            }
+            Alert.alert('Erro', apiError.message)
+        } finally {
+            if (mutationAbortControllerRef.current === abortController) {
+                mutationAbortControllerRef.current = null
+            }
+            isSubmittingRef.current = false
+            if (isMountedRef.current) {
+                setIsSubmitting(false)
+            }
         }
     }
 
     const confirmUpdate = () => {
+        if (isSubmittingRef.current) return
+
         Alert.alert(
             "Confirmar Edição",
             "Você tem certeza de que deseja editar os dados da doadora?",
@@ -66,19 +140,18 @@ export default ({ route, navigation }) => {
         )
     }
 
-    const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || new Date()
-        const formattedDate = `${currentDate.getFullYear()}-${("0" + (currentDate.getMonth() + 1)).slice(-2)}-${("0" + currentDate.getDate()).slice(-2)}`
-        setDateOfBirth(formattedDate)
+    const showDatePicker = () => {
+        setDatePickerVisibility(true)
     }
 
-    const showDatePicker = () => {
-        DateTimePickerAndroid.open({
-            value: new Date(),
-            mode: 'date',
-            is24Hour: true,
-            onChange: onChangeDate,
-        })
+    const hideDatePicker = () => {
+        setDatePickerVisibility(false)
+    }
+
+    const handleConfirm = (date) => {
+        const formattedDate = `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`
+        setDateOfBirth(formattedDate)
+        hideDatePicker()
     }
 
     return (
@@ -96,7 +169,7 @@ export default ({ route, navigation }) => {
                 <TextInput
                     placeholder="Nome da doadora"
                     placeholderTextColor="#888"
-                    value={newDonorName}
+                    value={newDonorName == null ? '' : String(newDonorName)}
                     style={style.input}
                     onChangeText={setName}
                 />
@@ -104,7 +177,7 @@ export default ({ route, navigation }) => {
                 <TextInput
                     placeholder="Raça da doadora"
                     placeholderTextColor="#888"
-                    value={newDonorBreed}
+                    value={newDonorBreed == null ? '' : String(newDonorBreed)}
                     style={style.input}
                     onChangeText={setBreed}
                 />
@@ -112,7 +185,7 @@ export default ({ route, navigation }) => {
                 <TextInput
                     placeholder="Identificação da doadora"
                     placeholderTextColor="#888"
-                    value={newDonorIndentification}
+                    value={newDonorIndentification == null ? '' : String(newDonorIndentification)}
                     style={style.input}
                     onChangeText={setNumber}
                 />
@@ -121,8 +194,16 @@ export default ({ route, navigation }) => {
                     <Text style={style.dateText}>{newDonorDateOfBirth || "Selecione a data"}</Text>
                     <AntDesign style={{paddingLeft: 90}} name="calendar" size={24} color="#000" />
                 </TouchableOpacity>
+                <DateTimePickerModal
+                    isVisible={isDatePickerVisible}
+                    date={parseLocalDate(newDonorDateOfBirth)}
+                    mode="date"
+                    onConfirm={handleConfirm}
+                    onCancel={hideDatePicker}
+                />
                 <View>
                     <TouchableOpacity 
+                        disabled={isSubmitting}
                         style={[style.button, {display: 'flex', flexDirection: 'row'}]} 
                         onPress={confirmUpdate} 
                     >
