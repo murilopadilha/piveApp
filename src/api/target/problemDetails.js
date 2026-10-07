@@ -122,9 +122,11 @@ export const normalizeTargetApiError = (
             instance: asNonEmptyString(problem.instance),
             code: asNonEmptyString(problem.code),
             traceId: asNonEmptyString(problem.traceId),
-            fieldErrors: Array.isArray(problem.fieldErrors)
-                ? problem.fieldErrors
-                : [],
+            fieldErrors: Array.isArray(problem.errors)
+                ? problem.errors
+                : Array.isArray(problem.fieldErrors)
+                    ? problem.fieldErrors
+                    : [],
             conflict: isRecord(problem.conflict) ? problem.conflict : null,
             version: problem.version ?? problem.currentVersion ??
                 readHeader(error.response.headers, 'etag'),

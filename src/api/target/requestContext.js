@@ -91,7 +91,11 @@ export const applyTargetRequestContext = (
         headers = setHeader(headers, 'Authorization', `Bearer ${context.accessToken}`)
     }
 
-    if (context.organizationId && organizationHeaderName) {
+    if (
+        organizationScoped &&
+        context.organizationId &&
+        organizationHeaderName
+    ) {
         headers = setHeader(
             headers,
             organizationHeaderName,

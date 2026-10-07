@@ -9,10 +9,11 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5'
 import AnimalsStack from './AnimalsStack'
 import PiveStack from './PiveStack'
 import CalendarStack from './CalendarStack'
+import ClientStack from './ClientStack'
 
 const Tab = createBottomTabNavigator()
 
-export default function RootTabs() {
+export default function RootTabs({ showClients = false }) {
     return (
         <Tab.Navigator screenOptions={{
             tabBarInactiveTintColor: '#000',
@@ -85,6 +86,18 @@ export default function RootTabs() {
                     return <AntDesign name="calendar" size={24} color="#000" />
                 }
             }}/>
+            {showClients ? (
+                <Tab.Screen name="Clientes" component={ClientStack} options={{
+                    headerShown: false,
+                    tabBarIcon: ({ focused }) => (
+                        <MaterialCommunityIcons
+                            name={focused ? 'account-search' : 'account-search-outline'}
+                            size={focused ? 26 : 24}
+                            color={focused ? '#092955' : '#000'}
+                        />
+                    ),
+                }}/>
+            ) : null}
         </Tab.Navigator>
     )
 }

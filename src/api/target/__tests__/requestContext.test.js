@@ -12,6 +12,8 @@ import {
 } from '../requestContext'
 import {
     TARGET_API_TIMEOUT_MS,
+    TARGET_CORRELATION_HEADER,
+    TARGET_ORGANIZATION_HEADER,
     TargetApiConfigurationError,
     createTargetApiClient,
 } from '../client'
@@ -100,7 +102,7 @@ describe('target request context', () => {
         expect(config.signal).toBe(signal)
     })
 
-    test('does not invent Organization or correlation header names', () => {
+    test('uses the implemented Organization and correlation header names', () => {
         const config = applyTargetRequestContext({
             headers: {},
             targetContext: { correlationId: 'trace-1' },
@@ -109,6 +111,27 @@ describe('target request context', () => {
                 accessToken: 'token',
                 organizationId: 'organization-a',
             },
+            organizationHeaderName: TARGET_ORGANIZATION_HEADER,
+            correlationHeaderName: TARGET_CORRELATION_HEADER,
+        })
+
+        expect(config.headers).toEqual({
+            Authorization: 'Bearer token',
+            'X-Organization-ID': 'organization-a',
+            'X-Correlation-ID': 'trace-1',
+        })
+    })
+
+    test('omits Organization from bootstrap requests after selection', () => {
+        const config = applyTargetRequestContext({
+            headers: {},
+            targetContext: { organizationScoped: false },
+        }, {
+            context: {
+                accessToken: 'token',
+                organizationId: 'organization-a',
+            },
+            organizationHeaderName: TARGET_ORGANIZATION_HEADER,
         })
 
         expect(config.headers).toEqual({ Authorization: 'Bearer token' })
@@ -156,7 +179,29 @@ describe('target Axios client', () => {
         expect(response.config.timeout).toBe(TARGET_API_TIMEOUT_MS)
         expect(response.config.signal).toBe(signal)
         expect(response.config.headers.get('Authorization')).toBe('Bearer token')
+        expect(response.config.headers.get('X-Organization-ID')).toBe(
+            'organization-a'
+        )
         expect(response.config.headers.get('Idempotency-Key')).toBe('command-1')
+    })
+
+    test('does not add target headers to the legacy client', async () => {
+        setTargetAccessToken('target-token')
+        setTargetOrganizationId('organization-a')
+
+        const response = await legacyApiClient.get('/legacy-probe', {
+            adapter: async config => ({
+                data: null,
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            }),
+        })
+
+        expect(response.config.headers.get('Authorization')).toBeUndefined()
+        expect(response.config.headers.get('X-Organization-ID')).toBeUndefined()
+        expect(response.config.headers.get('X-Correlation-ID')).toBeUndefined()
     })
 
     test('fails before transport when the target URL is unresolved', async () => {

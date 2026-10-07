@@ -85,6 +85,27 @@ describe('normalizeTargetApiError', () => {
         })
     })
 
+    test('maps backend validation errors to fieldErrors', () => {
+        const errors = [{
+            field: 'displayName',
+            code: 'NotBlank',
+            message: 'Invalid value',
+        }]
+
+        expect(normalizeTargetApiError({
+            response: {
+                status: 400,
+                data: {
+                    code: 'VALIDATION_FAILED',
+                    errors,
+                },
+            },
+        })).toMatchObject({
+            kind: TARGET_ERROR_KINDS.VALIDATION,
+            fieldErrors: errors,
+        })
+    })
+
     test('normalizes cancellation without exposing the original error', () => {
         const normalized = normalizeTargetApiError({
             code: AxiosError.ERR_CANCELED,

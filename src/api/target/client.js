@@ -7,6 +7,8 @@ import {
 } from './requestContext'
 
 export const TARGET_API_TIMEOUT_MS = 15000
+export const TARGET_ORGANIZATION_HEADER = 'X-Organization-ID'
+export const TARGET_CORRELATION_HEADER = 'X-Correlation-ID'
 
 export class TargetApiConfigurationError extends Error {
     constructor() {
@@ -19,8 +21,8 @@ export class TargetApiConfigurationError extends Error {
 export const createTargetApiClient = ({
     baseURL = TARGET_API_BASE_URL,
     getRequestContext = getTargetRuntimeContext,
-    organizationHeaderName = null,
-    correlationHeaderName = null,
+    organizationHeaderName = TARGET_ORGANIZATION_HEADER,
+    correlationHeaderName = TARGET_CORRELATION_HEADER,
 } = {}) => {
     const client = axios.create({
         baseURL: baseURL || undefined,
