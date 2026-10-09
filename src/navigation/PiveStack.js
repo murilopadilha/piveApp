@@ -2,6 +2,10 @@ import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 
 import { useEffectiveContextQuery } from '../features/auth/hooks/useIdentityQueries'
+import { MATING_ROUTES } from '../features/fertilization/routes'
+import MatingBatchCreate from '../features/fertilization/screens/MatingBatchCreate'
+import MatingDetail from '../features/fertilization/screens/MatingDetail'
+import MatingList from '../features/fertilization/screens/MatingList'
 import { useOrganization } from '../features/organizations/OrganizationContext'
 import {
     OPU_PERMISSIONS,
@@ -13,6 +17,8 @@ import OpuCollectionBatch from '../features/opu/screens/OpuCollectionBatch'
 import OpuSessionCreate from '../features/opu/screens/OpuSessionCreate'
 import OpuSessionDetail from '../features/opu/screens/OpuSessionDetail'
 import OpuSessionList from '../features/opu/screens/OpuSessionList'
+import SemenBatchDetail from '../features/semen/screens/SemenBatchDetail'
+import SemenBatchSearch from '../features/semen/screens/SemenBatchSearch'
 import Pive from '../screens/Pive'
 import Cabecalho from '../screens/PIVE-sections/Cabecalho'
 import FivInfo from '../screens/PIVE-sections/FivInfo'
@@ -71,6 +77,31 @@ export default function PiveStack() {
                 name={OPU_ROUTES.COLLECTION_DETAIL}
                 component={OocyteCollectionDetail}
                 options={{ headerShown: true, title: 'Coleta de oócitos' }}
+            />
+            <Stack.Screen
+                name={MATING_ROUTES.LIST}
+                component={MatingList}
+                options={{ headerShown: true, title: 'Fertilizações' }}
+            />
+            <Stack.Screen
+                name={MATING_ROUTES.BATCH_CREATE}
+                component={MatingBatchCreate}
+                options={{ headerShown: true, title: 'Nova alocação' }}
+            />
+            <Stack.Screen
+                name={MATING_ROUTES.DETAIL}
+                component={MatingDetail}
+                options={{ headerShown: true, title: 'Fertilização' }}
+            />
+            <Stack.Screen
+                name={MATING_ROUTES.SEMEN_BATCH_SEARCH}
+                component={SemenBatchSearch}
+                options={{ headerShown: true, title: 'Lotes de sêmen' }}
+            />
+            <Stack.Screen
+                name={MATING_ROUTES.SEMEN_BATCH_DETAIL}
+                component={SemenBatchDetail}
+                options={{ headerShown: true, title: 'Lote de sêmen' }}
             />
             <Stack.Screen name="Cabecalho" component={Cabecalho} />
             <Stack.Screen name="FivInfo" component={FivInfo} />

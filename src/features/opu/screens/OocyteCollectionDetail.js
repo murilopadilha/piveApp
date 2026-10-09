@@ -13,6 +13,12 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAnimalDetailQuery } from '../../animals/hooks/useAnimalQueries'
 import { getAnimalName } from '../../animals/animalPresentation'
 import { useEffectiveContextQuery } from '../../auth/hooks/useIdentityQueries'
+import {
+    MATING_PERMISSIONS,
+    canAllocateMatings,
+    hasMatingPermission,
+} from '../../fertilization/matingPermissions'
+import { MATING_ROUTES } from '../../fertilization/routes'
 import { useOrganization } from '../../organizations/OrganizationContext'
 import {
     OpuDetailField,
@@ -48,7 +54,7 @@ const donorName = (snapshot, animal) => {
     return animal ? getAnimalName(animal) : 'Doadora não disponível'
 }
 
-export default function OocyteCollectionDetail({ route }) {
+export default function OocyteCollectionDetail({ navigation, route }) {
     const oocyteCollectionId = route.params?.oocyteCollectionId
     const { activeOrganizationId } = useOrganization()
     const effectiveContextQuery = useEffectiveContextQuery({
@@ -66,6 +72,16 @@ export default function OocyteCollectionDetail({ route }) {
         effectiveContextQuery.data,
         OPU_PERMISSIONS.WRITE
     )
+    const canReadMatings = hasMatingPermission(
+        effectiveContextQuery.data,
+        MATING_PERMISSIONS.READ
+    )
+    const canCreateMatings = canAllocateMatings(effectiveContextQuery.data) &&
+        hasMatingPermission(
+            effectiveContextQuery.data,
+            MATING_PERMISSIONS.SEMEN_READ
+        ) &&
+        canReadMasterData
     const [editing, setEditing] = React.useState(false)
     const [totalRecovered, setTotalRecovered] = React.useState('')
     const [viable, setViable] = React.useState('')
@@ -399,6 +415,37 @@ export default function OocyteCollectionDetail({ route }) {
                     )}
                 </OpuDetailSection>
 
+                {canReadMatings ? (
+                    <OpuDetailSection title="Fertilizações">
+                        <Text style={styles.integrationText}>
+                            Consulte as alocações vinculadas a esta coleta.
+                        </Text>
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel="Ver fertilizações da coleta"
+                            onPress={() => navigation.navigate(MATING_ROUTES.LIST, {
+                                oocyteCollectionId,
+                            })}
+                            style={styles.correctButton}
+                        >
+                            <Text style={styles.correctText}>Ver fertilizações</Text>
+                        </Pressable>
+                        {collection.status === 'COMPLETED' && canCreateMatings ? (
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel="Criar nova alocação para a coleta"
+                                onPress={() => navigation.navigate(
+                                    MATING_ROUTES.BATCH_CREATE,
+                                    { oocyteCollectionId }
+                                )}
+                                style={styles.saveButton}
+                            >
+                                <Text style={styles.saveText}>Nova alocação</Text>
+                            </Pressable>
+                        ) : null}
+                    </OpuDetailSection>
+                ) : null}
+
                 <OpuDetailSection title="Proveniência">
                     <OpuDetailField
                         label="Origem"
@@ -445,4 +492,5 @@ const styles = StyleSheet.create({
     saveText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
     editButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
     editText: { color: '#092955', fontSize: 14, fontWeight: '700' },
+    integrationText: { color: '#475569', fontSize: 14, lineHeight: 20 },
 })

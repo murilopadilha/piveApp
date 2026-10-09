@@ -1,5 +1,5 @@
 import React from 'react'
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 
 import { TARGET_ERROR_KINDS } from '../../../api/target/problemDetails'
 import {
@@ -12,6 +12,7 @@ import {
     getEstablishments,
     getFarmProperties,
     getOperationalLocations,
+    getProfessionalById,
     getProfessionals,
 } from '../api/operationalLookupApi'
 import { getNextOpuPageParam } from './useOpuQueries'
@@ -85,3 +86,35 @@ export const useOperationalLocationsLookup = ({
     enabled: options.enabled && Boolean(establishmentId),
     load: params => getOperationalLocations({ establishmentId, ...params }),
 })
+
+export const useProfessionalDetailQuery = ({
+    organizationId,
+    professionalId,
+    enabled = true,
+}) => {
+    const { expireSession } = useSession()
+    const result = useQuery({
+        queryKey: organizationId && professionalId
+            ? targetOrganizationQueryKey(
+                organizationId,
+                'opuLookups',
+                'professionals',
+                'detail',
+                professionalId
+            )
+            : targetOrganizationScopeQueryKey(),
+        queryFn: ({ signal }) => getProfessionalById({
+            professionalId,
+            signal,
+        }),
+        enabled: enabled && Boolean(organizationId) && Boolean(professionalId),
+    })
+
+    React.useEffect(() => {
+        if (result.error?.kind === TARGET_ERROR_KINDS.UNAUTHORIZED) {
+            expireSession()
+        }
+    }, [expireSession, result.error])
+
+    return result
+}

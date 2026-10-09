@@ -515,4 +515,44 @@ describe('OocyteCollectionDetail', () => {
             },
         })
     })
+
+    test('opens contextual Mating routes with only the collection stable ID', () => {
+        useEffectiveContextQuery.mockReturnValue(effectiveQuery([
+            'opu:read',
+            'opu:write',
+            'master-data:read',
+            'semen:read',
+            'fertilization:read',
+            'fertilization:write',
+        ]))
+        useOocyteCollectionDetailQuery.mockReturnValue(successQuery({
+            ...collection,
+            status: 'COMPLETED',
+        }))
+        useOocyteCollectionDonorSnapshotQuery.mockReturnValue(successQuery({
+            id: 'animal-a',
+            name: 'Aurora',
+            sex: 'FEMALE',
+            status: 'ACTIVE',
+            version: 4,
+            identifiers: [],
+        }))
+        const navigation = { navigate: jest.fn() }
+        const screen = render(
+            <OocyteCollectionDetail
+                navigation={navigation}
+                route={{ params: { oocyteCollectionId: 'collection-a' } }}
+            />
+        )
+
+        fireEvent.press(screen.getByLabelText('Ver fertilizações da coleta'))
+        fireEvent.press(screen.getByLabelText('Criar nova alocação para a coleta'))
+
+        expect(navigation.navigate).toHaveBeenNthCalledWith(1, 'MatingList', {
+            oocyteCollectionId: 'collection-a',
+        })
+        expect(navigation.navigate).toHaveBeenNthCalledWith(2, 'MatingBatchCreate', {
+            oocyteCollectionId: 'collection-a',
+        })
+    })
 })
