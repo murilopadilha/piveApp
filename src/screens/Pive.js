@@ -12,8 +12,9 @@ import {
 import PiveFilterControls from '../features/pive/components/PiveFilterControls';
 import PiveListItem from '../features/pive/components/PiveListItem';
 import usePiveListData from '../features/pive/hooks/usePiveListData';
+import { OPU_ROUTES } from '../features/opu/routes';
 
-export default ({ navigation }) => {
+export default ({ navigation, showTargetOpu = false }) => {
     const [filterCatalogMode, setFilterCatalogMode] = useState(PIVE_FILTER_CATALOG_MODES.STATUS)
     const [activeFilter, setActiveFilter] = useState('ALL')
     const [selectedAnimalId, setSelectedAnimalId] = useState(null)
@@ -88,6 +89,17 @@ export default ({ navigation }) => {
                 <Image source={require('../images/menu/logo.png')} style={styles.logo}/>
                 <Text style={style.titleTextMain}>BovInA</Text>
             </View>
+            {showTargetOpu ? (
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Abrir diretório de OPU"
+                    accessibilityHint="Consulta sessões de coleta de oócitos"
+                    style={styles.opuDirectoryButton}
+                    onPress={() => navigation.navigate(OPU_ROUTES.LIST)}
+                >
+                    <Text style={styles.opuDirectoryText}>OPU</Text>
+                </TouchableOpacity>
+            ) : null}
             <PiveFilterControls
                 primaryOptions={categoryData}
                 icon={icon}
@@ -211,5 +223,19 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         textAlign: 'center',
         paddingTop: 3,
+    },
+    opuDirectoryButton: {
+        minHeight: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 20,
+        marginBottom: 10,
+        borderRadius: 24,
+        backgroundColor: '#092955',
+    },
+    opuDirectoryText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '700',
     },
 })
