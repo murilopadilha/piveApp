@@ -7,7 +7,10 @@ import {
 
 import { SessionProvider } from '../features/auth/SessionContext'
 import { OrganizationProvider } from '../features/organizations/OrganizationContext'
-import { createTargetQueryClient } from '../serverState/targetQueryClient'
+import {
+    clearTargetSessionServerState,
+    createTargetQueryClient,
+} from '../serverState/targetQueryClient'
 
 function TargetAppStateBridge() {
     React.useEffect(() => {
@@ -30,14 +33,23 @@ export default function TargetFoundationProvider({
     children,
     queryClient: providedQueryClient,
     restoreSession,
+    authManager,
 }) {
     const [queryClient] = React.useState(
         () => providedQueryClient ?? createTargetQueryClient()
     )
+    const clearSessionServerState = React.useCallback(
+        () => clearTargetSessionServerState(queryClient),
+        [queryClient]
+    )
 
     return (
         <QueryClientProvider client={queryClient}>
-            <SessionProvider restoreSession={restoreSession}>
+            <SessionProvider
+                restoreSession={restoreSession}
+                authManager={authManager}
+                clearSessionServerState={clearSessionServerState}
+            >
                 <OrganizationProvider>
                     <TargetAppStateBridge />
                     {children}

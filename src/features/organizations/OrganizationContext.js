@@ -2,13 +2,9 @@ import React from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { setTargetOrganizationId } from '../../api/target/requestContext'
-import {
-    SESSION_STATUS,
-    useSession,
-} from '../auth/SessionContext'
+import { useSession } from '../auth/SessionContext'
 import {
     clearTargetOrganizationServerState,
-    clearTargetSessionServerState,
 } from '../../serverState/targetQueryClient'
 
 const OrganizationContext = React.createContext(null)
@@ -26,40 +22,42 @@ export function OrganizationProvider({ children }) {
     const session = useSession()
     const [activeOrganizationId, setActiveOrganizationId] = React.useState(null)
     const contextChangeIdRef = React.useRef(0)
+    const hasAuthenticatedSessionRef = React.useRef(Boolean(session.accessToken))
+    hasAuthenticatedSessionRef.current = Boolean(session.accessToken)
 
     React.useEffect(() => {
-        if (session.status !== SESSION_STATUS.EXPIRED) {
+        if (session.accessToken) {
             return
         }
 
         contextChangeIdRef.current += 1
         setTargetOrganizationId(null)
         setActiveOrganizationId(null)
-        void clearTargetSessionServerState(queryClient)
-    }, [queryClient, session.status])
+    }, [session.accessToken])
 
     const selectOrganization = React.useCallback(async (organizationIdValue) => {
-        if (!session.accessToken) {
-            throw new Error('An authenticated session is required to select an Organization.')
+        if (!hasAuthenticatedSessionRef.current) {
+            return false
         }
 
         const organizationId = requireOrganizationId(organizationIdValue)
 
         if (organizationId === activeOrganizationId) {
             session.markOrganizationReady()
-            return
+            return true
         }
 
         const contextChangeId = ++contextChangeIdRef.current
         await clearTargetOrganizationServerState(queryClient)
 
         if (contextChangeId !== contextChangeIdRef.current) {
-            return
+            return false
         }
 
         setTargetOrganizationId(organizationId)
         setActiveOrganizationId(organizationId)
         session.markOrganizationReady()
+        return true
     }, [activeOrganizationId, queryClient, session])
 
     const clearOrganization = React.useCallback(async () => {

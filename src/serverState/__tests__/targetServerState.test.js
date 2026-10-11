@@ -118,4 +118,20 @@ describe('target server-state foundation', () => {
 
         expect(queryClient.getQueryCache().getAll()).toHaveLength(0)
     })
+
+    test('clears session state even when query cancellation fails', async () => {
+        const queryClient = createTargetQueryClient()
+        queryClient.setQueryData(
+            targetBootstrapQueryKey('identity', 'memberships'),
+            [{ organizationId: 'organization-a' }]
+        )
+        jest.spyOn(queryClient, 'cancelQueries').mockRejectedValueOnce(
+            new Error('cancel failed')
+        )
+
+        await expect(clearTargetSessionServerState(queryClient)).rejects.toThrow(
+            'cancel failed'
+        )
+        expect(queryClient.getQueryCache().getAll()).toHaveLength(0)
+    })
 })

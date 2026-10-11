@@ -37,6 +37,11 @@ export default function useAuthenticatedOrganization() {
     }, [memberships, organization])
 
     React.useEffect(() => {
+        if (!session.accessToken || !isAuthenticated(session.status)) {
+            autoSelectionIdRef.current = null
+            return
+        }
+
         if (!membershipsQuery.isSuccess) {
             return
         }
@@ -67,12 +72,22 @@ export default function useAuthenticatedOrganization() {
         ) {
             autoSelectionIdRef.current = memberships[0].organizationId
             void selectMembership(memberships[0].organizationId)
+                .then(selected => {
+                    if (!selected) {
+                        autoSelectionIdRef.current = null
+                    }
+                })
+                .catch(() => {
+                    autoSelectionIdRef.current = null
+                })
         }
     }, [
         memberships,
         membershipsQuery.isSuccess,
         organization,
         selectMembership,
+        session.accessToken,
+        session.status,
     ])
 
     const effectiveContextQuery = useEffectiveContextQuery({

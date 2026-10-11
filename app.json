@@ -3,6 +3,7 @@
     "name": "PIVEapp",
     "slug": "piveapp",
     "version": "1.0.0",
+    "scheme": "bovina",
     "orientation": "portrait",
     "updates": {
       "fallbackToCacheTimeout": 0
@@ -12,6 +13,9 @@
     ],
     "ios": {
       "supportsTablet": true
-    }
+    },
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }

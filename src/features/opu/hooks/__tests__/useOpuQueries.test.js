@@ -337,7 +337,7 @@ describe('OPU target queries', () => {
 
     test('expires the target session on unauthorized OPU data', async () => {
         const queryClient = createTestQueryClient()
-        getOpuSessionById.mockRejectedValueOnce({ kind: 'unauthorized' })
+        getOpuSessionById.mockRejectedValue({ kind: 'unauthorized' })
         const { result, unmount } = renderHook(() => ({
             opu: useOpuSessionDetailQuery({
                 organizationId: 'organization-a', opuSessionId: 'opu-a',
@@ -346,7 +346,9 @@ describe('OPU target queries', () => {
         }), { wrapper: createWrapper(queryClient) })
 
         await waitFor(() => expect(result.current.session.status).toBe('expired'))
-        expect(queryClient.getQueryCache().getAll()).toHaveLength(0)
+        expect(queryClient.getQueryCache().getAll().every(query => (
+            query.state.data === undefined
+        ))).toBe(true)
 
         unmount()
         queryClient.clear()

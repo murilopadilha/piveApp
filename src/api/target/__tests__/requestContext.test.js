@@ -217,4 +217,92 @@ describe('target Axios client', () => {
             TargetApiConfigurationError
         )
     })
+
+    test('refreshes once after 401 and preserves a command intention', async () => {
+        const attempts = []
+        const authRuntime = {
+            getValidAccessToken: jest.fn()
+                .mockResolvedValueOnce('expired-token')
+                .mockResolvedValue('fresh-token'),
+            recoverUnauthorized: jest.fn(async () => 'fresh-token'),
+            notifySessionExpired: jest.fn(async () => undefined),
+        }
+        const client = createTargetApiClient({
+            baseURL: 'https://api.example.test/api/v1',
+            getRequestContext: () => ({
+                accessToken: 'expired-token',
+                organizationId: 'organization-a',
+            }),
+            authRuntime,
+        })
+        const adapter = async (config) => {
+            attempts.push({
+                authorization: config.headers.get('Authorization'),
+                idempotencyKey: config.headers.get('Idempotency-Key'),
+                data: config.data,
+            })
+
+            if (!config.__targetAuthRetried) {
+                return Promise.reject({
+                    config,
+                    response: { status: 401 },
+                })
+            }
+
+            return {
+                data: { accepted: true },
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            }
+        }
+
+        await expect(client.post('/matings:bulk', {
+            batchId: 'batch-1',
+            items: [{ itemId: 'item-1', matingId: 'mating-1' }],
+        }, {
+            targetContext: { idempotencyKey: 'batch-1' },
+            adapter,
+        })).resolves.toMatchObject({ data: { accepted: true } })
+
+        expect(attempts).toHaveLength(2)
+        expect(attempts[0]).toMatchObject({
+            authorization: 'Bearer expired-token',
+            idempotencyKey: 'batch-1',
+        })
+        expect(attempts[1]).toMatchObject({
+            authorization: 'Bearer fresh-token',
+            idempotencyKey: 'batch-1',
+            data: attempts[0].data,
+        })
+        expect(authRuntime.recoverUnauthorized).toHaveBeenCalledTimes(1)
+        expect(authRuntime.notifySessionExpired).not.toHaveBeenCalled()
+    })
+
+    test('expires the session after one failed authenticated retry', async () => {
+        const authRuntime = {
+            getValidAccessToken: jest.fn(async () => 'token'),
+            recoverUnauthorized: jest.fn(async () => 'refreshed-token'),
+            notifySessionExpired: jest.fn(async () => undefined),
+        }
+        const client = createTargetApiClient({
+            baseURL: 'https://api.example.test/api/v1',
+            getRequestContext: () => ({
+                accessToken: 'token',
+                organizationId: 'organization-a',
+            }),
+            authRuntime,
+        })
+
+        await expect(client.get('/clients', {
+            adapter: config => Promise.reject({
+                config,
+                response: { status: 401 },
+            }),
+        })).rejects.toMatchObject({ response: { status: 401 } })
+
+        expect(authRuntime.recoverUnauthorized).toHaveBeenCalledTimes(1)
+        expect(authRuntime.notifySessionExpired).toHaveBeenCalledTimes(1)
+    })
 })

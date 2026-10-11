@@ -136,6 +136,28 @@ describe('useAuthenticatedOrganization', () => {
         queryClient.clear()
     })
 
+    test('keeps an authenticated user without memberships outside tenant state', async () => {
+        const queryClient = createTestQueryClient()
+        getMemberships.mockResolvedValueOnce([])
+        const { result, unmount } = renderHook(
+            () => useAuthenticatedOrganization(),
+            { wrapper: createWrapper(queryClient) }
+        )
+
+        await waitFor(() => {
+            expect(result.current.hasNoMemberships).toBe(true)
+        })
+        expect(result.current.activeOrganizationId).toBeNull()
+        expect(result.current.isReady).toBe(false)
+        expect(getEffectiveContext).not.toHaveBeenCalled()
+        expect(queryClient.getQueryData(
+            targetBootstrapQueryKey('identity', 'memberships')
+        )).toEqual([])
+
+        unmount()
+        queryClient.clear()
+    })
+
     test('preserves bootstrap state and removes all tenant data when switching', async () => {
         const queryClient = createTestQueryClient()
         getMemberships.mockResolvedValueOnce([
@@ -203,7 +225,77 @@ describe('useAuthenticatedOrganization', () => {
             expect(result.current.session.status).toBe('expired')
         })
         expect(result.current.organization.activeOrganizationId).toBeNull()
-        expect(queryClient.getQueryCache().getAll()).toHaveLength(0)
+        expect(queryClient.getQueryCache().getAll().every(query => (
+            query.state.data === undefined && query.state.fetchStatus === 'idle'
+        ))).toBe(true)
+        unmount()
+        queryClient.clear()
+    })
+
+    test('auto-selects again after logout without reusing stale bootstrap state', async () => {
+        const queryClient = createTestQueryClient()
+        const authManager = {
+            restoreSession: jest.fn(async () => null),
+            signIn: jest.fn()
+                .mockResolvedValueOnce({ accessToken: 'first-token' })
+                .mockResolvedValueOnce({ accessToken: 'second-token' }),
+            getValidAccessToken: jest.fn(async () => 'second-token'),
+            refreshAfterUnauthorized: jest.fn(async () => 'second-token'),
+            clearLocalSession: jest.fn(async () => undefined),
+            logout: jest.fn(async ({ onLocalCleared }) => {
+                await onLocalCleared()
+                return true
+            }),
+        }
+        getMemberships
+            .mockResolvedValueOnce([membership('organization-a')])
+            .mockResolvedValueOnce([membership('organization-a')])
+        getEffectiveContext
+            .mockResolvedValueOnce(effectiveContext('organization-a'))
+            .mockResolvedValueOnce(effectiveContext('organization-a'))
+        const wrapper = ({ children }) => (
+            <TargetFoundationProvider
+                queryClient={queryClient}
+                authManager={authManager}
+            >
+                {children}
+            </TargetFoundationProvider>
+        )
+        const { result, unmount } = renderHook(() => ({
+            organization: useAuthenticatedOrganization(),
+            session: useSession(),
+        }), { wrapper })
+
+        await waitFor(() => {
+            expect(result.current.session.status).toBe('expired')
+        })
+        await act(async () => {
+            await result.current.session.signIn()
+        })
+        await waitFor(() => {
+            expect(result.current.organization.isReady).toBe(true)
+        })
+
+        await act(async () => {
+            await result.current.session.logout()
+        })
+        expect(result.current.session.status).toBe('expired')
+        expect(result.current.organization.activeOrganizationId).toBeNull()
+
+        await act(async () => {
+            await result.current.session.signIn()
+        })
+        await waitFor(() => {
+            expect(result.current.organization.isReady).toBe(true)
+        })
+
+        expect(result.current.session.accessToken).toBe('second-token')
+        expect(result.current.organization.activeOrganizationId).toBe(
+            'organization-a'
+        )
+        expect(getMemberships).toHaveBeenCalledTimes(2)
+        expect(getEffectiveContext).toHaveBeenCalledTimes(2)
+
         unmount()
         queryClient.clear()
     })

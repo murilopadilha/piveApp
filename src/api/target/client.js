@@ -5,6 +5,11 @@ import {
     applyTargetRequestContext,
     getTargetRuntimeContext,
 } from './requestContext'
+import {
+    getValidTargetAccessToken,
+    notifyTargetSessionExpired,
+    recoverTargetAuthentication,
+} from './authRuntime'
 
 export const TARGET_API_TIMEOUT_MS = 15000
 export const TARGET_ORGANIZATION_HEADER = 'X-Organization-ID'
@@ -23,23 +28,72 @@ export const createTargetApiClient = ({
     getRequestContext = getTargetRuntimeContext,
     organizationHeaderName = TARGET_ORGANIZATION_HEADER,
     correlationHeaderName = TARGET_CORRELATION_HEADER,
+    authRuntime = {
+        getValidAccessToken: getValidTargetAccessToken,
+        recoverUnauthorized: recoverTargetAuthentication,
+        notifySessionExpired: notifyTargetSessionExpired,
+    },
 } = {}) => {
     const client = axios.create({
         baseURL: baseURL || undefined,
         timeout: TARGET_API_TIMEOUT_MS,
     })
 
-    client.interceptors.request.use((config) => {
+    client.interceptors.request.use(async (config) => {
         if (!baseURL) {
             throw new TargetApiConfigurationError()
         }
 
+        const requestContext = config.targetContext ?? {}
+        let context = getRequestContext()
+
+        if (requestContext.requiresAuthentication !== false) {
+            const accessToken = await authRuntime.getValidAccessToken()
+
+            if (accessToken) {
+                context = { ...context, accessToken }
+            }
+        }
+
         return applyTargetRequestContext(config, {
-            context: getRequestContext(),
+            context,
             organizationHeaderName,
             correlationHeaderName,
         })
     })
+
+    client.interceptors.response.use(
+        response => response,
+        async (error) => {
+            const request = error?.config
+
+            if (error?.response?.status !== 401 || !request) {
+                throw error
+            }
+
+            if (request.__targetAuthRetried) {
+                await authRuntime.notifySessionExpired()
+                throw error
+            }
+
+            let accessToken
+
+            try {
+                accessToken = await authRuntime.recoverUnauthorized()
+            } catch {
+                await authRuntime.notifySessionExpired()
+                throw error
+            }
+
+            if (!accessToken) {
+                await authRuntime.notifySessionExpired()
+                throw error
+            }
+
+            request.__targetAuthRetried = true
+            return client.request(request)
+        }
+    )
 
     return client
 }

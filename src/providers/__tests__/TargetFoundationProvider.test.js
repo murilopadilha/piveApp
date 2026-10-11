@@ -4,6 +4,7 @@ import {
     act,
     fireEvent,
     render,
+    renderHook,
     waitFor,
 } from '@testing-library/react-native'
 
@@ -41,6 +42,8 @@ function FoundationProbe() {
                 testID="select-b"
                 onPress={() => organization.selectOrganization('organization-b')}
             />
+            <Pressable testID="sign-in" onPress={session.signIn} />
+            <Pressable testID="logout" onPress={session.logout} />
             <Pressable testID="expire" onPress={session.expireSession} />
         </View>
     )
@@ -183,5 +186,138 @@ describe('TargetFoundationProvider', () => {
             accessToken: null,
             organizationId: null,
         })
+    })
+
+    test('clears the previous tenant before a second login can start', async () => {
+        const queryClient = createTargetQueryClient()
+        const authManager = {
+            restoreSession: jest.fn(async () => null),
+            signIn: jest.fn()
+                .mockResolvedValueOnce({ accessToken: 'first-token' })
+                .mockResolvedValueOnce({ accessToken: 'second-token' }),
+            getValidAccessToken: jest.fn(async () => 'second-token'),
+            refreshAfterUnauthorized: jest.fn(async () => 'second-token'),
+            clearLocalSession: jest.fn(async () => undefined),
+            logout: jest.fn(async ({ onLocalCleared }) => {
+                await onLocalCleared()
+                return true
+            }),
+        }
+        const screen = render(
+            <TargetFoundationProvider
+                queryClient={queryClient}
+                authManager={authManager}
+            >
+                <FoundationProbe />
+            </TargetFoundationProvider>
+        )
+
+        await waitFor(() => {
+            expect(screen.getByTestId('session-status').props.children).toBe(
+                SESSION_STATUS.EXPIRED
+            )
+        })
+        await act(async () => {
+            fireEvent.press(screen.getByTestId('sign-in'))
+        })
+        await act(async () => {
+            fireEvent.press(screen.getByTestId('select-a'))
+        })
+        queryClient.setQueryData(
+            targetBootstrapQueryKey('identity', 'memberships'),
+            [{ organizationId: 'organization-a' }]
+        )
+        queryClient.setQueryData(
+            targetOrganizationQueryKey('organization-a', 'clients'),
+            ['client-a']
+        )
+
+        await act(async () => {
+            fireEvent.press(screen.getByTestId('logout'))
+        })
+
+        expect(screen.getByTestId('session-status').props.children).toBe(
+            SESSION_STATUS.EXPIRED
+        )
+        expect(screen.getByTestId('organization-id').props.children).toBe('none')
+        expect(queryClient.getQueryCache().getAll()).toHaveLength(0)
+
+        await act(async () => {
+            fireEvent.press(screen.getByTestId('sign-in'))
+        })
+
+        expect(screen.getByTestId('session-status').props.children).toBe(
+            SESSION_STATUS.AUTHENTICATED_WITHOUT_ORGANIZATION
+        )
+        expect(getTargetRuntimeContext()).toEqual({
+            accessToken: 'second-token',
+            organizationId: null,
+        })
+    })
+
+    test('uses current authentication state from a previously rendered selection callback', async () => {
+        const queryClient = createTargetQueryClient()
+        const authManager = {
+            restoreSession: jest.fn(async () => null),
+            signIn: jest.fn(async () => ({ accessToken: 'access-token' })),
+            getValidAccessToken: jest.fn(async () => 'access-token'),
+            refreshAfterUnauthorized: jest.fn(async () => 'access-token'),
+            clearLocalSession: jest.fn(async () => undefined),
+            logout: jest.fn(async () => true),
+        }
+        const wrapper = ({ children }) => (
+            <TargetFoundationProvider
+                queryClient={queryClient}
+                authManager={authManager}
+            >
+                {children}
+            </TargetFoundationProvider>
+        )
+        const { result } = renderHook(() => ({
+            organization: useOrganization(),
+            session: useSession(),
+        }), { wrapper })
+
+        await waitFor(() => {
+            expect(result.current.session.status).toBe(SESSION_STATUS.EXPIRED)
+        })
+        const selectFromExpiredRender = (
+            result.current.organization.selectOrganization
+        )
+
+        await act(async () => {
+            await result.current.session.signIn()
+        })
+        await act(async () => {
+            await selectFromExpiredRender('organization-a')
+        })
+
+        expect(result.current.organization.activeOrganizationId).toBe(
+            'organization-a'
+        )
+        expect(result.current.session.status).toBe(
+            SESSION_STATUS.AUTHENTICATED_READY
+        )
+
+        queryClient.clear()
+    })
+
+    test('ignores a stale Organization selection after authentication ends', async () => {
+        const queryClient = createTargetQueryClient()
+        const { result } = renderHook(() => useOrganization(), {
+            wrapper: ({ children }) => (
+                <TargetFoundationProvider queryClient={queryClient}>
+                    {children}
+                </TargetFoundationProvider>
+            ),
+        })
+
+        await expect(
+            result.current.selectOrganization('organization-a')
+        ).resolves.toBe(false)
+        expect(result.current.activeOrganizationId).toBeNull()
+        expect(getTargetRuntimeContext().organizationId).toBeNull()
+
+        queryClient.clear()
     })
 })

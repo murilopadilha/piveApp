@@ -24,6 +24,9 @@ export const clearTargetOrganizationServerState = async (queryClient) => {
 }
 
 export const clearTargetSessionServerState = async (queryClient) => {
-    await queryClient.cancelQueries()
-    queryClient.clear()
+    try {
+        await queryClient.cancelQueries()
+    } finally {
+        queryClient.clear()
+    }
 }

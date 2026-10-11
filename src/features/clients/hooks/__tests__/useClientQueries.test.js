@@ -226,7 +226,7 @@ describe('Client target queries', () => {
 
     test('loads detail by clientId and expires session on 401', async () => {
         const queryClient = createTestQueryClient()
-        getClientById.mockRejectedValueOnce({ kind: 'unauthorized' })
+        getClientById.mockRejectedValue({ kind: 'unauthorized' })
         const { result, unmount } = renderHook(() => ({
             detail: useClientDetailQuery({
                 organizationId: 'organization-a',
@@ -242,7 +242,9 @@ describe('Client target queries', () => {
             clientId: 'client-a',
             signal: expect.any(AbortSignal),
         })
-        expect(queryClient.getQueryCache().getAll()).toHaveLength(0)
+        expect(queryClient.getQueryCache().getAll().every(query => (
+            query.state.data === undefined
+        ))).toBe(true)
         unmount()
         queryClient.clear()
     })
