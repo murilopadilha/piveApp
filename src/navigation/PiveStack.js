@@ -2,6 +2,10 @@ import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 
 import { useEffectiveContextQuery } from '../features/auth/hooks/useIdentityQueries'
+import { EMBRYO_ROUTES } from '../features/embryology/routes'
+import EmbryoBatchIdentify from '../features/embryology/screens/EmbryoBatchIdentify'
+import EmbryoDetail from '../features/embryology/screens/EmbryoDetail'
+import EmbryoList from '../features/embryology/screens/EmbryoList'
 import { MATING_ROUTES } from '../features/fertilization/routes'
 import MatingBatchCreate from '../features/fertilization/screens/MatingBatchCreate'
 import MatingDetail from '../features/fertilization/screens/MatingDetail'
@@ -102,6 +106,21 @@ export default function PiveStack() {
                 name={MATING_ROUTES.SEMEN_BATCH_DETAIL}
                 component={SemenBatchDetail}
                 options={{ headerShown: true, title: 'Lote de sêmen' }}
+            />
+            <Stack.Screen
+                name={EMBRYO_ROUTES.LIST}
+                component={EmbryoList}
+                options={{ headerShown: true, title: 'Embriões' }}
+            />
+            <Stack.Screen
+                name={EMBRYO_ROUTES.BATCH_IDENTIFY}
+                component={EmbryoBatchIdentify}
+                options={{ headerShown: true, title: 'Identificar embriões' }}
+            />
+            <Stack.Screen
+                name={EMBRYO_ROUTES.DETAIL}
+                component={EmbryoDetail}
+                options={{ headerShown: true, title: 'Embrião' }}
             />
             <Stack.Screen name="Cabecalho" component={Cabecalho} />
             <Stack.Screen name="FivInfo" component={FivInfo} />

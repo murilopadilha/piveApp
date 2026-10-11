@@ -240,6 +240,39 @@ describe('Mating list and detail', () => {
             professionalId: 'professional-a',
         }))
     })
+
+    test('opens contextual Embryo routes using only the stable matingId', () => {
+        useEffectiveContextQuery.mockReturnValue(query({
+            permissions: [
+                ...permissions,
+                'embryology:read',
+                'embryology:write',
+            ],
+        }))
+        const navigation = { navigate: jest.fn() }
+        const screen = render(
+            <MatingDetail
+                navigation={navigation}
+                route={{ params: { matingId: 'mating-a' } }}
+            />
+        )
+
+        fireEvent.press(screen.getByLabelText(
+            'Consultar embriões da fertilização'
+        ))
+        fireEvent.press(screen.getByLabelText(
+            'Identificar embriões da fertilização'
+        ))
+
+        expect(navigation.navigate).toHaveBeenNthCalledWith(1, 'EmbryoList', {
+            matingId: 'mating-a',
+        })
+        expect(navigation.navigate).toHaveBeenNthCalledWith(
+            2,
+            'EmbryoBatchIdentify',
+            { matingId: 'mating-a' }
+        )
+    })
 })
 
 describe('MatingBatchCreate', () => {

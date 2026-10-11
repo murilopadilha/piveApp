@@ -62,6 +62,9 @@ describe('PiveStack target OPU coexistence', () => {
         expect(screen.getByText('MatingDetail')).toBeTruthy()
         expect(screen.getByText('SemenBatchSearch')).toBeTruthy()
         expect(screen.getByText('SemenBatchDetail')).toBeTruthy()
+        expect(screen.getByText('EmbryoList')).toBeTruthy()
+        expect(screen.getByText('EmbryoBatchIdentify')).toBeTruthy()
+        expect(screen.getByText('EmbryoDetail')).toBeTruthy()
     })
 
     test('does not treat opu:write as read access', () => {
