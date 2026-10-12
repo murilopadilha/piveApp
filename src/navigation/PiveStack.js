@@ -23,6 +23,16 @@ import OpuSessionDetail from '../features/opu/screens/OpuSessionDetail'
 import OpuSessionList from '../features/opu/screens/OpuSessionList'
 import SemenBatchDetail from '../features/semen/screens/SemenBatchDetail'
 import SemenBatchSearch from '../features/semen/screens/SemenBatchSearch'
+import { TRANSFER_ROUTES } from '../features/transfers/routes'
+import PregnancyFollowUps from '../features/transfers/screens/PregnancyFollowUps'
+import RecipientCycleCreate from '../features/transfers/screens/RecipientCycleCreate'
+import RecipientCycleDetail from '../features/transfers/screens/RecipientCycleDetail'
+import RecipientCycleList from '../features/transfers/screens/RecipientCycleList'
+import TransferDetail from '../features/transfers/screens/TransferDetail'
+import {
+    TRANSFER_PERMISSIONS,
+    hasTransferPermission,
+} from '../features/transfers/transferPermissions'
 import Pive from '../screens/Pive'
 import Cabecalho from '../screens/PIVE-sections/Cabecalho'
 import FivInfo from '../screens/PIVE-sections/FivInfo'
@@ -47,9 +57,18 @@ export default function PiveStack() {
         effectiveContextQuery.data,
         OPU_PERMISSIONS.READ
     )
+    const showTargetTransfers = effectiveContextQuery.isSuccess &&
+        hasTransferPermission(
+            effectiveContextQuery.data,
+            TRANSFER_PERMISSIONS.READ
+        )
     const renderPive = React.useCallback(props => (
-        <Pive {...props} showTargetOpu={showTargetOpu} />
-    ), [showTargetOpu])
+        <Pive
+            {...props}
+            showTargetOpu={showTargetOpu}
+            showTargetTransfers={showTargetTransfers}
+        />
+    ), [showTargetOpu, showTargetTransfers])
 
     return (
         <Stack.Navigator screenOptions={{
@@ -121,6 +140,31 @@ export default function PiveStack() {
                 name={EMBRYO_ROUTES.DETAIL}
                 component={EmbryoDetail}
                 options={{ headerShown: true, title: 'Embrião' }}
+            />
+            <Stack.Screen
+                name={TRANSFER_ROUTES.RECIPIENT_CYCLE_LIST}
+                component={RecipientCycleList}
+                options={{ headerShown: true, title: 'Ciclos de receptoras' }}
+            />
+            <Stack.Screen
+                name={TRANSFER_ROUTES.RECIPIENT_CYCLE_CREATE}
+                component={RecipientCycleCreate}
+                options={{ headerShown: true, title: 'Novo ciclo' }}
+            />
+            <Stack.Screen
+                name={TRANSFER_ROUTES.RECIPIENT_CYCLE_DETAIL}
+                component={RecipientCycleDetail}
+                options={{ headerShown: true, title: 'Ciclo da receptora' }}
+            />
+            <Stack.Screen
+                name={TRANSFER_ROUTES.TRANSFER_DETAIL}
+                component={TransferDetail}
+                options={{ headerShown: true, title: 'Transferência' }}
+            />
+            <Stack.Screen
+                name={TRANSFER_ROUTES.PREGNANCY_FOLLOW_UPS}
+                component={PregnancyFollowUps}
+                options={{ headerShown: true, title: 'Acompanhamentos' }}
             />
             <Stack.Screen name="Cabecalho" component={Cabecalho} />
             <Stack.Screen name="FivInfo" component={FivInfo} />

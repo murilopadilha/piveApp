@@ -30,10 +30,18 @@ jest.mock('../../features/organizations/OrganizationContext', () => ({
     useOrganization: jest.fn(),
 }))
 
-jest.mock('../../screens/Pive', () => function MockPive({ showTargetOpu }) {
+jest.mock('../../screens/Pive', () => function MockPive({
+    showTargetOpu,
+    showTargetTransfers,
+}) {
     const { Text } = require('react-native')
 
-    return <Text>{showTargetOpu ? 'target-opu-entry' : 'legacy-pive-only'}</Text>
+    return (
+        <>
+            <Text>{showTargetOpu ? 'target-opu-entry' : 'legacy-pive-only'}</Text>
+            <Text>{showTargetTransfers ? 'target-transfer-entry' : 'no-target-transfer'}</Text>
+        </>
+    )
 })
 
 beforeEach(() => {
@@ -43,7 +51,7 @@ beforeEach(() => {
 describe('PiveStack target OPU coexistence', () => {
     test('preserves legacy routes and registers stable target OPU routes', () => {
         useEffectiveContextQuery.mockReturnValue({
-            data: { permissions: ['opu:read'] },
+            data: { permissions: ['opu:read', 'transfer:read'] },
             isSuccess: true,
         })
 
@@ -65,6 +73,12 @@ describe('PiveStack target OPU coexistence', () => {
         expect(screen.getByText('EmbryoList')).toBeTruthy()
         expect(screen.getByText('EmbryoBatchIdentify')).toBeTruthy()
         expect(screen.getByText('EmbryoDetail')).toBeTruthy()
+        expect(screen.getByText('target-transfer-entry')).toBeTruthy()
+        expect(screen.getByText('RecipientCycleList')).toBeTruthy()
+        expect(screen.getByText('RecipientCycleCreate')).toBeTruthy()
+        expect(screen.getByText('RecipientCycleDetail')).toBeTruthy()
+        expect(screen.getByText('TransferDetail')).toBeTruthy()
+        expect(screen.getByText('PregnancyFollowUps')).toBeTruthy()
     })
 
     test('does not treat opu:write as read access', () => {
@@ -74,5 +88,6 @@ describe('PiveStack target OPU coexistence', () => {
         })
 
         expect(render(<PiveStack />).getByText('legacy-pive-only')).toBeTruthy()
+        expect(render(<PiveStack />).getByText('no-target-transfer')).toBeTruthy()
     })
 })

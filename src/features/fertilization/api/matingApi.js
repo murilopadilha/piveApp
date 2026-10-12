@@ -139,25 +139,30 @@ const mapSireSnapshot = (value) => {
     }
 }
 
-export const mapMatingDetail = (value) => {
-    const detail = requireRecord(value, 'Mating detail')
-    const lineage = requireRecord(detail.lineage, 'Mating lineage')
+export const mapMatingLineage = (value) => {
+    const lineage = requireRecord(value, 'Mating lineage')
     const semen = requireRecord(lineage.semen, 'Mating semen lineage')
 
     return {
-        mating: mapMating(detail.mating),
-        lineage: {
-            collectionId: requireString(
-                lineage.collectionId,
-                'Mating lineage'
-            ),
-            donorId: requireString(lineage.donorId, 'Mating lineage'),
-            semen: {
-                batch: mapSemenBatch(semen.batch),
-                sire: mapSireSnapshot(semen.sire),
-                producer: mapExternalEstablishment(semen.producer),
-            },
+        collectionId: requireString(
+            lineage.collectionId,
+            'Mating lineage'
+        ),
+        donorId: requireString(lineage.donorId, 'Mating lineage'),
+        semen: {
+            batch: mapSemenBatch(semen.batch),
+            sire: mapSireSnapshot(semen.sire),
+            producer: mapExternalEstablishment(semen.producer),
         },
+    }
+}
+
+export const mapMatingDetail = (value) => {
+    const detail = requireRecord(value, 'Mating detail')
+
+    return {
+        mating: mapMating(detail.mating),
+        lineage: mapMatingLineage(detail.lineage),
     }
 }
 

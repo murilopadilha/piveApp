@@ -13,8 +13,13 @@ import PiveFilterControls from '../features/pive/components/PiveFilterControls';
 import PiveListItem from '../features/pive/components/PiveListItem';
 import usePiveListData from '../features/pive/hooks/usePiveListData';
 import { OPU_ROUTES } from '../features/opu/routes';
+import { TRANSFER_ROUTES } from '../features/transfers/routes';
 
-export default ({ navigation, showTargetOpu = false }) => {
+export default ({
+    navigation,
+    showTargetOpu = false,
+    showTargetTransfers = false,
+}) => {
     const [filterCatalogMode, setFilterCatalogMode] = useState(PIVE_FILTER_CATALOG_MODES.STATUS)
     const [activeFilter, setActiveFilter] = useState('ALL')
     const [selectedAnimalId, setSelectedAnimalId] = useState(null)
@@ -98,6 +103,19 @@ export default ({ navigation, showTargetOpu = false }) => {
                     onPress={() => navigation.navigate(OPU_ROUTES.LIST)}
                 >
                     <Text style={styles.opuDirectoryText}>OPU</Text>
+                </TouchableOpacity>
+            ) : null}
+            {showTargetTransfers ? (
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Abrir ciclos de receptoras"
+                    accessibilityHint="Consulta ciclos, transferências realizadas e outcomes gestacionais"
+                    style={styles.transferDirectoryButton}
+                    onPress={() => navigation.navigate(
+                        TRANSFER_ROUTES.RECIPIENT_CYCLE_LIST
+                    )}
+                >
+                    <Text style={styles.opuDirectoryText}>Ciclos de receptoras</Text>
                 </TouchableOpacity>
             ) : null}
             <PiveFilterControls
@@ -237,5 +255,14 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '700',
+    },
+    transferDirectoryButton: {
+        minHeight: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 20,
+        marginBottom: 10,
+        borderRadius: 24,
+        backgroundColor: '#164E63',
     },
 })
