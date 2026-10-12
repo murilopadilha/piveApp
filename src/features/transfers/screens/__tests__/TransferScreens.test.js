@@ -282,14 +282,30 @@ describe('RecipientCycle screens', () => {
 })
 
 describe('performed Transfer and Pregnancy read screens', () => {
-    test('shows lineage, null latest outcome and no Pregnancy mutation', () => {
-        const screen = render(<TransferDetail route={{ params: { transferId: 'transfer-a' } }} />)
+    test('shows lineage, null latest outcome and stable capture navigation', () => {
+        const navigation = { navigate: jest.fn() }
+        const screen = render(<TransferDetail navigation={navigation} route={{ params: { transferId: 'transfer-a' } }} />)
 
         expect(screen.getByText('LOTE-42')).toBeTruthy()
         expect(screen.getByText('Sire A')).toBeTruthy()
         expect(screen.getByText('Ainda sem outcome gestacional válido.')).toBeTruthy()
-        expect(screen.queryByText(/registrar checagem/i)).toBeNull()
+        fireEvent.press(screen.getByLabelText('Registrar nova checagem gestacional'))
+        expect(navigation.navigate).toHaveBeenCalledWith('PregnancyCheckCapture', {
+            transferId: 'transfer-a',
+        })
         expect(screen.queryByText(/invalidar/i)).toBeNull()
+    })
+
+    test('keeps M5A read-only when transfer:write is absent', () => {
+        useEffectiveContextQuery.mockReturnValue(query({ permissions: ['transfer:read'] }))
+        const screen = render(
+            <TransferDetail navigation={{ navigate: jest.fn() }} route={{ params: { transferId: 'transfer-a' } }} />
+        )
+
+        expect(screen.getByText('Transferência realizada')).toBeTruthy()
+        expect(screen.queryByLabelText('Registrar nova checagem gestacional')).toBeNull()
+        expect(screen.queryByText('Corrigir')).toBeNull()
+        expect(screen.queryByText('Invalidar')).toBeNull()
     })
 
     test('shows invalidated checks without hiding historical facts', () => {
@@ -306,11 +322,39 @@ describe('performed Transfer and Pregnancy read screens', () => {
                 }],
             }],
         }))
-        const screen = render(<TransferDetail route={{ params: { transferId: 'transfer-a' } }} />)
+        const screen = render(<TransferDetail navigation={{ navigate: jest.fn() }} route={{ params: { transferId: 'transfer-a' } }} />)
 
         expect(screen.getByText('Prenhe')).toBeTruthy()
         expect(screen.getByText('Registro invalidado')).toBeTruthy()
         expect(screen.getByText('Evidence withdrawn')).toBeTruthy()
+        expect(screen.queryByLabelText('Corrigir checagem check-a')).toBeNull()
+        expect(screen.queryByLabelText('Invalidar checagem check-a')).toBeNull()
+    })
+
+    test('corrects a valid fact using only transferId and checkId', () => {
+        const navigation = { navigate: jest.fn() }
+        usePregnancyChecksQuery.mockReturnValue(query({
+            pages: [{
+                page: 0, size: 20, items: [{
+                    check: {
+                        id: 'check-a', result: 'PREGNANT', methodCode: 'ORG_METHOD',
+                        checkedAt: '2026-11-10T12:00:00Z', observations: null,
+                        supersedesCheckId: null, correctionReason: null,
+                    },
+                    invalidationId: null,
+                    invalidationReason: null,
+                    invalidatedAt: null,
+                }],
+            }],
+        }))
+        const screen = render(
+            <TransferDetail navigation={navigation} route={{ params: { transferId: 'transfer-a' } }} />
+        )
+
+        fireEvent.press(screen.getByLabelText('Corrigir checagem check-a'))
+        expect(navigation.navigate).toHaveBeenCalledWith('PregnancyCheckCapture', {
+            transferId: 'transfer-a', checkId: 'check-a',
+        })
     })
 
     test('uses only D30 and D60 cohorts', () => {

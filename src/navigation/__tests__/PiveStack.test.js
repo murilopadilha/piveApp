@@ -79,6 +79,7 @@ describe('PiveStack target OPU coexistence', () => {
         expect(screen.getByText('RecipientCycleDetail')).toBeTruthy()
         expect(screen.getByText('TransferDetail')).toBeTruthy()
         expect(screen.getByText('PregnancyFollowUps')).toBeTruthy()
+        expect(screen.getByText('PregnancyCheckCapture')).toBeTruthy()
     })
 
     test('does not treat opu:write as read access', () => {

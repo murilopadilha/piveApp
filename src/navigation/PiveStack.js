@@ -25,6 +25,7 @@ import SemenBatchDetail from '../features/semen/screens/SemenBatchDetail'
 import SemenBatchSearch from '../features/semen/screens/SemenBatchSearch'
 import { TRANSFER_ROUTES } from '../features/transfers/routes'
 import PregnancyFollowUps from '../features/transfers/screens/PregnancyFollowUps'
+import PregnancyCheckCapture from '../features/transfers/screens/PregnancyCheckCapture'
 import RecipientCycleCreate from '../features/transfers/screens/RecipientCycleCreate'
 import RecipientCycleDetail from '../features/transfers/screens/RecipientCycleDetail'
 import RecipientCycleList from '../features/transfers/screens/RecipientCycleList'
@@ -165,6 +166,11 @@ export default function PiveStack() {
                 name={TRANSFER_ROUTES.PREGNANCY_FOLLOW_UPS}
                 component={PregnancyFollowUps}
                 options={{ headerShown: true, title: 'Acompanhamentos' }}
+            />
+            <Stack.Screen
+                name={TRANSFER_ROUTES.PREGNANCY_CHECK_CAPTURE}
+                component={PregnancyCheckCapture}
+                options={{ headerShown: true, title: 'Checagem gestacional' }}
             />
             <Stack.Screen name="Cabecalho" component={Cabecalho} />
             <Stack.Screen name="FivInfo" component={FivInfo} />

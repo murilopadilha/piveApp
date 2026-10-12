@@ -1,3 +1,4 @@
+import React from 'react'
 import {
     Pressable,
     ScrollView,
@@ -10,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useEffectiveContextQuery } from '../../auth/hooks/useIdentityQueries'
 import { useProfessionalDetailQuery } from '../../opu/hooks/useOpuLookupQueries'
 import { useOrganization } from '../../organizations/OrganizationContext'
+import PregnancyInvalidationModal from '../components/PregnancyInvalidationModal'
 import {
     TransferField,
     TransferSection,
@@ -28,9 +30,17 @@ import {
     getTransferErrorMessage,
     getTransferOriginLabel,
 } from '../transferPresentation'
+import { TRANSFER_ROUTES } from '../routes'
 
-function PregnancyCheckCard({ entry }) {
+function PregnancyCheckCard({
+    entry,
+    canCorrect,
+    canInvalidate,
+    onCorrect,
+    onInvalidate,
+}) {
     const { check } = entry
+    const active = !entry.invalidationId
 
     return (
         <View style={styles.card}>
@@ -38,6 +48,15 @@ function PregnancyCheckCard({ entry }) {
             <Text style={styles.cardText}>{formatTransferTimestamp(check.checkedAt)}</Text>
             <Text style={styles.cardText}>Método registrado: {check.methodCode}</Text>
             {check.observations ? <Text style={styles.cardText}>{check.observations}</Text> : null}
+            {check.supersedesCheckId ? (
+                <View accessibilityRole="text" style={styles.correction}>
+                    <Text style={styles.correctionTitle}>Correção append-only</Text>
+                    <Text style={styles.cardText}>
+                        Substitui a checagem {check.supersedesCheckId}
+                    </Text>
+                    <Text style={styles.cardText}>{check.correctionReason}</Text>
+                </View>
+            ) : null}
             {entry.invalidationId ? (
                 <View accessibilityRole="text" style={styles.invalidated}>
                     <Text style={styles.invalidatedTitle}>Registro invalidado</Text>
@@ -45,15 +64,42 @@ function PregnancyCheckCard({ entry }) {
                     <Text style={styles.cardText}>{formatTransferTimestamp(entry.invalidatedAt)}</Text>
                 </View>
             ) : null}
+            {active && (canCorrect || canInvalidate) ? (
+                <View style={styles.cardActions}>
+                    {canCorrect ? (
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={`Corrigir checagem ${check.id}`}
+                            accessibilityHint="Cria um novo fato e mantém o original no histórico"
+                            onPress={onCorrect}
+                            style={styles.cardAction}
+                        >
+                            <Text style={styles.cardActionText}>Corrigir</Text>
+                        </Pressable>
+                    ) : null}
+                    {canInvalidate ? (
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={`Invalidar checagem ${check.id}`}
+                            accessibilityHint="Abre confirmação e exige um motivo"
+                            onPress={onInvalidate}
+                            style={styles.cardDangerAction}
+                        >
+                            <Text style={styles.cardDangerText}>Invalidar</Text>
+                        </Pressable>
+                    ) : null}
+                </View>
+            ) : null}
         </View>
     )
 }
 
-export default function TransferDetail({ route }) {
+export default function TransferDetail({ navigation, route }) {
     const transferId = route.params?.transferId
     const { activeOrganizationId } = useOrganization()
     const contextQuery = useEffectiveContextQuery({ organizationId: activeOrganizationId })
     const canRead = hasTransferPermission(contextQuery.data, TRANSFER_PERMISSIONS.READ)
+    const canWrite = hasTransferPermission(contextQuery.data, TRANSFER_PERMISSIONS.WRITE)
     const canReadMasterData = hasTransferPermission(
         contextQuery.data,
         TRANSFER_PERMISSIONS.MASTER_DATA_READ
@@ -83,6 +129,7 @@ export default function TransferDetail({ route }) {
         professionalId: detailQuery.data?.transfer.operatorProfessionalId,
         enabled: detailQuery.isSuccess && canReadMasterData,
     })
+    const [invalidationCheckId, setInvalidationCheckId] = React.useState(null)
 
     if (!transferId) {
         return <SafeAreaView style={styles.screen}><TransferState message="Transferência não identificada." /></SafeAreaView>
@@ -102,6 +149,9 @@ export default function TransferDetail({ route }) {
     const history = historyQuery.data?.pages.flatMap(page => page.items) ?? []
     const latest = outcomeQuery.data?.latestValidCheck ?? null
     const semen = lineage.mating.semen
+    const invalidationEntry = history.find(
+        entry => entry.check.id === invalidationCheckId
+    ) ?? null
 
     return (
         <SafeAreaView style={styles.screen}>
@@ -140,9 +190,42 @@ export default function TransferDetail({ route }) {
                 </TransferSection>
 
                 <TransferSection title="Histórico de PregnancyChecks">
+                    <Text style={styles.help}>
+                        O histórico é append-only: correções e invalidações preservam os fatos anteriores.
+                    </Text>
+                    {canWrite && canReadMasterData ? (
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel="Registrar nova checagem gestacional"
+                            accessibilityHint="Abre o formulário de captura de um PregnancyCheck"
+                            onPress={() => navigation.navigate(
+                                TRANSFER_ROUTES.PREGNANCY_CHECK_CAPTURE,
+                                { transferId }
+                            )}
+                            style={styles.primaryAction}
+                        >
+                            <Text style={styles.primaryActionText}>Registrar checagem</Text>
+                        </Pressable>
+                    ) : canWrite ? (
+                        <Text style={styles.help}>
+                            Captura e correção exigem acesso aos dados mestres de profissionais.
+                        </Text>
+                    ) : null}
                     {historyQuery.isPending ? <Text style={styles.help}>Carregando histórico...</Text> : historyQuery.error && history.length === 0 ? (
                         <TransferState message={getTransferErrorMessage(historyQuery.error)} onRetry={() => void historyQuery.refetch()} />
-                    ) : history.length === 0 ? <Text style={styles.help}>Nenhuma checagem registrada.</Text> : history.map(entry => <PregnancyCheckCard key={entry.check.id} entry={entry} />)}
+                    ) : history.length === 0 ? <Text style={styles.help}>Nenhuma checagem registrada.</Text> : history.map(entry => (
+                        <PregnancyCheckCard
+                            key={entry.check.id}
+                            canCorrect={canWrite && canReadMasterData}
+                            canInvalidate={canWrite}
+                            entry={entry}
+                            onCorrect={() => navigation.navigate(
+                                TRANSFER_ROUTES.PREGNANCY_CHECK_CAPTURE,
+                                { transferId, checkId: entry.check.id }
+                            )}
+                            onInvalidate={() => setInvalidationCheckId(entry.check.id)}
+                        />
+                    ))}
                     {historyQuery.hasNextPage ? (
                         <Pressable accessibilityRole="button" accessibilityLabel="Carregar mais checagens gestacionais" accessibilityState={{ busy: historyQuery.isFetchingNextPage }} onPress={() => void historyQuery.fetchNextPage()} style={styles.moreButton}>
                             <Text style={styles.moreText}>{historyQuery.isFetchingNextPage ? 'Carregando...' : 'Carregar mais'}</Text>
@@ -155,6 +238,18 @@ export default function TransferDetail({ route }) {
                     <TransferField label="Registrado em" value={formatTransferTimestamp(transfer.provenance.recordedAt)} />
                 </TransferSection>
             </ScrollView>
+            {invalidationEntry ? (
+                <PregnancyInvalidationModal
+                    entry={invalidationEntry}
+                    onClose={() => setInvalidationCheckId(null)}
+                    onReconcile={() => Promise.all([
+                        historyQuery.refetch(),
+                        outcomeQuery.refetch(),
+                    ])}
+                    organizationId={activeOrganizationId}
+                    transferId={transferId}
+                />
+            ) : null}
         </SafeAreaView>
     )
 }
@@ -170,6 +265,22 @@ const styles = StyleSheet.create({
     cardText: { marginTop: 4, color: '#475569', fontSize: 13, lineHeight: 18 },
     invalidated: { marginTop: 8, padding: 9, borderRadius: 8, backgroundColor: '#FEF2F2' },
     invalidatedTitle: { color: '#991B1B', fontSize: 13, fontWeight: '700' },
+    correction: { marginTop: 8, padding: 9, borderRadius: 8, backgroundColor: '#EFF6FF' },
+    correctionTitle: { color: '#1D4ED8', fontSize: 13, fontWeight: '700' },
+    cardActions: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
+    cardAction: { minHeight: 44, justifyContent: 'center', marginRight: 18 },
+    cardActionText: { color: '#092955', fontSize: 14, fontWeight: '700' },
+    cardDangerAction: { minHeight: 44, justifyContent: 'center' },
+    cardDangerText: { color: '#B91C1C', fontSize: 14, fontWeight: '700' },
+    primaryAction: {
+        minHeight: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: 12,
+        borderRadius: 24,
+        backgroundColor: '#092955',
+    },
+    primaryActionText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
     moreButton: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
     moreText: { color: '#092955', fontSize: 14, fontWeight: '700' },
 })

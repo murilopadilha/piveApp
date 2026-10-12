@@ -257,6 +257,71 @@ export const mapPregnancyFollowUpPage = value => mapPage(
     mapPregnancyFollowUp
 )
 
+export const mapPregnancyCheckBatchResult = (value) => {
+    const result = requireRecord(value, 'Pregnancy check batch result')
+
+    if (!Array.isArray(result.items)) {
+        throw contractError('Pregnancy check batch result')
+    }
+
+    return {
+        batchId: requireString(result.batchId, 'Pregnancy check batch result'),
+        items: result.items.map((item) => {
+            const itemResult = requireRecord(
+                item,
+                'Pregnancy check batch item result'
+            )
+
+            return {
+                itemId: requireString(
+                    itemResult.itemId,
+                    'Pregnancy check batch item result'
+                ),
+                checkId: requireString(
+                    itemResult.checkId,
+                    'Pregnancy check batch item result'
+                ),
+                transferId: requireString(
+                    itemResult.transferId,
+                    'Pregnancy check batch item result'
+                ),
+                status: requireString(
+                    itemResult.status,
+                    'Pregnancy check batch item result'
+                ),
+            }
+        }),
+    }
+}
+
+export const mapPregnancyCheckInvalidation = (value) => {
+    const invalidation = requireRecord(value, 'Pregnancy check invalidation')
+
+    return {
+        id: requireString(invalidation.id, 'Pregnancy check invalidation'),
+        checkId: requireString(
+            invalidation.checkId,
+            'Pregnancy check invalidation'
+        ),
+        transferId: requireString(
+            invalidation.transferId,
+            'Pregnancy check invalidation'
+        ),
+        reason: requireString(
+            invalidation.reason,
+            'Pregnancy check invalidation'
+        ),
+        actorId: requireString(
+            invalidation.actorId,
+            'Pregnancy check invalidation'
+        ),
+        recordedAt: requireString(
+            invalidation.recordedAt,
+            'Pregnancy check invalidation'
+        ),
+    }
+}
+
 const normalizePage = ({ page, size }) => {
     if (
         !Number.isInteger(page) ||
@@ -458,5 +523,34 @@ export const getPregnancyFollowUps = async params => {
         return mapPregnancyFollowUpPage(response.data)
     } catch (error) {
         return normalizeAndThrow(error, 'Não foi possível carregar os acompanhamentos gestacionais.')
+    }
+}
+
+export const recordPregnancyCheck = async (intent) => {
+    try {
+        const response = await targetApiClient.post(
+            '/pregnancy-checks:bulk',
+            intent.payload,
+            { targetContext: { idempotencyKey: intent.idempotencyKey } }
+        )
+
+        return mapPregnancyCheckBatchResult(response.data)
+    } catch (error) {
+        return normalizeAndThrow(error, 'Não foi possível registrar a checagem gestacional.')
+    }
+}
+
+export const invalidatePregnancyCheck = async (intent) => {
+    try {
+        const id = requireString(intent.checkId, 'Pregnancy check')
+        const response = await targetApiClient.post(
+            `/pregnancy-checks/${encodeURIComponent(id)}:invalidate`,
+            intent.payload,
+            { targetContext: { idempotencyKey: intent.idempotencyKey } }
+        )
+
+        return mapPregnancyCheckInvalidation(response.data)
+    } catch (error) {
+        return normalizeAndThrow(error, 'Não foi possível invalidar a checagem gestacional.')
     }
 }
