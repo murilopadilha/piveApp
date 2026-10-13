@@ -33,6 +33,7 @@ jest.mock('../../features/organizations/OrganizationContext', () => ({
 jest.mock('../../screens/Pive', () => function MockPive({
     showTargetOpu,
     showTargetTransfers,
+    showTargetInventory,
 }) {
     const { Text } = require('react-native')
 
@@ -40,6 +41,7 @@ jest.mock('../../screens/Pive', () => function MockPive({
         <>
             <Text>{showTargetOpu ? 'target-opu-entry' : 'legacy-pive-only'}</Text>
             <Text>{showTargetTransfers ? 'target-transfer-entry' : 'no-target-transfer'}</Text>
+            <Text>{showTargetInventory ? 'target-inventory-entry' : 'no-target-inventory'}</Text>
         </>
     )
 })
@@ -51,7 +53,9 @@ beforeEach(() => {
 describe('PiveStack target OPU coexistence', () => {
     test('preserves legacy routes and registers stable target OPU routes', () => {
         useEffectiveContextQuery.mockReturnValue({
-            data: { permissions: ['opu:read', 'transfer:read'] },
+            data: {
+                permissions: ['opu:read', 'transfer:read', 'inventory:read'],
+            },
             isSuccess: true,
         })
 
@@ -80,6 +84,12 @@ describe('PiveStack target OPU coexistence', () => {
         expect(screen.getByText('TransferDetail')).toBeTruthy()
         expect(screen.getByText('PregnancyFollowUps')).toBeTruthy()
         expect(screen.getByText('PregnancyCheckCapture')).toBeTruthy()
+        expect(screen.getByText('target-inventory-entry')).toBeTruthy()
+        expect(screen.getByText('CryoInventoryList')).toBeTruthy()
+        expect(screen.getByText('EmbryoPackageDetail')).toBeTruthy()
+        expect(screen.getByText('InventoryMovementHistory')).toBeTruthy()
+        expect(screen.getByText('InventoryMovementCreate')).toBeTruthy()
+        expect(screen.getByText('StorageLocationDetail')).toBeTruthy()
     })
 
     test('does not treat opu:write as read access', () => {
@@ -90,5 +100,6 @@ describe('PiveStack target OPU coexistence', () => {
 
         expect(render(<PiveStack />).getByText('legacy-pive-only')).toBeTruthy()
         expect(render(<PiveStack />).getByText('no-target-transfer')).toBeTruthy()
+        expect(render(<PiveStack />).getByText('no-target-inventory')).toBeTruthy()
     })
 })

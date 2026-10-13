@@ -10,6 +10,16 @@ import { MATING_ROUTES } from '../features/fertilization/routes'
 import MatingBatchCreate from '../features/fertilization/screens/MatingBatchCreate'
 import MatingDetail from '../features/fertilization/screens/MatingDetail'
 import MatingList from '../features/fertilization/screens/MatingList'
+import {
+    INVENTORY_PERMISSIONS,
+    hasInventoryPermission,
+} from '../features/inventory/inventoryPermissions'
+import { INVENTORY_ROUTES } from '../features/inventory/routes'
+import CryoInventoryList from '../features/inventory/screens/CryoInventoryList'
+import EmbryoPackageDetail from '../features/inventory/screens/EmbryoPackageDetail'
+import InventoryMovementCreate from '../features/inventory/screens/InventoryMovementCreate'
+import InventoryMovementHistory from '../features/inventory/screens/InventoryMovementHistory'
+import StorageLocationDetail from '../features/inventory/screens/StorageLocationDetail'
 import { useOrganization } from '../features/organizations/OrganizationContext'
 import {
     OPU_PERMISSIONS,
@@ -63,13 +73,19 @@ export default function PiveStack() {
             effectiveContextQuery.data,
             TRANSFER_PERMISSIONS.READ
         )
+    const showTargetInventory = effectiveContextQuery.isSuccess &&
+        hasInventoryPermission(
+            effectiveContextQuery.data,
+            INVENTORY_PERMISSIONS.READ
+        )
     const renderPive = React.useCallback(props => (
         <Pive
             {...props}
             showTargetOpu={showTargetOpu}
             showTargetTransfers={showTargetTransfers}
+            showTargetInventory={showTargetInventory}
         />
-    ), [showTargetOpu, showTargetTransfers])
+    ), [showTargetInventory, showTargetOpu, showTargetTransfers])
 
     return (
         <Stack.Navigator screenOptions={{
@@ -171,6 +187,31 @@ export default function PiveStack() {
                 name={TRANSFER_ROUTES.PREGNANCY_CHECK_CAPTURE}
                 component={PregnancyCheckCapture}
                 options={{ headerShown: true, title: 'Checagem gestacional' }}
+            />
+            <Stack.Screen
+                name={INVENTORY_ROUTES.LIST}
+                component={CryoInventoryList}
+                options={{ headerShown: true, title: 'Inventário criogênico' }}
+            />
+            <Stack.Screen
+                name={INVENTORY_ROUTES.PACKAGE_DETAIL}
+                component={EmbryoPackageDetail}
+                options={{ headerShown: true, title: 'Package' }}
+            />
+            <Stack.Screen
+                name={INVENTORY_ROUTES.MOVEMENT_HISTORY}
+                component={InventoryMovementHistory}
+                options={{ headerShown: true, title: 'Movimentos' }}
+            />
+            <Stack.Screen
+                name={INVENTORY_ROUTES.MOVEMENT_CREATE}
+                component={InventoryMovementCreate}
+                options={{ headerShown: true, title: 'Nova movimentação' }}
+            />
+            <Stack.Screen
+                name={INVENTORY_ROUTES.STORAGE_LOCATION_DETAIL}
+                component={StorageLocationDetail}
+                options={{ headerShown: true, title: 'Local de armazenamento' }}
             />
             <Stack.Screen name="Cabecalho" component={Cabecalho} />
             <Stack.Screen name="FivInfo" component={FivInfo} />
