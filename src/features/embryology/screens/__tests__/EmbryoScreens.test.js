@@ -7,7 +7,11 @@ import {
 import { useEffectiveContextQuery } from '../../../auth/hooks/useIdentityQueries'
 import { useMatingDetailQuery } from '../../../fertilization/hooks/useMatingQueries'
 import { useOrganization } from '../../../organizations/OrganizationContext'
-import { useIdentifyEmbryosMutation } from '../../hooks/useEmbryoMutations'
+import {
+    useIdentifyEmbryosMutation,
+    useOpenEmbryoHoldMutation,
+    useReleaseEmbryoHoldMutation,
+} from '../../hooks/useEmbryoMutations'
 import {
     useAssessmentVersionsQueries,
     useEmbryoDetailQuery,
@@ -44,7 +48,15 @@ jest.mock('../../hooks/useEmbryoMutations', () => ({
         'CONCURRENT_WRITE_CONFLICT',
         'CONSTRAINT_CONFLICT',
     ].includes(error?.code),
+    isEmbryoHoldConflict: error => [
+        'EMBRYO_HOLD_NOT_FOUND',
+        'EMBRYO_HOLD_MISMATCH',
+        'CONCURRENT_WRITE_CONFLICT',
+        'CONSTRAINT_CONFLICT',
+    ].includes(error?.code),
     useIdentifyEmbryosMutation: jest.fn(),
+    useOpenEmbryoHoldMutation: jest.fn(),
+    useReleaseEmbryoHoldMutation: jest.fn(),
 }))
 
 const query = data => ({
@@ -119,6 +131,15 @@ const allPermissions = [
     'embryology:write',
     'fertilization:read',
 ]
+const tracePermissions = [
+    'embryology:read',
+    'opu:read',
+    'fertilization:read',
+    'semen:read',
+    'inventory:read',
+    'transfer:read',
+    'shipment:read',
+]
 
 beforeEach(() => {
     useOrganization.mockReturnValue({ activeOrganizationId: 'organization-a' })
@@ -144,6 +165,8 @@ beforeEach(() => {
         isSuccess: true,
     }])
     useIdentifyEmbryosMutation.mockReturnValue(mutation())
+    useOpenEmbryoHoldMutation.mockReturnValue(mutation())
+    useReleaseEmbryoHoldMutation.mockReturnValue(mutation())
 })
 
 afterEach(() => {
@@ -229,6 +252,206 @@ describe('Embryo list and detail', () => {
             evaluations: [evaluation],
             enabled: true,
         })
+    })
+
+    test('opens a hold with independent stable IDs and retries ambiguity unchanged', () => {
+        const open = mutation({ error: { kind: 'timeout' }, isError: true })
+        useOpenEmbryoHoldMutation.mockReturnValue(open)
+        const screen = render(
+            <EmbryoDetail
+                navigation={{ navigate: jest.fn() }}
+                route={{ params: { embryoId: 'embryo-a' } }}
+            />
+        )
+
+        fireEvent.press(screen.getByLabelText('Abrir novo hold'))
+        fireEvent.changeText(screen.getByLabelText('Código do tipo do hold'), 'custom_42')
+        fireEvent.changeText(screen.getByLabelText('Motivo do hold'), 'Revisão técnica')
+        fireEvent.press(screen.getByLabelText('Confirmar abertura de hold'))
+        fireEvent.press(screen.getByLabelText('Reenviar a mesma intenção de hold'))
+
+        expect(open.mutate).toHaveBeenCalledTimes(2)
+        const first = open.mutate.mock.calls[0][0]
+        expect(open.mutate.mock.calls[1][0]).toBe(first)
+        expect(first.holdId).toBe(first.payload.id)
+        expect(first.idempotencyKey).not.toBe(first.holdId)
+        expect(first.payload).toMatchObject({
+            type: 'CUSTOM_42', reason: 'Revisão técnica',
+        })
+    })
+
+    test('releases an active hold without removing history from the current view', () => {
+        const release = mutation()
+        useReleaseEmbryoHoldMutation.mockReturnValue(release)
+        const screen = render(
+            <EmbryoDetail
+                navigation={{ navigate: jest.fn() }}
+                route={{ params: { embryoId: 'embryo-a' } }}
+            />
+        )
+
+        fireEvent.press(screen.getByLabelText('Liberar hold QUALITY'))
+        fireEvent.changeText(
+            screen.getByLabelText('Motivo da liberação do hold'),
+            'Revisão concluída'
+        )
+        fireEvent.press(screen.getByLabelText('Confirmar liberação do hold'))
+
+        expect(release.mutate).toHaveBeenCalledTimes(1)
+        expect(release.mutate.mock.calls[0][0]).toMatchObject({
+            embryoId: 'embryo-a',
+            holdId: 'hold-a',
+            payload: { reason: 'Revisão concluída' },
+        })
+        expect(screen.getByText('Revisão')).toBeTruthy()
+    })
+
+    test('retries an ambiguous release with the identical target, key and reason', () => {
+        const release = mutation({ error: { kind: 'network' }, isError: true })
+        useReleaseEmbryoHoldMutation.mockReturnValue(release)
+        const screen = render(
+            <EmbryoDetail
+                navigation={{ navigate: jest.fn() }}
+                route={{ params: { embryoId: 'embryo-a' } }}
+            />
+        )
+
+        fireEvent.press(screen.getByLabelText('Liberar hold QUALITY'))
+        fireEvent.changeText(
+            screen.getByLabelText('Motivo da liberação do hold'),
+            'Revisão concluída'
+        )
+        fireEvent.press(screen.getByLabelText('Confirmar liberação do hold'))
+        fireEvent.press(screen.getByLabelText('Reenviar a mesma intenção de liberação'))
+
+        expect(release.mutate).toHaveBeenCalledTimes(2)
+        expect(release.mutate.mock.calls[1][0]).toBe(release.mutate.mock.calls[0][0])
+    })
+
+    test('refetches and requires review when a hold was already released', async () => {
+        const detail = query(embryo)
+        useEmbryoDetailQuery.mockReturnValue(detail)
+        useReleaseEmbryoHoldMutation.mockReturnValue(mutation({
+            error: { kind: 'not_found', code: 'EMBRYO_HOLD_NOT_FOUND' },
+            isError: true,
+        }))
+        const screen = render(
+            <EmbryoDetail
+                navigation={{ navigate: jest.fn() }}
+                route={{ params: { embryoId: 'embryo-a' } }}
+            />
+        )
+
+        fireEvent.press(screen.getByLabelText('Liberar hold QUALITY'))
+        fireEvent.changeText(
+            screen.getByLabelText('Motivo da liberação do hold'),
+            'Revisão concluída'
+        )
+        fireEvent.press(screen.getByLabelText('Confirmar liberação do hold'))
+        await act(async () => {
+            fireEvent.press(screen.getByLabelText(
+                'Recarregar embrião e revisar liberação'
+            ))
+        })
+
+        expect(detail.refetch).toHaveBeenCalledTimes(1)
+    })
+
+    test('keeps hold history readable without write actions', () => {
+        useEffectiveContextQuery.mockReturnValue(query({
+            permissions: ['embryology:read'],
+        }))
+        const screen = render(
+            <EmbryoDetail
+                navigation={{ navigate: jest.fn() }}
+                route={{ params: { embryoId: 'embryo-a' } }}
+            />
+        )
+
+        expect(screen.getByText('Revisão')).toBeTruthy()
+        expect(screen.queryByLabelText('Abrir novo hold')).toBeNull()
+        expect(screen.queryByLabelText('Liberar hold QUALITY')).toBeNull()
+    })
+
+    test('navigates to traceability with only the stable Embryo ID', () => {
+        useEffectiveContextQuery.mockReturnValue(query({
+            permissions: [...tracePermissions, 'compliance:read'],
+        }))
+        const navigation = { navigate: jest.fn() }
+        const screen = render(
+            <EmbryoDetail
+                navigation={navigation}
+                route={{ params: { embryoId: 'embryo-a' } }}
+            />
+        )
+
+        fireEvent.press(screen.getByLabelText('Abrir rastreabilidade do embrião'))
+
+        expect(navigation.navigate).toHaveBeenCalledWith('EmbryoTraceability', {
+            embryoId: 'embryo-a',
+        })
+    })
+
+    test('missing traceability and audit permissions do not block hold management', () => {
+        useEffectiveContextQuery.mockReturnValue(query({
+            permissions: ['embryology:read', 'embryology:write'],
+        }))
+        const screen = render(
+            <EmbryoDetail
+                navigation={{ navigate: jest.fn() }}
+                route={{ params: { embryoId: 'embryo-a' } }}
+            />
+        )
+
+        expect(screen.getByLabelText('Abrir novo hold')).toBeTruthy()
+        expect(screen.getByLabelText('Liberar hold QUALITY')).toBeTruthy()
+        expect(screen.queryByLabelText('Abrir rastreabilidade do embrião')).toBeNull()
+    })
+
+    test('preserves released holds and their release metadata', () => {
+        useEmbryoDetailQuery.mockReturnValue(query({
+            ...embryo,
+            holds: [{
+                ...embryo.holds[0],
+                releasedBy: 'actor-b',
+                releasedAt: '2026-10-13T13:00:00Z',
+                releaseReason: 'Revisão concluída',
+            }],
+        }))
+        const screen = render(
+            <EmbryoDetail
+                navigation={{ navigate: jest.fn() }}
+                route={{ params: { embryoId: 'embryo-a' } }}
+            />
+        )
+
+        expect(screen.getByLabelText('Hold QUALITY, liberado')).toBeTruthy()
+        expect(screen.getByText('Motivo da liberação: Revisão concluída')).toBeTruthy()
+        expect(screen.queryByLabelText('Liberar hold QUALITY')).toBeNull()
+    })
+
+    test('clears a hold draft and intention when Organization changes', () => {
+        const screen = render(
+            <EmbryoDetail
+                navigation={{ navigate: jest.fn() }}
+                route={{ params: { embryoId: 'embryo-a' } }}
+            />
+        )
+        fireEvent.press(screen.getByLabelText('Abrir novo hold'))
+        fireEvent.changeText(screen.getByLabelText('Código do tipo do hold'), 'ORG_A')
+        fireEvent.changeText(screen.getByLabelText('Motivo do hold'), 'Somente A')
+
+        useOrganization.mockReturnValue({ activeOrganizationId: 'organization-b' })
+        screen.rerender(
+            <EmbryoDetail
+                navigation={{ navigate: jest.fn() }}
+                route={{ params: { embryoId: 'embryo-a' } }}
+            />
+        )
+
+        expect(screen.queryByDisplayValue('ORG_A')).toBeNull()
+        expect(screen.queryByDisplayValue('Somente A')).toBeNull()
+        expect(screen.getByLabelText('Abrir novo hold')).toBeTruthy()
     })
 })
 

@@ -16,8 +16,10 @@ import {
     EmbryoSection,
     EmbryoState,
 } from '../components/EmbryoElements'
+import EmbryoHoldManager from '../components/EmbryoHoldManager'
 import {
     EMBRYO_PERMISSIONS,
+    canReadEmbryoTraceability,
     hasEmbryoPermission,
 } from '../embryoPermissions'
 import {
@@ -32,6 +34,7 @@ import {
     useEmbryoDetailQuery,
     useEmbryoEvaluationsQuery,
 } from '../hooks/useEmbryoQueries'
+import { EMBRYO_ROUTES } from '../routes'
 
 function SectionState({ message, onRetry, loading = false }) {
     return (
@@ -93,7 +96,7 @@ function EvaluationCard({ evaluation, versionQuery }) {
     )
 }
 
-export default function EmbryoDetail({ route }) {
+export default function EmbryoDetail({ navigation, route }) {
     const embryoId = route.params?.embryoId
     const { activeOrganizationId } = useOrganization()
     const effectiveContextQuery = useEffectiveContextQuery({
@@ -102,6 +105,15 @@ export default function EmbryoDetail({ route }) {
     const canRead = hasEmbryoPermission(
         effectiveContextQuery.data,
         EMBRYO_PERMISSIONS.READ
+    )
+    const canWrite = hasEmbryoPermission(
+        effectiveContextQuery.data,
+        EMBRYO_PERMISSIONS.WRITE
+    )
+    const canTrace = canReadEmbryoTraceability(effectiveContextQuery.data)
+    const canAudit = hasEmbryoPermission(
+        effectiveContextQuery.data,
+        EMBRYO_PERMISSIONS.COMPLIANCE_READ
     )
     const detailEnabled = effectiveContextQuery.isSuccess && canRead
     const embryoQuery = useEmbryoDetailQuery({
@@ -177,7 +189,6 @@ export default function EmbryoDetail({ route }) {
     }
 
     const embryo = embryoQuery.data
-    const activeHolds = embryo.holds.filter(hold => !hold.releasedAt)
     const historyError = getEmbryoErrorMessage(
         historyQuery.error,
         'Histórico de avaliações não encontrado.'
@@ -190,6 +201,23 @@ export default function EmbryoDetail({ route }) {
                     {embryo.humanCode}
                 </Text>
                 <Text style={styles.subtitle}>Identidade do embrião</Text>
+
+                {canTrace || canAudit ? (
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Abrir rastreabilidade do embrião"
+                        accessibilityHint="Mostra lineage, timeline e auditoria conforme suas permissões"
+                        onPress={() => navigation?.navigate(
+                            EMBRYO_ROUTES.TRACEABILITY,
+                            { embryoId }
+                        )}
+                        style={styles.traceabilityButton}
+                    >
+                        <Text style={styles.traceabilityText}>
+                            Rastreabilidade e auditoria
+                        </Text>
+                    </Pressable>
+                ) : null}
 
                 <EmbryoSection title="Identificação">
                     <EmbryoField
@@ -223,30 +251,12 @@ export default function EmbryoDetail({ route }) {
                 </EmbryoSection>
 
                 <EmbryoSection title="Holds">
-                    {embryo.holds.length === 0 ? (
-                        <Text style={styles.emptyText}>Nenhum hold registrado.</Text>
-                    ) : embryo.holds.map(hold => (
-                        <View key={hold.id} style={styles.historyItem}>
-                            <Text style={styles.historyTitle}>{hold.type}</Text>
-                            <Text style={styles.historyText}>{hold.reason}</Text>
-                            <Text style={styles.historyText}>
-                                Aberto em {formatEmbryoTimestamp(hold.openedAt)}
-                            </Text>
-                            <Text style={hold.releasedAt
-                                ? styles.releasedText
-                                : styles.activeText}
-                            >
-                                {hold.releasedAt
-                                    ? `Liberado em ${formatEmbryoTimestamp(hold.releasedAt)}`
-                                    : 'Ativo'}
-                            </Text>
-                        </View>
-                    ))}
-                    {activeHolds.length > 0 ? (
-                        <Text accessibilityRole="text" style={styles.activeSummary}>
-                            {activeHolds.length} hold(s) ativo(s).
-                        </Text>
-                    ) : null}
+                    <EmbryoHoldManager
+                        canWrite={canWrite}
+                        embryo={embryo}
+                        onRefetch={embryoQuery.refetch}
+                        organizationId={activeOrganizationId}
+                    />
                 </EmbryoSection>
 
                 <EmbryoSection title="Localização atual">
@@ -333,9 +343,18 @@ const styles = StyleSheet.create({
     historyTitle: { color: '#0F172A', fontSize: 15, fontWeight: '700' },
     historyText: { color: '#475569', fontSize: 14, marginTop: 4 },
     partialText: { color: '#92400E', fontSize: 13, marginTop: 6 },
-    activeText: { color: '#9A3412', fontSize: 13, fontWeight: '700', marginTop: 5 },
-    releasedText: { color: '#166534', fontSize: 13, fontWeight: '600', marginTop: 5 },
-    activeSummary: { color: '#9A3412', fontSize: 14, fontWeight: '700' },
+    traceabilityButton: {
+        minHeight: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 20,
+        marginBottom: 18,
+        borderWidth: 1,
+        borderColor: '#092955',
+        borderRadius: 24,
+        backgroundColor: '#FFFFFF',
+    },
+    traceabilityText: { color: '#092955', fontSize: 15, fontWeight: '700' },
     sectionState: { alignItems: 'flex-start', paddingVertical: 8 },
     sectionStateText: { color: '#475569', fontSize: 14, marginTop: 6 },
     retryButton: { minHeight: 44, justifyContent: 'center' },

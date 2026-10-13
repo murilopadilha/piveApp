@@ -6,6 +6,7 @@ import { EMBRYO_ROUTES } from '../features/embryology/routes'
 import EmbryoBatchIdentify from '../features/embryology/screens/EmbryoBatchIdentify'
 import EmbryoDetail from '../features/embryology/screens/EmbryoDetail'
 import EmbryoList from '../features/embryology/screens/EmbryoList'
+import EmbryoTraceability from '../features/embryology/screens/EmbryoTraceability'
 import { MATING_ROUTES } from '../features/fertilization/routes'
 import MatingBatchCreate from '../features/fertilization/screens/MatingBatchCreate'
 import MatingDetail from '../features/fertilization/screens/MatingDetail'
@@ -157,6 +158,11 @@ export default function PiveStack() {
                 name={EMBRYO_ROUTES.DETAIL}
                 component={EmbryoDetail}
                 options={{ headerShown: true, title: 'Embrião' }}
+            />
+            <Stack.Screen
+                name={EMBRYO_ROUTES.TRACEABILITY}
+                component={EmbryoTraceability}
+                options={{ headerShown: true, title: 'Rastreabilidade' }}
             />
             <Stack.Screen
                 name={TRANSFER_ROUTES.RECIPIENT_CYCLE_LIST}

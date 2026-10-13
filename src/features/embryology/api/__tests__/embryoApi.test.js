@@ -1,12 +1,17 @@
 import targetApiClient from '../../../../api/target/client'
 import {
     getAssessmentVersionById,
+    getEmbryoAuditEvents,
     getEmbryoById,
     getEmbryoEvaluations,
+    getEmbryoTimeline,
+    getEmbryoTraceability,
     getEmbryos,
     identifyEmbryos,
     mapEmbryo,
     normalizeEmbryoPageParams,
+    openEmbryoHold,
+    releaseEmbryoHold,
 } from '../embryoApi'
 
 jest.mock('../../../../api/target/client', () => ({
@@ -219,6 +224,125 @@ describe('target Embryo API', () => {
             { targetContext: { idempotencyKey: 'batch-a' } }
         )
         expect(intent.payload).not.toHaveProperty('expectedMatingVersion')
+    })
+
+    test('opens and releases holds through the exact paths and stable keys', async () => {
+        const hold = embryo.holds[0]
+        const openIntent = {
+            embryoId: 'embryo/a',
+            holdId: 'hold-a',
+            idempotencyKey: 'open-key',
+            payload: { id: 'hold-a', type: 'QUALITY', reason: 'Review' },
+        }
+        const releaseIntent = {
+            embryoId: 'embryo/a',
+            holdId: 'hold/a',
+            idempotencyKey: 'release-key',
+            payload: { reason: 'Review complete' },
+        }
+        targetApiClient.post
+            .mockResolvedValueOnce({ data: hold })
+            .mockResolvedValueOnce({
+                data: {
+                    ...hold,
+                    releasedBy: 'actor-b',
+                    releasedAt: '2026-10-13T12:00:00Z',
+                    releaseReason: 'Review complete',
+                },
+            })
+
+        await expect(openEmbryoHold(openIntent)).resolves.toMatchObject({
+            id: 'hold-a', releasedAt: null,
+        })
+        await expect(releaseEmbryoHold(releaseIntent)).resolves.toMatchObject({
+            id: 'hold-a', releaseReason: 'Review complete',
+        })
+        expect(targetApiClient.post.mock.calls).toEqual([
+            [
+                '/embryos/embryo%2Fa/holds',
+                openIntent.payload,
+                { targetContext: { idempotencyKey: 'open-key' } },
+            ],
+            [
+                '/embryos/embryo%2Fa/holds/hold%2Fa:release',
+                releaseIntent.payload,
+                { targetContext: { idempotencyKey: 'release-key' } },
+            ],
+        ])
+    })
+
+    test('loads canonical lineage, ordered timeline and contextual audit separately', async () => {
+        const lineage = {
+            embryoId: 'embryo-a',
+            humanCode: 'EMB-001',
+            matingId: 'mating-a',
+            collectionId: 'collection-a',
+            donorId: 'donor-a',
+            opuSessionId: null,
+            farmPropertyId: null,
+            semenBatchId: 'semen-a',
+            sireId: 'sire-a',
+            producerEstablishmentId: null,
+            currentPackageId: null,
+            currentLocationId: null,
+            transferId: null,
+            recipientCycleId: null,
+            recipientAnimalId: null,
+        }
+        const timelineEntry = {
+            factId: 'fact-a',
+            type: 'IDENTIFIED',
+            occurredAt: '2026-10-11T12:00:00Z',
+            recordedAt: '2026-10-11T12:00:01Z',
+            relatedId: null,
+        }
+        const auditEntry = {
+            id: 'audit-a',
+            occurredAt: '2026-10-13T12:00:00Z',
+            actorId: 'actor-a',
+            action: 'OPEN_HOLD',
+            entityType: 'EMBRYO',
+            entityId: 'embryo-a',
+            entityVersion: null,
+            reason: 'Review',
+            correlationId: 'correlation-a',
+        }
+        targetApiClient.get
+            .mockResolvedValueOnce({ data: lineage })
+            .mockResolvedValueOnce({
+                data: { items: [timelineEntry], page: 0, size: 20 },
+            })
+            .mockResolvedValueOnce({
+                data: { items: [auditEntry], page: 0, size: 20 },
+            })
+
+        await expect(getEmbryoTraceability({ embryoId: 'embryo-a' }))
+            .resolves.toMatchObject({ embryoId: 'embryo-a', donorId: 'donor-a' })
+        await expect(getEmbryoTimeline({
+            embryoId: 'embryo-a', page: 0, size: 20,
+        })).resolves.toMatchObject({
+            items: [{ type: 'IDENTIFIED' }], page: 0, size: 20,
+        })
+        await expect(getEmbryoAuditEvents({
+            embryoId: 'embryo-a', page: 0, size: 20,
+        })).resolves.toMatchObject({
+            items: [{ action: 'OPEN_HOLD' }], page: 0, size: 20,
+        })
+        expect(targetApiClient.get.mock.calls).toEqual([
+            ['/embryos/embryo-a/traceability', { signal: undefined }],
+            ['/embryos/embryo-a/timeline', {
+                params: { page: 0, size: 20 }, signal: undefined,
+            }],
+            ['/audit-events', {
+                params: {
+                    entityType: 'EMBRYO',
+                    entityId: 'embryo-a',
+                    page: 0,
+                    size: 20,
+                },
+                signal: undefined,
+            }],
+        ])
     })
 
     test('validates only the implemented list parameters', () => {

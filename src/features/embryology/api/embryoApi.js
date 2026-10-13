@@ -2,6 +2,8 @@ import targetApiClient from '../../../api/target/client'
 import { normalizeTargetApiError } from '../../../api/target/problemDetails'
 
 export const DEFAULT_EMBRYO_PAGE_SIZE = 20
+export const DEFAULT_EMBRYO_TIMELINE_PAGE_SIZE = 20
+export const DEFAULT_EMBRYO_AUDIT_PAGE_SIZE = 20
 
 const contractError = contractName => new TypeError(
     `Invalid ${contractName} response from target API.`
@@ -73,7 +75,7 @@ const mapProvenance = (value, contractName) => {
     }
 }
 
-const mapHold = (value) => {
+export const mapEmbryoHold = (value) => {
     const hold = requireRecord(value, 'Embryo hold')
 
     return {
@@ -139,7 +141,7 @@ export const mapEmbryo = (value) => {
         identifiedAt: requireString(embryo.identifiedAt, 'Embryo'),
         availability: requireString(embryo.availability, 'Embryo'),
         preservation: requireString(embryo.preservation, 'Embryo'),
-        holds: embryo.holds.map(mapHold),
+        holds: embryo.holds.map(mapEmbryoHold),
         currentLocationId: optionalString(embryo.currentLocationId, 'Embryo'),
         currentEvaluation: embryo.currentEvaluation == null
             ? null
@@ -223,6 +225,105 @@ export const mapEmbryoBatchResult = (value) => {
     }
 }
 
+export const mapEmbryoTraceability = (value) => {
+    const lineage = requireRecord(value, 'Embryo traceability')
+
+    return {
+        embryoId: requireString(lineage.embryoId, 'Embryo traceability'),
+        humanCode: requireString(lineage.humanCode, 'Embryo traceability'),
+        matingId: optionalString(lineage.matingId, 'Embryo traceability'),
+        collectionId: optionalString(lineage.collectionId, 'Embryo traceability'),
+        donorId: optionalString(lineage.donorId, 'Embryo traceability'),
+        opuSessionId: optionalString(lineage.opuSessionId, 'Embryo traceability'),
+        farmPropertyId: optionalString(lineage.farmPropertyId, 'Embryo traceability'),
+        semenBatchId: optionalString(lineage.semenBatchId, 'Embryo traceability'),
+        sireId: optionalString(lineage.sireId, 'Embryo traceability'),
+        producerEstablishmentId: optionalString(
+            lineage.producerEstablishmentId,
+            'Embryo traceability'
+        ),
+        currentPackageId: optionalString(
+            lineage.currentPackageId,
+            'Embryo traceability'
+        ),
+        currentLocationId: optionalString(
+            lineage.currentLocationId,
+            'Embryo traceability'
+        ),
+        transferId: optionalString(lineage.transferId, 'Embryo traceability'),
+        recipientCycleId: optionalString(
+            lineage.recipientCycleId,
+            'Embryo traceability'
+        ),
+        recipientAnimalId: optionalString(
+            lineage.recipientAnimalId,
+            'Embryo traceability'
+        ),
+    }
+}
+
+export const mapEmbryoTimelineEntry = (value) => {
+    const entry = requireRecord(value, 'Embryo timeline entry')
+
+    return {
+        factId: requireString(entry.factId, 'Embryo timeline entry'),
+        type: requireString(entry.type, 'Embryo timeline entry'),
+        occurredAt: requireString(entry.occurredAt, 'Embryo timeline entry'),
+        recordedAt: requireString(entry.recordedAt, 'Embryo timeline entry'),
+        relatedId: optionalString(entry.relatedId, 'Embryo timeline entry'),
+    }
+}
+
+export const mapAuditEvent = (value) => {
+    const entry = requireRecord(value, 'Audit event')
+
+    return {
+        id: requireString(entry.id, 'Audit event'),
+        occurredAt: requireString(entry.occurredAt, 'Audit event'),
+        actorId: requireString(entry.actorId, 'Audit event'),
+        action: requireString(entry.action, 'Audit event'),
+        entityType: requireString(entry.entityType, 'Audit event'),
+        entityId: requireString(entry.entityId, 'Audit event'),
+        entityVersion: entry.entityVersion == null
+            ? null
+            : requireNonnegativeInteger(entry.entityVersion, 'Audit event'),
+        reason: optionalText(entry.reason, 'Audit event'),
+        correlationId: requireString(entry.correlationId, 'Audit event'),
+    }
+}
+
+const mapPage = (value, contractName, mapItem) => {
+    const page = requireRecord(value, contractName)
+
+    if (
+        !Array.isArray(page.items) ||
+        !Number.isInteger(page.page) ||
+        page.page < 0 ||
+        !Number.isInteger(page.size) ||
+        page.size < 1
+    ) {
+        throw contractError(contractName)
+    }
+
+    return {
+        items: page.items.map(mapItem),
+        page: page.page,
+        size: page.size,
+    }
+}
+
+export const mapEmbryoTimelinePage = value => mapPage(
+    value,
+    'Embryo timeline page',
+    mapEmbryoTimelineEntry
+)
+
+export const mapAuditEventPage = value => mapPage(
+    value,
+    'Audit event page',
+    mapAuditEvent
+)
+
 export const normalizeEmbryoPageParams = ({
     matingId = null,
     query = '',
@@ -251,6 +352,24 @@ export const normalizeEmbryoPageParams = ({
     }
 
     return params
+}
+
+export const normalizeEmbryoHistoryPageParams = ({
+    page = 0,
+    size = 20,
+} = {}) => {
+    if (
+        !Number.isInteger(page) ||
+        page < 0 ||
+        page > 10000 ||
+        !Number.isInteger(size) ||
+        size < 1 ||
+        size > 100
+    ) {
+        throw new TypeError('Invalid Embryo history page parameters.')
+    }
+
+    return { page, size }
 }
 
 const normalizeAndThrow = (error, fallbackDetail) => {
@@ -333,5 +452,94 @@ export const identifyEmbryos = async (intent) => {
         return mapEmbryoBatchResult(response.data)
     } catch (error) {
         return normalizeAndThrow(error, 'Não foi possível identificar os embriões.')
+    }
+}
+
+export const openEmbryoHold = async (intent) => {
+    try {
+        const embryoId = requireString(intent.embryoId, 'Embryo identifier')
+        const response = await targetApiClient.post(
+            `/embryos/${encodeURIComponent(embryoId)}/holds`,
+            intent.payload,
+            { targetContext: { idempotencyKey: intent.idempotencyKey } }
+        )
+
+        return mapEmbryoHold(response.data)
+    } catch (error) {
+        return normalizeAndThrow(error, 'Não foi possível abrir o hold.')
+    }
+}
+
+export const releaseEmbryoHold = async (intent) => {
+    try {
+        const embryoId = requireString(intent.embryoId, 'Embryo identifier')
+        const holdId = requireString(intent.holdId, 'Hold identifier')
+        const response = await targetApiClient.post(
+            `/embryos/${encodeURIComponent(embryoId)}/holds/${encodeURIComponent(holdId)}:release`,
+            intent.payload,
+            { targetContext: { idempotencyKey: intent.idempotencyKey } }
+        )
+
+        return mapEmbryoHold(response.data)
+    } catch (error) {
+        return normalizeAndThrow(error, 'Não foi possível liberar o hold.')
+    }
+}
+
+export const getEmbryoTraceability = async ({ embryoId, signal }) => {
+    try {
+        const id = requireString(embryoId, 'Embryo identifier')
+        const response = await targetApiClient.get(
+            `/embryos/${encodeURIComponent(id)}/traceability`,
+            { signal }
+        )
+
+        return mapEmbryoTraceability(response.data)
+    } catch (error) {
+        return normalizeAndThrow(
+            error,
+            'Não foi possível carregar a rastreabilidade do embrião.'
+        )
+    }
+}
+
+export const getEmbryoTimeline = async ({ embryoId, page, size, signal }) => {
+    try {
+        const id = requireString(embryoId, 'Embryo identifier')
+        const response = await targetApiClient.get(
+            `/embryos/${encodeURIComponent(id)}/timeline`,
+            {
+                params: normalizeEmbryoHistoryPageParams({ page, size }),
+                signal,
+            }
+        )
+
+        return mapEmbryoTimelinePage(response.data)
+    } catch (error) {
+        return normalizeAndThrow(
+            error,
+            'Não foi possível carregar a timeline do embrião.'
+        )
+    }
+}
+
+export const getEmbryoAuditEvents = async ({ embryoId, page, size, signal }) => {
+    try {
+        const id = requireString(embryoId, 'Embryo identifier')
+        const response = await targetApiClient.get('/audit-events', {
+            params: {
+                entityType: 'EMBRYO',
+                entityId: id,
+                ...normalizeEmbryoHistoryPageParams({ page, size }),
+            },
+            signal,
+        })
+
+        return mapAuditEventPage(response.data)
+    } catch (error) {
+        return normalizeAndThrow(
+            error,
+            'Não foi possível carregar a auditoria operacional.'
+        )
     }
 }

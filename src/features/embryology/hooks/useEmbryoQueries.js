@@ -12,10 +12,15 @@ import {
 } from '../../../serverState/targetQueryKeys'
 import { useSession } from '../../auth/SessionContext'
 import {
+    DEFAULT_EMBRYO_AUDIT_PAGE_SIZE,
     DEFAULT_EMBRYO_PAGE_SIZE,
+    DEFAULT_EMBRYO_TIMELINE_PAGE_SIZE,
     getAssessmentVersionById,
+    getEmbryoAuditEvents,
     getEmbryoById,
     getEmbryoEvaluations,
+    getEmbryoTimeline,
+    getEmbryoTraceability,
     getEmbryos,
 } from '../api/embryoApi'
 
@@ -59,11 +64,42 @@ export const assessmentVersionDetailQueryKey = ({
     schemeVersionId
 )
 
+export const embryoTraceabilityQueryKey = ({ organizationId, embryoId }) => (
+    targetOrganizationQueryKey(
+        organizationId,
+        'embryos',
+        embryoId,
+        'traceability'
+    )
+)
+
+export const embryoTimelineQueryKey = ({ organizationId, embryoId, size }) => (
+    targetOrganizationQueryKey(
+        organizationId,
+        'embryos',
+        embryoId,
+        'timeline',
+        { size }
+    )
+)
+
+export const embryoAuditEventsQueryKey = ({
+    organizationId,
+    embryoId,
+    size,
+}) => targetOrganizationQueryKey(
+    organizationId,
+    'auditEvents',
+    { entityType: 'EMBRYO', entityId: embryoId, size }
+)
+
 export const getNextEmbryoPageParam = lastPage => (
     lastPage.items.length < lastPage.size
         ? undefined
         : lastPage.page + 1
 )
+
+export const getNextEmbryoHistoryPageParam = getNextEmbryoPageParam
 
 const organizationFallbackKey = targetOrganizationScopeQueryKey()
 
@@ -183,4 +219,74 @@ export const useAssessmentVersionsQueries = ({
         schemeVersionId,
         ...results[index],
     }))
+}
+
+export const useEmbryoTraceabilityQuery = ({
+    organizationId,
+    embryoId,
+    enabled = true,
+}) => {
+    const result = useQuery({
+        queryKey: organizationId && embryoId
+            ? embryoTraceabilityQueryKey({ organizationId, embryoId })
+            : organizationFallbackKey,
+        queryFn: ({ signal }) => getEmbryoTraceability({ embryoId, signal }),
+        enabled: enabled && Boolean(organizationId) && Boolean(embryoId),
+    })
+
+    useExpireSessionOnUnauthorized([result.error])
+
+    return result
+}
+
+export const useEmbryoTimelineQuery = ({
+    organizationId,
+    embryoId,
+    size = DEFAULT_EMBRYO_TIMELINE_PAGE_SIZE,
+    enabled = true,
+}) => {
+    const result = useInfiniteQuery({
+        queryKey: organizationId && embryoId
+            ? embryoTimelineQueryKey({ organizationId, embryoId, size })
+            : organizationFallbackKey,
+        initialPageParam: 0,
+        queryFn: ({ pageParam, signal }) => getEmbryoTimeline({
+            embryoId,
+            page: pageParam,
+            size,
+            signal,
+        }),
+        getNextPageParam: getNextEmbryoHistoryPageParam,
+        enabled: enabled && Boolean(organizationId) && Boolean(embryoId),
+    })
+
+    useExpireSessionOnUnauthorized([result.error])
+
+    return result
+}
+
+export const useEmbryoAuditEventsQuery = ({
+    organizationId,
+    embryoId,
+    size = DEFAULT_EMBRYO_AUDIT_PAGE_SIZE,
+    enabled = true,
+}) => {
+    const result = useInfiniteQuery({
+        queryKey: organizationId && embryoId
+            ? embryoAuditEventsQueryKey({ organizationId, embryoId, size })
+            : organizationFallbackKey,
+        initialPageParam: 0,
+        queryFn: ({ pageParam, signal }) => getEmbryoAuditEvents({
+            embryoId,
+            page: pageParam,
+            size,
+            signal,
+        }),
+        getNextPageParam: getNextEmbryoHistoryPageParam,
+        enabled: enabled && Boolean(organizationId) && Boolean(embryoId),
+    })
+
+    useExpireSessionOnUnauthorized([result.error])
+
+    return result
 }

@@ -39,6 +39,13 @@ export const getEmbryoErrorMessage = (
         return null
     }
 
+    if (error.code === 'INVALID_PAGE') {
+        return 'A página solicitada não é válida.'
+    }
+    if (error.code === 'INVALID_AUDIT_FILTER') {
+        return 'O filtro de auditoria não é válido.'
+    }
+
     const reference = error.traceId ? ` Referência: ${error.traceId}.` : ''
 
     switch (error.kind) {
@@ -71,6 +78,12 @@ const COMMAND_MESSAGES = Object.freeze({
     COMMAND_IN_PROGRESS: 'Esta operação ainda está sendo processada. Aguarde antes de tentar novamente.',
     CONCURRENT_WRITE_CONFLICT: 'Os embriões foram alterados simultaneamente. Revise o estado atual.',
     CONSTRAINT_CONFLICT: 'O código pode já existir ou o estado atual impede a identificação. Recarregue e revise os dados.',
+    INVALID_HOLD_TYPE: 'Informe um código operacional válido para o tipo do hold.',
+    HOLD_REASON_REQUIRED: 'Informe o motivo do hold com até 500 caracteres.',
+    HOLD_RELEASE_REASON_REQUIRED: 'Informe o motivo da liberação com até 500 caracteres.',
+    EMBRYO_HOLD_NOT_FOUND: 'O hold não existe mais ou já foi liberado. Recarregue o embrião.',
+    EMBRYO_HOLD_MISMATCH: 'O hold não pertence a este embrião.',
+    EMBRYO_ON_HOLD: 'O estado atual dos holds impede esta operação.',
 })
 
 export const getEmbryoCommandErrorMessage = (error) => {
@@ -90,7 +103,7 @@ export const getEmbryoCommandErrorMessage = (error) => {
     }
 
     if (error.kind === TARGET_ERROR_KINDS.FORBIDDEN) {
-        return 'Você não tem permissão para identificar embriões.'
+        return 'Você não tem permissão para executar esta operação no embrião.'
     }
 
     if (error.kind === TARGET_ERROR_KINDS.VALIDATION) {

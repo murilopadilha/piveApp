@@ -3,15 +3,24 @@ import { act, renderHook, waitFor } from '@testing-library/react-native'
 import { resetTargetRuntimeContext } from '../../../../api/target/requestContext'
 import TargetFoundationProvider from '../../../../providers/TargetFoundationProvider'
 import { createTargetQueryClient } from '../../../../serverState/targetQueryClient'
-import { identifyEmbryos } from '../../api/embryoApi'
+import {
+    identifyEmbryos,
+    openEmbryoHold,
+    releaseEmbryoHold,
+} from '../../api/embryoApi'
 import {
     isAmbiguousEmbryoCommandError,
     isEmbryoConcurrencyError,
+    isEmbryoHoldConflict,
     useIdentifyEmbryosMutation,
+    useOpenEmbryoHoldMutation,
+    useReleaseEmbryoHoldMutation,
 } from '../useEmbryoMutations'
 
 jest.mock('../../api/embryoApi', () => ({
     identifyEmbryos: jest.fn(),
+    openEmbryoHold: jest.fn(),
+    releaseEmbryoHold: jest.fn(),
 }))
 
 const createWrapper = queryClient => function Wrapper({ children }) {
@@ -98,5 +107,49 @@ describe('Embryo identification mutation', () => {
         expect(isEmbryoConcurrencyError({
             code: 'INVALID_EMBRYO_CODE',
         })).toBe(false)
+    })
+})
+
+describe('Embryo hold mutations', () => {
+    test.each([
+        ['open', useOpenEmbryoHoldMutation, openEmbryoHold],
+        ['release', useReleaseEmbryoHoldMutation, releaseEmbryoHold],
+    ])('keeps %s commands manual and refetches authoritative detail', async (
+        _name,
+        useMutationHook,
+        apiMutation
+    ) => {
+        const queryClient = createTargetQueryClient()
+        const invalidate = jest.spyOn(queryClient, 'invalidateQueries')
+        const intent = { embryoId: 'embryo-a', idempotencyKey: 'key-a' }
+        apiMutation.mockResolvedValueOnce({ id: 'hold-a' })
+        const { result, unmount } = renderHook(
+            () => useMutationHook({
+                organizationId: 'organization-a', embryoId: 'embryo-a',
+            }),
+            { wrapper: createWrapper(queryClient) }
+        )
+
+        await act(async () => {
+            await result.current.mutateAsync(intent)
+        })
+
+        expect(apiMutation).toHaveBeenCalledWith(intent, expect.any(Object))
+        await waitFor(() => expect(invalidate).toHaveBeenCalledWith({
+            queryKey: [
+                'target', 'organization', 'organization-a',
+                'embryos', 'detail', 'embryo-a',
+            ],
+        }))
+
+        unmount()
+        queryClient.clear()
+    })
+
+    test('classifies audited hold conflicts without treating validation as concurrency', () => {
+        expect(isEmbryoHoldConflict({ code: 'EMBRYO_HOLD_NOT_FOUND' })).toBe(true)
+        expect(isEmbryoHoldConflict({ code: 'EMBRYO_HOLD_MISMATCH' })).toBe(true)
+        expect(isEmbryoHoldConflict({ code: 'CONSTRAINT_CONFLICT' })).toBe(true)
+        expect(isEmbryoHoldConflict({ code: 'INVALID_HOLD_TYPE' })).toBe(false)
     })
 })

@@ -1,9 +1,13 @@
 import { validate, version } from 'uuid'
 
 import {
+    createOpenEmbryoHoldIntent,
+    createReleaseEmbryoHoldIntent,
     createEmbryoBatchIntent,
     createEmbryoDraftItem,
+    markEmbryoHoldIntentSent,
     markEmbryoBatchIntentSent,
+    normalizeEmbryoHoldType,
     renewEmbryoDraftItems,
     updateEmbryoDraftItem,
 } from '../embryoIntents'
@@ -91,5 +95,77 @@ describe('Embryo identification intentions', () => {
 
         expect(intent.payload.items[0].identifiedAt)
             .toBe('2020-01-01T00:00:00Z')
+    })
+})
+
+describe('Embryo hold command intentions', () => {
+    test('creates independent stable UUIDv7 hold ID and idempotency key', () => {
+        const intent = markEmbryoHoldIntentSent(createOpenEmbryoHoldIntent({
+            embryoId: 'embryo-a',
+            type: ' quality_review ',
+            reason: ' Review required ',
+        }))
+
+        expect(intent.holdId).toBe(intent.payload.id)
+        expect(intent.idempotencyKey).not.toBe(intent.holdId)
+        expect(intent.holdId.slice(14, 15)).toBe('7')
+        expect(intent.idempotencyKey.slice(14, 15)).toBe('7')
+        expect(intent.payload).toEqual({
+            id: intent.holdId,
+            type: 'QUALITY_REVIEW',
+            reason: 'Review required',
+        })
+        expect(intent.sent).toBe(true)
+    })
+
+    test('creates a release intention with its own stable key', () => {
+        const intent = markEmbryoHoldIntentSent(createReleaseEmbryoHoldIntent({
+            embryoId: 'embryo-a',
+            holdId: 'hold-a',
+            reason: ' Released after review ',
+        }))
+
+        expect(intent).toMatchObject({
+            embryoId: 'embryo-a',
+            holdId: 'hold-a',
+            sent: true,
+            payload: { reason: 'Released after review' },
+        })
+        expect(intent.idempotencyKey.slice(14, 15)).toBe('7')
+    })
+
+    test('validates the free operational code without a catalog', () => {
+        expect(normalizeEmbryoHoldType('custom_42')).toBe('CUSTOM_42')
+        expect(() => normalizeEmbryoHoldType('')).toThrow(TypeError)
+        expect(() => normalizeEmbryoHoldType('42_CUSTOM')).toThrow(TypeError)
+        expect(() => normalizeEmbryoHoldType('INVALID-CODE')).toThrow(TypeError)
+        expect(() => normalizeEmbryoHoldType(`A${'B'.repeat(48)}`)).toThrow(TypeError)
+    })
+
+    test('requires open and release reasons within the backend maximum', () => {
+        expect(() => createOpenEmbryoHoldIntent({
+            embryoId: 'embryo-a', type: 'CUSTOM', reason: '',
+        })).toThrow(TypeError)
+        expect(() => createOpenEmbryoHoldIntent({
+            embryoId: 'embryo-a', type: 'CUSTOM', reason: 'x'.repeat(501),
+        })).toThrow(TypeError)
+        expect(() => createReleaseEmbryoHoldIntent({
+            embryoId: 'embryo-a', holdId: 'hold-a', reason: ' ',
+        })).toThrow(TypeError)
+        expect(() => createReleaseEmbryoHoldIntent({
+            embryoId: 'embryo-a', holdId: 'hold-a', reason: 'x'.repeat(501),
+        })).toThrow(TypeError)
+    })
+
+    test('creates new identities for an edited post-send intention', () => {
+        const first = createOpenEmbryoHoldIntent({
+            embryoId: 'embryo-a', type: 'CUSTOM', reason: 'First',
+        })
+        const second = createOpenEmbryoHoldIntent({
+            embryoId: 'embryo-a', type: 'CUSTOM', reason: 'Second',
+        })
+
+        expect(second.holdId).not.toBe(first.holdId)
+        expect(second.idempotencyKey).not.toBe(first.idempotencyKey)
     })
 })
