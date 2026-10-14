@@ -34,6 +34,7 @@ jest.mock('../../screens/Pive', () => function MockPive({
     showTargetOpu,
     showTargetTransfers,
     showTargetInventory,
+    showTargetDocuments,
 }) {
     const { Text } = require('react-native')
 
@@ -42,6 +43,7 @@ jest.mock('../../screens/Pive', () => function MockPive({
             <Text>{showTargetOpu ? 'target-opu-entry' : 'legacy-pive-only'}</Text>
             <Text>{showTargetTransfers ? 'target-transfer-entry' : 'no-target-transfer'}</Text>
             <Text>{showTargetInventory ? 'target-inventory-entry' : 'no-target-inventory'}</Text>
+            <Text>{showTargetDocuments ? 'target-documents-entry' : 'no-target-documents'}</Text>
         </>
     )
 })
@@ -54,7 +56,12 @@ describe('PiveStack target OPU coexistence', () => {
     test('preserves legacy routes and registers stable target OPU routes', () => {
         useEffectiveContextQuery.mockReturnValue({
             data: {
-                permissions: ['opu:read', 'transfer:read', 'inventory:read'],
+                permissions: [
+                    'opu:read',
+                    'transfer:read',
+                    'inventory:read',
+                    'documents:read',
+                ],
             },
             isSuccess: true,
         })
@@ -90,6 +97,9 @@ describe('PiveStack target OPU coexistence', () => {
         expect(screen.getByText('InventoryMovementHistory')).toBeTruthy()
         expect(screen.getByText('InventoryMovementCreate')).toBeTruthy()
         expect(screen.getByText('StorageLocationDetail')).toBeTruthy()
+        expect(screen.getByText('target-documents-entry')).toBeTruthy()
+        expect(screen.getByText('DocumentList')).toBeTruthy()
+        expect(screen.getByText('DocumentDetail')).toBeTruthy()
     })
 
     test('does not treat opu:write as read access', () => {
@@ -101,5 +111,16 @@ describe('PiveStack target OPU coexistence', () => {
         expect(render(<PiveStack />).getByText('legacy-pive-only')).toBeTruthy()
         expect(render(<PiveStack />).getByText('no-target-transfer')).toBeTruthy()
         expect(render(<PiveStack />).getByText('no-target-inventory')).toBeTruthy()
+        expect(render(<PiveStack />).getByText('no-target-documents')).toBeTruthy()
+    })
+
+    test('does not require write or compliance permissions for Documents', () => {
+        useEffectiveContextQuery.mockReturnValue({
+            data: { permissions: ['documents:read'] },
+            isSuccess: true,
+        })
+
+        expect(render(<PiveStack />).getByText('target-documents-entry'))
+            .toBeTruthy()
     })
 })

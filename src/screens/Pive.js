@@ -15,12 +15,14 @@ import usePiveListData from '../features/pive/hooks/usePiveListData';
 import { OPU_ROUTES } from '../features/opu/routes';
 import { TRANSFER_ROUTES } from '../features/transfers/routes';
 import { INVENTORY_ROUTES } from '../features/inventory/routes';
+import { DOCUMENT_ROUTES } from '../features/documents/routes';
 
 export default ({
     navigation,
     showTargetOpu = false,
     showTargetTransfers = false,
     showTargetInventory = false,
+    showTargetDocuments = false,
 }) => {
     const [filterCatalogMode, setFilterCatalogMode] = useState(PIVE_FILTER_CATALOG_MODES.STATUS)
     const [activeFilter, setActiveFilter] = useState('ALL')
@@ -129,6 +131,17 @@ export default ({
                     onPress={() => navigation.navigate(INVENTORY_ROUTES.LIST)}
                 >
                     <Text style={styles.opuDirectoryText}>Inventário criogênico</Text>
+                </TouchableOpacity>
+            ) : null}
+            {showTargetDocuments ? (
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Abrir diretório de documentos"
+                    accessibilityHint="Consulta Documents e o histórico imutável de versões"
+                    style={styles.documentDirectoryButton}
+                    onPress={() => navigation.navigate(DOCUMENT_ROUTES.LIST)}
+                >
+                    <Text style={styles.opuDirectoryText}>Documents</Text>
                 </TouchableOpacity>
             ) : null}
             <PiveFilterControls
@@ -286,5 +299,14 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderRadius: 24,
         backgroundColor: '#334155',
+    },
+    documentDirectoryButton: {
+        minHeight: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 20,
+        marginBottom: 10,
+        borderRadius: 24,
+        backgroundColor: '#4338CA',
     },
 })

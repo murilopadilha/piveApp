@@ -2,6 +2,13 @@ import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 
 import { useEffectiveContextQuery } from '../features/auth/hooks/useIdentityQueries'
+import {
+    DOCUMENT_PERMISSIONS,
+    hasDocumentPermission,
+} from '../features/documents/documentPermissions'
+import { DOCUMENT_ROUTES } from '../features/documents/routes'
+import DocumentDetail from '../features/documents/screens/DocumentDetail'
+import DocumentList from '../features/documents/screens/DocumentList'
 import { EMBRYO_ROUTES } from '../features/embryology/routes'
 import EmbryoBatchIdentify from '../features/embryology/screens/EmbryoBatchIdentify'
 import EmbryoDetail from '../features/embryology/screens/EmbryoDetail'
@@ -79,14 +86,25 @@ export default function PiveStack() {
             effectiveContextQuery.data,
             INVENTORY_PERMISSIONS.READ
         )
+    const showTargetDocuments = effectiveContextQuery.isSuccess &&
+        hasDocumentPermission(
+            effectiveContextQuery.data,
+            DOCUMENT_PERMISSIONS.READ
+        )
     const renderPive = React.useCallback(props => (
         <Pive
             {...props}
+            showTargetDocuments={showTargetDocuments}
             showTargetOpu={showTargetOpu}
             showTargetTransfers={showTargetTransfers}
             showTargetInventory={showTargetInventory}
         />
-    ), [showTargetInventory, showTargetOpu, showTargetTransfers])
+    ), [
+        showTargetDocuments,
+        showTargetInventory,
+        showTargetOpu,
+        showTargetTransfers,
+    ])
 
     return (
         <Stack.Navigator screenOptions={{
@@ -218,6 +236,16 @@ export default function PiveStack() {
                 name={INVENTORY_ROUTES.STORAGE_LOCATION_DETAIL}
                 component={StorageLocationDetail}
                 options={{ headerShown: true, title: 'Local de armazenamento' }}
+            />
+            <Stack.Screen
+                name={DOCUMENT_ROUTES.LIST}
+                component={DocumentList}
+                options={{ headerShown: true, title: 'Documents' }}
+            />
+            <Stack.Screen
+                name={DOCUMENT_ROUTES.DETAIL}
+                component={DocumentDetail}
+                options={{ headerShown: true, title: 'Document' }}
             />
             <Stack.Screen name="Cabecalho" component={Cabecalho} />
             <Stack.Screen name="FivInfo" component={FivInfo} />
