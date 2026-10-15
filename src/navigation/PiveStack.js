@@ -10,6 +10,15 @@ import { CORRECTION_ROUTES } from '../features/corrections/routes'
 import CorrectionDetail from '../features/corrections/screens/CorrectionDetail'
 import CorrectionList from '../features/corrections/screens/CorrectionList'
 import {
+    DISTRIBUTION_PERMISSIONS,
+    hasDistributionPermission,
+} from '../features/distribution/distributionPermissions'
+import { DISTRIBUTION_ROUTES } from '../features/distribution/routes'
+import RecallDetail from '../features/distribution/screens/RecallDetail'
+import RecallList from '../features/distribution/screens/RecallList'
+import ShipmentDetail from '../features/distribution/screens/ShipmentDetail'
+import ShipmentList from '../features/distribution/screens/ShipmentList'
+import {
     DOCUMENT_PERMISSIONS,
     hasDocumentPermission,
 } from '../features/documents/documentPermissions'
@@ -103,6 +112,16 @@ export default function PiveStack() {
             effectiveContextQuery.data,
             CORRECTION_PERMISSIONS.READ
         )
+    const showTargetShipments = effectiveContextQuery.isSuccess &&
+        hasDistributionPermission(
+            effectiveContextQuery.data,
+            DISTRIBUTION_PERMISSIONS.SHIPMENT_READ
+        )
+    const showTargetRecalls = effectiveContextQuery.isSuccess &&
+        hasDistributionPermission(
+            effectiveContextQuery.data,
+            DISTRIBUTION_PERMISSIONS.RECALL_READ
+        )
     const renderPive = React.useCallback(props => (
         <Pive
             {...props}
@@ -111,12 +130,16 @@ export default function PiveStack() {
             showTargetOpu={showTargetOpu}
             showTargetTransfers={showTargetTransfers}
             showTargetInventory={showTargetInventory}
+            showTargetRecalls={showTargetRecalls}
+            showTargetShipments={showTargetShipments}
         />
     ), [
         showTargetCorrections,
         showTargetDocuments,
         showTargetInventory,
         showTargetOpu,
+        showTargetRecalls,
+        showTargetShipments,
         showTargetTransfers,
     ])
 
@@ -270,6 +293,26 @@ export default function PiveStack() {
                 name={CORRECTION_ROUTES.DETAIL}
                 component={CorrectionDetail}
                 options={{ headerShown: true, title: 'Solicitação histórica' }}
+            />
+            <Stack.Screen
+                name={DISTRIBUTION_ROUTES.SHIPMENT_LIST}
+                component={ShipmentList}
+                options={{ headerShown: true, title: 'Distribution' }}
+            />
+            <Stack.Screen
+                name={DISTRIBUTION_ROUTES.SHIPMENT_DETAIL}
+                component={ShipmentDetail}
+                options={{ headerShown: true, title: 'Shipment' }}
+            />
+            <Stack.Screen
+                name={DISTRIBUTION_ROUTES.RECALL_LIST}
+                component={RecallList}
+                options={{ headerShown: true, title: 'Recalls' }}
+            />
+            <Stack.Screen
+                name={DISTRIBUTION_ROUTES.RECALL_DETAIL}
+                component={RecallDetail}
+                options={{ headerShown: true, title: 'Recall' }}
             />
             <Stack.Screen name="Cabecalho" component={Cabecalho} />
             <Stack.Screen name="FivInfo" component={FivInfo} />

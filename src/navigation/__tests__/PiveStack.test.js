@@ -36,6 +36,8 @@ jest.mock('../../screens/Pive', () => function MockPive({
     showTargetInventory,
     showTargetDocuments,
     showTargetCorrections,
+    showTargetShipments,
+    showTargetRecalls,
 }) {
     const { Text } = require('react-native')
 
@@ -46,6 +48,8 @@ jest.mock('../../screens/Pive', () => function MockPive({
             <Text>{showTargetInventory ? 'target-inventory-entry' : 'no-target-inventory'}</Text>
             <Text>{showTargetDocuments ? 'target-documents-entry' : 'no-target-documents'}</Text>
             <Text>{showTargetCorrections ? 'target-corrections-entry' : 'no-target-corrections'}</Text>
+            <Text>{showTargetShipments ? 'target-shipments-entry' : 'no-target-shipments'}</Text>
+            <Text>{showTargetRecalls ? 'target-recalls-entry' : 'no-target-recalls'}</Text>
         </>
     )
 })
@@ -64,6 +68,8 @@ describe('PiveStack target OPU coexistence', () => {
                     'inventory:read',
                     'documents:read',
                     'compliance:read',
+                    'shipment:read',
+                    'recall:read',
                 ],
             },
             isSuccess: true,
@@ -106,6 +112,12 @@ describe('PiveStack target OPU coexistence', () => {
         expect(screen.getByText('target-corrections-entry')).toBeTruthy()
         expect(screen.getByText('CorrectionList')).toBeTruthy()
         expect(screen.getByText('CorrectionDetail')).toBeTruthy()
+        expect(screen.getByText('target-shipments-entry')).toBeTruthy()
+        expect(screen.getByText('ShipmentList')).toBeTruthy()
+        expect(screen.getByText('ShipmentDetail')).toBeTruthy()
+        expect(screen.getByText('target-recalls-entry')).toBeTruthy()
+        expect(screen.getByText('RecallList')).toBeTruthy()
+        expect(screen.getByText('RecallDetail')).toBeTruthy()
     })
 
     test('does not treat opu:write as read access', () => {
@@ -119,6 +131,8 @@ describe('PiveStack target OPU coexistence', () => {
         expect(render(<PiveStack />).getByText('no-target-inventory')).toBeTruthy()
         expect(render(<PiveStack />).getByText('no-target-documents')).toBeTruthy()
         expect(render(<PiveStack />).getByText('no-target-corrections')).toBeTruthy()
+        expect(render(<PiveStack />).getByText('no-target-shipments')).toBeTruthy()
+        expect(render(<PiveStack />).getByText('no-target-recalls')).toBeTruthy()
     })
 
     test('does not require write or compliance permissions for Documents', () => {
@@ -149,5 +163,23 @@ describe('PiveStack target OPU coexistence', () => {
 
         expect(render(<PiveStack />).getByText('no-target-corrections'))
             .toBeTruthy()
+    })
+
+    test('gates Shipment and Recall entry points independently', () => {
+        useEffectiveContextQuery.mockReturnValue({
+            data: { permissions: ['shipment:read'] },
+            isSuccess: true,
+        })
+        let screen = render(<PiveStack />)
+        expect(screen.getByText('target-shipments-entry')).toBeTruthy()
+        expect(screen.getByText('no-target-recalls')).toBeTruthy()
+
+        useEffectiveContextQuery.mockReturnValue({
+            data: { permissions: ['recall:read'] },
+            isSuccess: true,
+        })
+        screen = render(<PiveStack />)
+        expect(screen.getByText('no-target-shipments')).toBeTruthy()
+        expect(screen.getByText('target-recalls-entry')).toBeTruthy()
     })
 })

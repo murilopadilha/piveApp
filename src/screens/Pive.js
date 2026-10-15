@@ -17,6 +17,7 @@ import { TRANSFER_ROUTES } from '../features/transfers/routes';
 import { INVENTORY_ROUTES } from '../features/inventory/routes';
 import { DOCUMENT_ROUTES } from '../features/documents/routes';
 import { CORRECTION_ROUTES } from '../features/corrections/routes';
+import { DISTRIBUTION_ROUTES } from '../features/distribution/routes';
 
 export default ({
     navigation,
@@ -25,6 +26,8 @@ export default ({
     showTargetInventory = false,
     showTargetDocuments = false,
     showTargetCorrections = false,
+    showTargetShipments = false,
+    showTargetRecalls = false,
 }) => {
     const [filterCatalogMode, setFilterCatalogMode] = useState(PIVE_FILTER_CATALOG_MODES.STATUS)
     const [activeFilter, setActiveFilter] = useState('ALL')
@@ -157,6 +160,32 @@ export default ({
                     <Text style={styles.opuDirectoryText}>
                         Solicitações de correção histórica
                     </Text>
+                </TouchableOpacity>
+            ) : null}
+            {showTargetShipments ? (
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Abrir Distribution"
+                    accessibilityHint="Consulta Shipments e readiness operacional"
+                    style={styles.shipmentDirectoryButton}
+                    onPress={() => navigation.navigate(
+                        DISTRIBUTION_ROUTES.SHIPMENT_LIST
+                    )}
+                >
+                    <Text style={styles.opuDirectoryText}>Distribution</Text>
+                </TouchableOpacity>
+            ) : null}
+            {showTargetRecalls ? (
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Abrir Recalls"
+                    accessibilityHint="Consulta casos de Recall e impacto recalculado"
+                    style={styles.recallDirectoryButton}
+                    onPress={() => navigation.navigate(
+                        DISTRIBUTION_ROUTES.RECALL_LIST
+                    )}
+                >
+                    <Text style={styles.opuDirectoryText}>Recalls</Text>
                 </TouchableOpacity>
             ) : null}
             <PiveFilterControls
@@ -332,5 +361,23 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderRadius: 24,
         backgroundColor: '#7C2D12',
+    },
+    shipmentDirectoryButton: {
+        minHeight: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 20,
+        marginBottom: 10,
+        borderRadius: 24,
+        backgroundColor: '#155E75',
+    },
+    recallDirectoryButton: {
+        minHeight: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 20,
+        marginBottom: 10,
+        borderRadius: 24,
+        backgroundColor: '#9F1239',
     },
 })
