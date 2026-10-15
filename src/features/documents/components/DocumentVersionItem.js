@@ -1,4 +1,10 @@
-import { StyleSheet, Text, View } from 'react-native'
+import {
+    ActivityIndicator,
+    Pressable,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native'
 
 import {
     formatDocumentSize,
@@ -6,7 +12,13 @@ import {
 } from '../documentPresentation'
 import { DocumentField } from './DocumentElements'
 
-export default function DocumentVersionItem({ version, current = false }) {
+export default function DocumentVersionItem({
+    version,
+    current = false,
+    onOpenShare,
+    busy = false,
+    disabled = false,
+}) {
     return (
         <View
             accessibilityLabel={`Versão ${version.versionNumber}${current ? ', versão atual' : ''}`}
@@ -35,6 +47,27 @@ export default function DocumentVersionItem({ version, current = false }) {
                 label="Enviado em"
                 value={formatDocumentTimestamp(version.uploadedAt)}
             />
+            {onOpenShare ? (
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Abrir ou compartilhar versão ${version.versionNumber}`}
+                    accessibilityHint="Baixa temporariamente esta versão e abre as opções do sistema"
+                    accessibilityState={{ busy, disabled: disabled || busy }}
+                    disabled={disabled || busy}
+                    onPress={onOpenShare}
+                    style={({ pressed }) => [
+                        styles.action,
+                        (disabled || busy) && styles.actionDisabled,
+                        pressed && !disabled && !busy && styles.actionPressed,
+                    ]}
+                >
+                    {busy ? (
+                        <ActivityIndicator color="#FFFFFF" />
+                    ) : (
+                        <Text style={styles.actionText}>Abrir/Compartilhar</Text>
+                    )}
+                </Pressable>
+            ) : null}
         </View>
     )
 }
@@ -65,4 +98,15 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '700',
     },
+    action: {
+        minHeight: 46,
+        marginTop: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 23,
+        backgroundColor: '#092955',
+    },
+    actionDisabled: { opacity: 0.55 },
+    actionPressed: { opacity: 0.82 },
+    actionText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
 })

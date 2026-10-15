@@ -57,3 +57,32 @@ export const getDocumentErrorMessage = (error) => {
             return `Não foi possível concluir a consulta.${reference}`
     }
 }
+
+export const getDocumentBinaryErrorMessage = (error) => {
+    if (!error || error.kind === TARGET_ERROR_KINDS.CANCELED) {
+        return null
+    }
+
+    switch (error.code) {
+        case 'DOCUMENT_BINARY_SIZE_MISMATCH':
+            return 'O arquivo recebido não corresponde ao tamanho registrado. Os dados foram atualizados; tente novamente após revisar a versão.'
+        case 'INVALID_DOCUMENT_BINARY':
+            return 'O servidor retornou um conteúdo de documento inválido.'
+        case 'INVALID_DOCUMENT_METADATA':
+            return 'Os metadados desta versão não são válidos para abrir o arquivo.'
+        case 'DOCUMENT_TEMPORARY_STORAGE_UNAVAILABLE':
+        case 'DOCUMENT_TEMPORARY_FILE_WRITE_FAILED':
+            return 'Não foi possível preparar o arquivo temporário neste dispositivo.'
+        case 'DOCUMENT_SHARING_UNAVAILABLE':
+            return 'Abrir ou compartilhar arquivos não está disponível neste dispositivo.'
+        case 'DOCUMENT_ORGANIZATION_CHANGED':
+            return 'A organização ativa mudou. O arquivo anterior não foi compartilhado.'
+        case 'DOCUMENT_NOT_FOUND':
+            return 'Esta versão não está mais disponível nesta organização.'
+        case 'ACCESS_DENIED':
+            return 'Você não tem permissão para abrir este documento.'
+        default:
+            return getDocumentErrorMessage(error)
+                ?? 'Não foi possível abrir ou compartilhar esta versão.'
+    }
+}

@@ -1,3 +1,4 @@
+import React from 'react'
 import {
     ActivityIndicator,
     Pressable,
@@ -22,12 +23,14 @@ import {
 } from '../documentPermissions'
 import {
     formatDocumentTimestamp,
+    getDocumentBinaryErrorMessage,
     getDocumentErrorMessage,
 } from '../documentPresentation'
 import {
     useDocumentDetailQuery,
     useDocumentVersionsQuery,
 } from '../hooks/useDocumentQueries'
+import { useDocumentVersionSharing } from '../hooks/useDocumentVersionSharing'
 
 export default function DocumentDetail({ route }) {
     const documentId = route.params?.documentId
@@ -48,6 +51,17 @@ export default function DocumentDetail({ route }) {
         organizationId: activeOrganizationId,
         documentId,
         enabled: contextQuery.isSuccess && canRead,
+    })
+    const refreshMetadata = React.useCallback(async () => {
+        await Promise.allSettled([
+            documentQuery.refetch(),
+            versionsQuery.refetch(),
+        ])
+    }, [documentQuery.refetch, versionsQuery.refetch])
+    const sharing = useDocumentVersionSharing({
+        organizationId: activeOrganizationId,
+        documentId,
+        refreshMetadata,
     })
 
     if (!documentId) {
@@ -121,6 +135,22 @@ export default function DocumentDetail({ route }) {
                 </DocumentSection>
 
                 <DocumentSection title="Histórico imutável de versões">
+                    {getDocumentBinaryErrorMessage(sharing.error) ? (
+                        <View accessibilityRole="alert" style={styles.binaryError}>
+                            <Text style={styles.error}>
+                                {getDocumentBinaryErrorMessage(sharing.error)}
+                            </Text>
+                            <Pressable
+                                accessibilityRole="button"
+                                accessibilityLabel="Tentar abrir o documento novamente"
+                                accessibilityHint="Feche este aviso e tente novamente na versão desejada"
+                                onPress={sharing.clearError}
+                                style={styles.linkButton}
+                            >
+                                <Text style={styles.linkText}>Entendi</Text>
+                            </Pressable>
+                        </View>
+                    ) : null}
                     {versionsQuery.isPending ? (
                         <View
                             accessibilityRole="progressbar"
@@ -149,8 +179,11 @@ export default function DocumentDetail({ route }) {
                     ) : null}
                     {versions.map(version => (
                         <DocumentVersionItem
+                            busy={sharing.busyVersionId === version.id}
                             current={version.id === document.currentVersionId}
+                            disabled={sharing.isBusy}
                             key={version.id}
+                            onOpenShare={() => void sharing.openOrShare(version)}
                             version={version}
                         />
                     ))}
@@ -199,6 +232,14 @@ const styles = StyleSheet.create({
     loading: { alignItems: 'center', paddingVertical: 16 },
     help: { marginTop: 8, color: '#475569', fontSize: 14, lineHeight: 20 },
     error: { color: '#991B1B', fontSize: 14, lineHeight: 20 },
+    binaryError: {
+        marginBottom: 12,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: '#FCA5A5',
+        borderRadius: 8,
+        backgroundColor: '#FEF2F2',
+    },
     linkButton: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
     linkText: { color: '#092955', fontSize: 14, fontWeight: '700' },
     moreButton: {

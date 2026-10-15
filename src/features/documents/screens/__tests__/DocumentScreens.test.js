@@ -7,6 +7,7 @@ import {
     useDocumentsQuery,
     useDocumentVersionsQuery,
 } from '../../hooks/useDocumentQueries'
+import { useDocumentVersionSharing } from '../../hooks/useDocumentVersionSharing'
 import DocumentDetail from '../DocumentDetail'
 import DocumentList from '../DocumentList'
 
@@ -20,6 +21,9 @@ jest.mock('../../hooks/useDocumentQueries', () => ({
     useDocumentDetailQuery: jest.fn(),
     useDocumentsQuery: jest.fn(),
     useDocumentVersionsQuery: jest.fn(),
+}))
+jest.mock('../../hooks/useDocumentVersionSharing', () => ({
+    useDocumentVersionSharing: jest.fn(),
 }))
 
 const query = data => ({
@@ -74,6 +78,13 @@ beforeEach(() => {
     useDocumentVersionsQuery.mockReturnValue(query({
         pages: [{ items: versions, page: 0, size: 20 }],
     }))
+    useDocumentVersionSharing.mockReturnValue({
+        busyVersionId: null,
+        error: null,
+        isBusy: false,
+        openOrShare: jest.fn(() => Promise.resolve(true)),
+        clearError: jest.fn(),
+    })
 })
 
 afterEach(() => jest.clearAllMocks())
@@ -152,6 +163,63 @@ describe('M7B1 Document screens', () => {
         expect(screen.getAllByText('application/pdf')).toHaveLength(2)
         expect(screen.getByText('4.0 KiB (4096 bytes)')).toBeTruthy()
         expect(screen.getByText('b'.repeat(64))).toBeTruthy()
+    })
+
+    test('opens a known version with read permission and stable metadata', () => {
+        const openOrShare = jest.fn(() => Promise.resolve(true))
+        useDocumentVersionSharing.mockReturnValue({
+            busyVersionId: null,
+            error: null,
+            isBusy: false,
+            openOrShare,
+            clearError: jest.fn(),
+        })
+        const screen = render(
+            <DocumentDetail route={{ params: { documentId: 'document-a' } }} />
+        )
+
+        fireEvent.press(screen.getByLabelText('Abrir ou compartilhar versão 2'))
+        expect(openOrShare).toHaveBeenCalledWith(versions[0])
+        expect(useDocumentVersionSharing).toHaveBeenCalledWith(expect.objectContaining({
+            organizationId: 'organization-a',
+            documentId: 'document-a',
+        }))
+    })
+
+    test('exposes accessible busy state and disables duplicate actions', () => {
+        useDocumentVersionSharing.mockReturnValue({
+            busyVersionId: 'version-b',
+            error: null,
+            isBusy: true,
+            openOrShare: jest.fn(),
+            clearError: jest.fn(),
+        })
+        const screen = render(
+            <DocumentDetail route={{ params: { documentId: 'document-a' } }} />
+        )
+
+        expect(screen.getByLabelText('Abrir ou compartilhar versão 2').props.accessibilityState)
+            .toEqual({ busy: true, disabled: true })
+        expect(screen.getByLabelText('Abrir ou compartilhar versão 1').props.accessibilityState)
+            .toEqual({ busy: false, disabled: true })
+    })
+
+    test('presents a safe binary error without requiring write permission', () => {
+        useDocumentVersionSharing.mockReturnValue({
+            busyVersionId: null,
+            error: { code: 'DOCUMENT_SHARING_UNAVAILABLE' },
+            isBusy: false,
+            openOrShare: jest.fn(),
+            clearError: jest.fn(),
+        })
+        const screen = render(
+            <DocumentDetail route={{ params: { documentId: 'document-a' } }} />
+        )
+
+        expect(screen.getByText(
+            'Abrir ou compartilhar arquivos não está disponível neste dispositivo.'
+        )).toBeTruthy()
+        expect(screen.getByLabelText('Tentar abrir o documento novamente')).toBeTruthy()
     })
 
     test('preserves backend version ordering and exposes accessible pagination', () => {

@@ -7,6 +7,7 @@ import {
 
 import { SessionProvider } from '../features/auth/SessionContext'
 import { OrganizationProvider } from '../features/organizations/OrganizationContext'
+import DocumentTemporaryFilesLifecycle from '../features/documents/components/DocumentTemporaryFilesLifecycle'
 import {
     clearTargetSessionServerState,
     createTargetQueryClient,
@@ -52,6 +53,7 @@ export default function TargetFoundationProvider({
             >
                 <OrganizationProvider>
                     <TargetAppStateBridge />
+                    <DocumentTemporaryFilesLifecycle />
                     {children}
                 </OrganizationProvider>
             </SessionProvider>
