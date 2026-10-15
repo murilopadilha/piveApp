@@ -3,6 +3,13 @@ import { createStackNavigator } from '@react-navigation/stack'
 
 import { useEffectiveContextQuery } from '../features/auth/hooks/useIdentityQueries'
 import {
+    CORRECTION_PERMISSIONS,
+    hasCorrectionPermission,
+} from '../features/corrections/correctionPermissions'
+import { CORRECTION_ROUTES } from '../features/corrections/routes'
+import CorrectionDetail from '../features/corrections/screens/CorrectionDetail'
+import CorrectionList from '../features/corrections/screens/CorrectionList'
+import {
     DOCUMENT_PERMISSIONS,
     hasDocumentPermission,
 } from '../features/documents/documentPermissions'
@@ -91,15 +98,22 @@ export default function PiveStack() {
             effectiveContextQuery.data,
             DOCUMENT_PERMISSIONS.READ
         )
+    const showTargetCorrections = effectiveContextQuery.isSuccess &&
+        hasCorrectionPermission(
+            effectiveContextQuery.data,
+            CORRECTION_PERMISSIONS.READ
+        )
     const renderPive = React.useCallback(props => (
         <Pive
             {...props}
+            showTargetCorrections={showTargetCorrections}
             showTargetDocuments={showTargetDocuments}
             showTargetOpu={showTargetOpu}
             showTargetTransfers={showTargetTransfers}
             showTargetInventory={showTargetInventory}
         />
     ), [
+        showTargetCorrections,
         showTargetDocuments,
         showTargetInventory,
         showTargetOpu,
@@ -246,6 +260,16 @@ export default function PiveStack() {
                 name={DOCUMENT_ROUTES.DETAIL}
                 component={DocumentDetail}
                 options={{ headerShown: true, title: 'Document' }}
+            />
+            <Stack.Screen
+                name={CORRECTION_ROUTES.LIST}
+                component={CorrectionList}
+                options={{ headerShown: true, title: 'Solicitações de correção' }}
+            />
+            <Stack.Screen
+                name={CORRECTION_ROUTES.DETAIL}
+                component={CorrectionDetail}
+                options={{ headerShown: true, title: 'Solicitação histórica' }}
             />
             <Stack.Screen name="Cabecalho" component={Cabecalho} />
             <Stack.Screen name="FivInfo" component={FivInfo} />

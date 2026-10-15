@@ -35,6 +35,7 @@ jest.mock('../../screens/Pive', () => function MockPive({
     showTargetTransfers,
     showTargetInventory,
     showTargetDocuments,
+    showTargetCorrections,
 }) {
     const { Text } = require('react-native')
 
@@ -44,6 +45,7 @@ jest.mock('../../screens/Pive', () => function MockPive({
             <Text>{showTargetTransfers ? 'target-transfer-entry' : 'no-target-transfer'}</Text>
             <Text>{showTargetInventory ? 'target-inventory-entry' : 'no-target-inventory'}</Text>
             <Text>{showTargetDocuments ? 'target-documents-entry' : 'no-target-documents'}</Text>
+            <Text>{showTargetCorrections ? 'target-corrections-entry' : 'no-target-corrections'}</Text>
         </>
     )
 })
@@ -61,6 +63,7 @@ describe('PiveStack target OPU coexistence', () => {
                     'transfer:read',
                     'inventory:read',
                     'documents:read',
+                    'compliance:read',
                 ],
             },
             isSuccess: true,
@@ -100,6 +103,9 @@ describe('PiveStack target OPU coexistence', () => {
         expect(screen.getByText('target-documents-entry')).toBeTruthy()
         expect(screen.getByText('DocumentList')).toBeTruthy()
         expect(screen.getByText('DocumentDetail')).toBeTruthy()
+        expect(screen.getByText('target-corrections-entry')).toBeTruthy()
+        expect(screen.getByText('CorrectionList')).toBeTruthy()
+        expect(screen.getByText('CorrectionDetail')).toBeTruthy()
     })
 
     test('does not treat opu:write as read access', () => {
@@ -112,6 +118,7 @@ describe('PiveStack target OPU coexistence', () => {
         expect(render(<PiveStack />).getByText('no-target-transfer')).toBeTruthy()
         expect(render(<PiveStack />).getByText('no-target-inventory')).toBeTruthy()
         expect(render(<PiveStack />).getByText('no-target-documents')).toBeTruthy()
+        expect(render(<PiveStack />).getByText('no-target-corrections')).toBeTruthy()
     })
 
     test('does not require write or compliance permissions for Documents', () => {
@@ -121,6 +128,26 @@ describe('PiveStack target OPU coexistence', () => {
         })
 
         expect(render(<PiveStack />).getByText('target-documents-entry'))
+            .toBeTruthy()
+    })
+
+    test('does not require lineage or master-data permissions for Corrections', () => {
+        useEffectiveContextQuery.mockReturnValue({
+            data: { permissions: ['compliance:read'] },
+            isSuccess: true,
+        })
+
+        expect(render(<PiveStack />).getByText('target-corrections-entry'))
+            .toBeTruthy()
+    })
+
+    test('does not treat lineage:correct as Correction read access', () => {
+        useEffectiveContextQuery.mockReturnValue({
+            data: { permissions: ['lineage:correct'] },
+            isSuccess: true,
+        })
+
+        expect(render(<PiveStack />).getByText('no-target-corrections'))
             .toBeTruthy()
     })
 })

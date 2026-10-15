@@ -16,6 +16,7 @@ import { OPU_ROUTES } from '../features/opu/routes';
 import { TRANSFER_ROUTES } from '../features/transfers/routes';
 import { INVENTORY_ROUTES } from '../features/inventory/routes';
 import { DOCUMENT_ROUTES } from '../features/documents/routes';
+import { CORRECTION_ROUTES } from '../features/corrections/routes';
 
 export default ({
     navigation,
@@ -23,6 +24,7 @@ export default ({
     showTargetTransfers = false,
     showTargetInventory = false,
     showTargetDocuments = false,
+    showTargetCorrections = false,
 }) => {
     const [filterCatalogMode, setFilterCatalogMode] = useState(PIVE_FILTER_CATALOG_MODES.STATUS)
     const [activeFilter, setActiveFilter] = useState('ALL')
@@ -142,6 +144,19 @@ export default ({
                     onPress={() => navigation.navigate(DOCUMENT_ROUTES.LIST)}
                 >
                     <Text style={styles.opuDirectoryText}>Documents</Text>
+                </TouchableOpacity>
+            ) : null}
+            {showTargetCorrections ? (
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Abrir solicitações de correção histórica"
+                    accessibilityHint="Consulta solicitações registradas e seu impacto atual"
+                    style={styles.correctionDirectoryButton}
+                    onPress={() => navigation.navigate(CORRECTION_ROUTES.LIST)}
+                >
+                    <Text style={styles.opuDirectoryText}>
+                        Solicitações de correção histórica
+                    </Text>
                 </TouchableOpacity>
             ) : null}
             <PiveFilterControls
@@ -308,5 +323,14 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderRadius: 24,
         backgroundColor: '#4338CA',
+    },
+    correctionDirectoryButton: {
+        minHeight: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 20,
+        marginBottom: 10,
+        borderRadius: 24,
+        backgroundColor: '#7C2D12',
     },
 })
