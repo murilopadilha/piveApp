@@ -1,5 +1,27 @@
 import { createUuidV7 } from '../../utils/uuid'
 
+export const EMBRYO_IDENTIFIED_BEFORE_FERTILIZATION =
+    'EMBRYO_IDENTIFIED_BEFORE_FERTILIZATION'
+
+const timestampOf = value => new Date(value).getTime()
+
+export const isIdentificationBeforeFertilization = ({
+    identifiedAt,
+    fertilizedAt,
+}) => {
+    const identifiedTimestamp = timestampOf(identifiedAt)
+    const fertilizedTimestamp = timestampOf(fertilizedAt)
+
+    return Number.isFinite(identifiedTimestamp) &&
+        Number.isFinite(fertilizedTimestamp) &&
+        identifiedTimestamp < fertilizedTimestamp
+}
+
+const chronologyError = () => Object.assign(
+    new TypeError('identifiedAt cannot precede fertilizedAt.'),
+    { code: EMBRYO_IDENTIFIED_BEFORE_FERTILIZATION }
+)
+
 export const createEmbryoDraftItem = ({
     matingId,
     humanCode = '',
@@ -22,17 +44,27 @@ export const updateEmbryoDraftItem = (item, changes) => ({
     matingId: item.matingId,
 })
 
-const validateEmbryoDraftItem = (item) => {
+const validateEmbryoDraftItem = (item, fertilizedAt) => {
     const humanCode = typeof item.humanCode === 'string'
         ? item.humanCode.trim()
         : ''
-    const identifiedAt = new Date(item.identifiedAt).getTime()
+    const identifiedAt = timestampOf(item.identifiedAt)
+    const fertilizationTimestamp = timestampOf(fertilizedAt)
 
     if (!humanCode || humanCode.length > 160) {
         throw new TypeError('humanCode must have between one and 160 characters.')
     }
     if (!item.matingId || !Number.isFinite(identifiedAt)) {
         throw new TypeError('matingId and identifiedAt are required.')
+    }
+    if (!Number.isFinite(fertilizationTimestamp)) {
+        throw new TypeError('fertilizedAt is required.')
+    }
+    if (isIdentificationBeforeFertilization({
+        identifiedAt: item.identifiedAt,
+        fertilizedAt,
+    })) {
+        throw chronologyError()
     }
 
     return {
@@ -45,7 +77,7 @@ const validateEmbryoDraftItem = (item) => {
     }
 }
 
-export const createEmbryoBatchIntent = (items) => {
+export const createEmbryoBatchIntent = (items, { fertilizedAt } = {}) => {
     if (!Array.isArray(items) || items.length < 1 || items.length > 200) {
         throw new TypeError('Supply between one and 200 Embryo items.')
     }
@@ -62,7 +94,10 @@ export const createEmbryoBatchIntent = (items) => {
                 sourceDocumentId: null,
                 apiClientId: null,
             },
-            items: items.map(validateEmbryoDraftItem),
+            items: items.map(item => validateEmbryoDraftItem(
+                item,
+                fertilizedAt
+            )),
         },
     }
 }

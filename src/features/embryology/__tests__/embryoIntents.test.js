@@ -5,12 +5,18 @@ import {
     createReleaseEmbryoHoldIntent,
     createEmbryoBatchIntent,
     createEmbryoDraftItem,
+    EMBRYO_IDENTIFIED_BEFORE_FERTILIZATION,
     markEmbryoHoldIntentSent,
     markEmbryoBatchIntentSent,
     normalizeEmbryoHoldType,
     renewEmbryoDraftItems,
     updateEmbryoDraftItem,
 } from '../embryoIntents'
+
+const fertilizedAt = '2026-10-11T10:00:00.000Z'
+const createIdentificationIntent = items => createEmbryoBatchIntent(items, {
+    fertilizedAt,
+})
 
 describe('Embryo identification intentions', () => {
     test('creates stable UUIDv7 identities and a matching idempotency key', () => {
@@ -20,7 +26,7 @@ describe('Embryo identification intentions', () => {
             identifiedAt: '2026-10-11T10:00:00Z',
         })
         const intent = markEmbryoBatchIntentSent(
-            createEmbryoBatchIntent([item])
+            createIdentificationIntent([item])
         )
 
         expect(validate(intent.idempotencyKey)).toBe(true)
@@ -37,7 +43,7 @@ describe('Embryo identification intentions', () => {
     })
 
     test('preserves the same object, IDs and payload for retry', () => {
-        const intent = markEmbryoBatchIntentSent(createEmbryoBatchIntent([
+        const intent = markEmbryoBatchIntentSent(createIdentificationIntent([
             createEmbryoDraftItem({
                 matingId: 'mating-a',
                 humanCode: 'EMB-001',
@@ -54,12 +60,12 @@ describe('Embryo identification intentions', () => {
         const firstItem = createEmbryoDraftItem({
             matingId: 'mating-a', humanCode: 'EMB-001',
         })
-        const first = createEmbryoBatchIntent([firstItem])
+        const first = createIdentificationIntent([firstItem])
         const renewedItem = updateEmbryoDraftItem(
             renewEmbryoDraftItems([firstItem])[0],
             { humanCode: 'EMB-002' }
         )
-        const second = createEmbryoBatchIntent([renewedItem])
+        const second = createIdentificationIntent([renewedItem])
 
         expect(second.idempotencyKey).not.toBe(first.idempotencyKey)
         expect(second.payload.items[0].itemId)
@@ -69,32 +75,70 @@ describe('Embryo identification intentions', () => {
     })
 
     test('enforces one to 200 items and the humanCode contract', () => {
-        expect(() => createEmbryoBatchIntent([])).toThrow()
-        expect(() => createEmbryoBatchIntent(Array.from(
+        expect(() => createIdentificationIntent([])).toThrow()
+        expect(() => createIdentificationIntent(Array.from(
             { length: 201 },
             () => createEmbryoDraftItem({ matingId: 'mating-a', humanCode: 'X' })
         ))).toThrow()
-        expect(() => createEmbryoBatchIntent([
+        expect(() => createIdentificationIntent([
             createEmbryoDraftItem({ matingId: 'mating-a', humanCode: '' }),
         ])).toThrow()
-        expect(() => createEmbryoBatchIntent([
+        expect(() => createIdentificationIntent([
             createEmbryoDraftItem({
                 matingId: 'mating-a', humanCode: 'x'.repeat(161),
             }),
         ])).toThrow()
     })
 
-    test('does not invent a fertilization-time constraint for identifiedAt', () => {
-        const intent = createEmbryoBatchIntent([
+    test('preserves invalid timestamp validation', () => {
+        expect(() => createIdentificationIntent([
             createEmbryoDraftItem({
                 matingId: 'mating-a',
                 humanCode: 'EMB-001',
-                identifiedAt: '2020-01-01T00:00:00Z',
+                identifiedAt: 'not-a-timestamp',
+            }),
+        ])).toThrow('matingId and identifiedAt are required.')
+    })
+
+    test('blocks identification before fertilization by structured code', () => {
+        expect(() => createIdentificationIntent([
+            createEmbryoDraftItem({
+                matingId: 'mating-a',
+                humanCode: 'EMB-001',
+                identifiedAt: '2026-10-11T09:59:59.999Z',
+            }),
+        ])).toThrow(expect.objectContaining({
+            code: EMBRYO_IDENTIFIED_BEFORE_FERTILIZATION,
+        }))
+    })
+
+    test.each([
+        '2026-10-11T10:00:00.000Z',
+        '2026-10-11T10:00:00.001Z',
+    ])('allows identification at or after fertilization: %s', (identifiedAt) => {
+        const intent = createIdentificationIntent([
+            createEmbryoDraftItem({
+                matingId: 'mating-a',
+                humanCode: 'EMB-001',
+                identifiedAt,
             }),
         ])
 
         expect(intent.payload.items[0].identifiedAt)
-            .toBe('2020-01-01T00:00:00Z')
+            .toBe(identifiedAt)
+    })
+
+    test('compares instants temporally instead of comparing timestamp strings', () => {
+        const intent = createEmbryoBatchIntent([
+            createEmbryoDraftItem({
+                matingId: 'mating-a',
+                humanCode: 'EMB-001',
+                identifiedAt: '2026-10-11T07:00:00-03:00',
+            }),
+        ], { fertilizedAt: '2026-10-11T10:00:00Z' })
+
+        expect(intent.payload.items[0].identifiedAt)
+            .toBe('2026-10-11T07:00:00-03:00')
     })
 })
 

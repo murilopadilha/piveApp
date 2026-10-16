@@ -73,6 +73,7 @@ const COMMAND_MESSAGES = Object.freeze({
     EMBRYO_NOT_FOUND: 'O embrião não foi encontrado nesta organização.',
     MATING_NOT_FOUND: 'A fertilização não foi encontrada nesta organização.',
     MATING_NOT_OPEN: 'A fertilização não está aberta para identificação de embriões.',
+    EMBRYO_IDENTIFIED_BEFORE_FERTILIZATION: 'A identificação do embrião não pode ocorrer antes da fertilização.',
     BATCH_KEY_MISMATCH: 'A identidade do lote não corresponde à intenção enviada.',
     IDEMPOTENCY_KEY_REUSED: 'Esta intenção já foi usada com dados diferentes.',
     COMMAND_IN_PROGRESS: 'Esta operação ainda está sendo processada. Aguarde antes de tentar novamente.',

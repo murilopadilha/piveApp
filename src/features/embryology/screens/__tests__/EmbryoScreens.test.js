@@ -22,7 +22,11 @@ import EmbryoBatchIdentify from '../EmbryoBatchIdentify'
 import EmbryoDetail from '../EmbryoDetail'
 import EmbryoList from '../EmbryoList'
 
-jest.mock('react-native-modal-datetime-picker', () => () => null)
+let mockDateTimePickerProps
+jest.mock('react-native-modal-datetime-picker', () => props => {
+    mockDateTimePickerProps = props
+    return null
+})
 jest.mock('../../../auth/hooks/useIdentityQueries', () => ({
     useEffectiveContextQuery: jest.fn(),
 }))
@@ -122,6 +126,7 @@ const matingDetail = {
     mating: {
         id: 'mating-a',
         allocatedOocytes: 3,
+        fertilizedAt: '2026-10-11T10:00:00.000Z',
         status: 'FERTILIZED',
     },
 }
@@ -142,6 +147,7 @@ const tracePermissions = [
 ]
 
 beforeEach(() => {
+    mockDateTimePickerProps = null
     useOrganization.mockReturnValue({ activeOrganizationId: 'organization-a' })
     useEffectiveContextQuery.mockReturnValue(query({ permissions: allPermissions }))
     useMatingDetailQuery.mockReturnValue(query(matingDetail))
@@ -482,6 +488,42 @@ describe('EmbryoBatchIdentify', () => {
             ownerId: null,
         })
         expect(intent.payload).not.toHaveProperty('expectedMatingVersion')
+    })
+
+    test('uses Mating fertilizedAt to reject an earlier picker value', () => {
+        const identify = mutation()
+        useIdentifyEmbryosMutation.mockReturnValue(identify)
+        const screen = renderScreen()
+
+        fireEvent.press(screen.getByLabelText('Adicionar embrião ao lote'))
+        fireEvent.changeText(screen.getByLabelText('Código do embrião 1'), 'EMB-002')
+        fireEvent.press(screen.getByLabelText(
+            'Alterar data de identificação do embrião 1'
+        ))
+
+        expect(mockDateTimePickerProps.minimumDate.toISOString())
+            .toBe(matingDetail.mating.fertilizedAt)
+
+        act(() => mockDateTimePickerProps.onConfirm(
+            new Date('2026-10-11T09:59:59.999Z')
+        ))
+
+        expect(screen.getByText(
+            'A identificação do embrião não pode ocorrer antes da fertilização.'
+        )).toBeTruthy()
+        expect(identify.mutate).not.toHaveBeenCalled()
+
+        fireEvent.press(screen.getByLabelText(
+            'Alterar data de identificação do embrião 1'
+        ))
+        act(() => mockDateTimePickerProps.onConfirm(
+            new Date(matingDetail.mating.fertilizedAt)
+        ))
+        fireEvent.press(screen.getByLabelText('Registrar lote atômico de embriões'))
+
+        expect(identify.mutate).toHaveBeenCalledTimes(1)
+        expect(identify.mutate.mock.calls[0][0].payload.items[0].identifiedAt)
+            .toBe(matingDetail.mating.fertilizedAt)
     })
 
     test('retries an ambiguous outcome with the same intention', () => {

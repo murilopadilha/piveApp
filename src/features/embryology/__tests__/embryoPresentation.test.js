@@ -4,6 +4,16 @@ import {
 } from '../embryoPresentation'
 
 describe('M7A Embryo Problem Details presentation', () => {
+    test('maps identification chronology by code without parsing detail', () => {
+        expect(getEmbryoCommandErrorMessage({
+            kind: 'validation',
+            code: 'EMBRYO_IDENTIFIED_BEFORE_FERTILIZATION',
+            detail: 'untrusted detail',
+        })).toBe(
+            'A identificação do embrião não pode ocorrer antes da fertilização.'
+        )
+    })
+
     test.each([
         'INVALID_HOLD_TYPE',
         'HOLD_REASON_REQUIRED',

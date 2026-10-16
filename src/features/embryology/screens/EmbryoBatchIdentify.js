@@ -18,6 +18,8 @@ import { EmbryoState } from '../components/EmbryoElements'
 import {
     createEmbryoBatchIntent,
     createEmbryoDraftItem,
+    EMBRYO_IDENTIFIED_BEFORE_FERTILIZATION,
+    isIdentificationBeforeFertilization,
     markEmbryoBatchIntentSent,
     renewEmbryoDraftItems,
     updateEmbryoDraftItem,
@@ -40,6 +42,7 @@ import { EMBRYO_ROUTES } from '../routes'
 
 function DraftEditor({
     disabled,
+    fertilizedAt,
     index,
     item,
     onChange,
@@ -75,6 +78,9 @@ function DraftEditor({
                     Identificado em {formatEmbryoTimestamp(item.identifiedAt)}
                 </Text>
             </Pressable>
+            <Text style={styles.dateConstraintText}>
+                Não pode anteceder a fertilização em {formatEmbryoTimestamp(fertilizedAt)}.
+            </Text>
             <Text style={styles.ownerText}>Proprietário: não informado</Text>
             <Pressable
                 accessibilityRole="button"
@@ -195,14 +201,17 @@ export default function EmbryoBatchIdentify({ navigation, route }) {
         if (!intent) {
             try {
                 intent = markEmbryoBatchIntentSent(
-                    createEmbryoBatchIntent(items)
+                    createEmbryoBatchIntent(items, {
+                        fertilizedAt: matingQuery.data.mating.fertilizedAt,
+                    })
                 )
                 pendingIntentRef.current = intent
                 setAttempted(true)
-            } catch {
-                setValidationMessage(
-                    'Inclua de um a duzentos embriões com código e data válidos.'
-                )
+            } catch (error) {
+                setValidationMessage(error?.code ===
+                    EMBRYO_IDENTIFIED_BEFORE_FERTILIZATION
+                    ? 'A identificação do embrião não pode ocorrer antes da fertilização.'
+                    : 'Inclua de um a duzentos embriões com código e data válidos.')
                 return
             }
         }
@@ -343,6 +352,7 @@ export default function EmbryoBatchIdentify({ navigation, route }) {
                     <DraftEditor
                         key={item.itemId}
                         disabled={draftLocked}
+                        fertilizedAt={matingQuery.data.mating.fertilizedAt}
                         index={index}
                         item={item}
                         onChange={changes => changeItem(item.itemId, changes)}
@@ -415,13 +425,24 @@ export default function EmbryoBatchIdentify({ navigation, route }) {
                     ? new Date(selectedItem.identifiedAt)
                     : new Date()}
                 isVisible={datePickerVisible}
+                minimumDate={new Date(matingQuery.data.mating.fertilizedAt)}
                 mode="datetime"
                 onCancel={() => setDatePickerVisible(false)}
                 onConfirm={(date) => {
                     if (selectedItemId) {
-                        changeItem(selectedItemId, {
-                            identifiedAt: date.toISOString(),
-                        })
+                        const identifiedAt = date.toISOString()
+                        const fertilizedAt = matingQuery.data.mating.fertilizedAt
+
+                        if (isIdentificationBeforeFertilization({
+                            identifiedAt,
+                            fertilizedAt,
+                        })) {
+                            setValidationMessage(
+                                'A identificação do embrião não pode ocorrer antes da fertilização.'
+                            )
+                        } else {
+                            changeItem(selectedItemId, { identifiedAt })
+                        }
                     }
                     setDatePickerVisible(false)
                 }}
@@ -489,6 +510,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     dateText: { color: '#0F172A', fontSize: 14 },
+    dateConstraintText: { color: '#475569', fontSize: 12, marginTop: 4 },
     ownerText: { color: '#64748B', fontSize: 13, marginTop: 10 },
     removeButton: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
     removeText: { color: '#B91C1C', fontSize: 14, fontWeight: '700' },
