@@ -86,6 +86,12 @@ export default function OpuLookupModal({
                         </Text>
                         <Pressable
                             accessibilityRole="button"
+                            accessibilityLabel={`Tentar carregar ${title.toLowerCase()} novamente`}
+                            accessibilityState={{
+                                busy: query.isFetching,
+                                disabled: query.isFetching,
+                            }}
+                            disabled={query.isFetching}
                             onPress={() => void query.refetch()}
                             style={styles.retryButton}
                         >

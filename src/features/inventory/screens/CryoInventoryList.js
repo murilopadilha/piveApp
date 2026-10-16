@@ -116,7 +116,14 @@ export default function CryoInventoryList({ navigation }) {
             {errorMessage ? (
                 <View accessibilityRole="alert" style={styles.inlineError}>
                     <Text style={styles.errorText}>{errorMessage}</Text>
-                    <Pressable accessibilityRole="button" accessibilityLabel="Tentar carregar packages novamente" onPress={() => void packagesQuery.refetch()} style={styles.retry}>
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Tentar carregar packages novamente"
+                        accessibilityState={{ busy: packagesQuery.isFetching, disabled: packagesQuery.isFetching }}
+                        disabled={packagesQuery.isFetching}
+                        onPress={() => void packagesQuery.refetch()}
+                        style={styles.retry}
+                    >
                         <Text style={styles.retryText}>Tentar novamente</Text>
                     </Pressable>
                 </View>

@@ -162,6 +162,28 @@ describe('M8A Distribution screens', () => {
         })
     })
 
+    test('prevents duplicate retry requests while Shipment refresh is active', () => {
+        useShipmentsQuery.mockReturnValue({
+            ...query({
+                pages: [{ items: [shipmentSummary], page: 0, size: 20 }],
+            }),
+            error: { kind: 'network' },
+            isFetching: true,
+        })
+
+        const screen = render(
+            <ShipmentList navigation={{ navigate: jest.fn() }} />
+        )
+        const retry = screen.getByLabelText(
+            'Tentar carregar Shipments novamente'
+        )
+
+        expect(retry.props.accessibilityState).toEqual({
+            busy: true,
+            disabled: true,
+        })
+    })
+
     test('Recall list searches backend and navigates by recallId only', () => {
         const navigation = { navigate: jest.fn() }
         const screen = render(<RecallList navigation={navigation} />)

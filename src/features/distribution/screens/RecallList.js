@@ -100,7 +100,7 @@ export default function RecallList({ navigation }) {
                 <View accessibilityRole="alert" style={styles.inlineError}>
                     <Text style={styles.errorText}>{errorMessage}</Text>
                     {!localError ? (
-                        <Pressable accessibilityRole="button" accessibilityLabel="Tentar carregar Recalls novamente" onPress={() => void recallsQuery.refetch()} style={styles.retry}>
+                        <Pressable accessibilityRole="button" accessibilityLabel="Tentar carregar Recalls novamente" accessibilityState={{ busy: recallsQuery.isFetching, disabled: recallsQuery.isFetching }} disabled={recallsQuery.isFetching} onPress={() => void recallsQuery.refetch()} style={styles.retry}>
                             <Text style={styles.retryText}>Tentar novamente</Text>
                         </Pressable>
                     ) : null}

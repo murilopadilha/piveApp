@@ -284,12 +284,12 @@ export default function PiveStack() {
             <Stack.Screen
                 name={DOCUMENT_ROUTES.LIST}
                 component={DocumentList}
-                options={{ headerShown: true, title: 'Documents' }}
+                options={{ headerShown: true, title: 'Documentos' }}
             />
             <Stack.Screen
                 name={DOCUMENT_ROUTES.DETAIL}
                 component={DocumentDetail}
-                options={{ headerShown: true, title: 'Document' }}
+                options={{ headerShown: true, title: 'Documento' }}
             />
             <Stack.Screen
                 name={CORRECTION_ROUTES.LIST}
@@ -304,12 +304,12 @@ export default function PiveStack() {
             <Stack.Screen
                 name={DISTRIBUTION_ROUTES.SHIPMENT_LIST}
                 component={ShipmentList}
-                options={{ headerShown: true, title: 'Distribution' }}
+                options={{ headerShown: true, title: 'Distribuição' }}
             />
             <Stack.Screen
                 name={DISTRIBUTION_ROUTES.SHIPMENT_DETAIL}
                 component={ShipmentDetail}
-                options={{ headerShown: true, title: 'Shipment' }}
+                options={{ headerShown: true, title: 'Remessa' }}
             />
             <Stack.Screen
                 name={DISTRIBUTION_ROUTES.RECALL_LIST}

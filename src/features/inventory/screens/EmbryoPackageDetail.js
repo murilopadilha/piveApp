@@ -106,7 +106,7 @@ export default function EmbryoPackageDetail({ navigation, route }) {
 
                 <InventorySection title="Consistência da projeção">
                     {projectionQuery.isPending ? <Text style={styles.help}>Verificando ledger...</Text> : projectionQuery.error ? (
-                        <View><Text accessibilityRole="alert" style={styles.warning}>{getInventoryErrorMessage(projectionQuery.error)}</Text><Pressable accessibilityRole="button" accessibilityLabel="Verificar projeção novamente" onPress={() => void projectionQuery.refetch()} style={styles.linkButton}><Text style={styles.linkText}>Tentar novamente</Text></Pressable></View>
+                        <View><Text accessibilityRole="alert" style={styles.warning}>{getInventoryErrorMessage(projectionQuery.error)}</Text><Pressable accessibilityRole="button" accessibilityLabel="Verificar projeção novamente" accessibilityState={{ busy: projectionQuery.isFetching, disabled: projectionQuery.isFetching }} disabled={projectionQuery.isFetching} onPress={() => void projectionQuery.refetch()} style={styles.linkButton}><Text style={styles.linkText}>Tentar novamente</Text></Pressable></View>
                     ) : (
                         <Text accessibilityRole="text" style={projectionQuery.data?.matchesLedger ? styles.consistent : styles.inconsistent}>
                             {projectionQuery.data?.matchesLedger ? 'Projeção consistente com o ledger.' : 'Divergência detectada entre projeção e ledger.'}
@@ -121,6 +121,7 @@ export default function EmbryoPackageDetail({ navigation, route }) {
                             accessibilityRole={canReadEmbryos ? 'button' : 'text'}
                             accessibilityLabel={`Embrião ${packageItem.embryoId}`}
                             accessibilityHint={canReadEmbryos ? 'Abre o detalhe do embrião' : undefined}
+                            accessibilityState={{ disabled: !canReadEmbryos }}
                             disabled={!canReadEmbryos}
                             onPress={() => navigation.navigate(EMBRYO_ROUTES.DETAIL, { embryoId: packageItem.embryoId })}
                             style={styles.member}

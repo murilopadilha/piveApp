@@ -241,7 +241,12 @@ export default function OpuSessionDetail({ navigation, route }) {
                             <>
                                 <Pressable
                                     accessibilityRole="button"
-                                    accessibilityState={{ busy: transitionMutation.isPending }}
+                                    accessibilityLabel="Tentar transição da OPU novamente"
+                                    accessibilityState={{
+                                        busy: transitionMutation.isPending,
+                                        disabled: transitionMutation.isPending,
+                                    }}
+                                    disabled={transitionMutation.isPending}
                                     onPress={() => executeAction(pendingIntent.action)}
                                     style={styles.actionPrimary}
                                 >
@@ -251,6 +256,7 @@ export default function OpuSessionDetail({ navigation, route }) {
                                 </Pressable>
                                 <Pressable
                                     accessibilityRole="button"
+                                    accessibilityLabel="Descartar intenção e revisar OPU"
                                     onPress={() => {
                                         setPendingIntent(null)
                                         transitionMutation.reset()
@@ -290,6 +296,7 @@ export default function OpuSessionDetail({ navigation, route }) {
                                         <Pressable
                                             accessibilityRole="button"
                                             accessibilityLabel="Concluir OPU"
+                                            accessibilityState={{ disabled: transitionMutation.isPending }}
                                             disabled={transitionMutation.isPending}
                                             onPress={() => requestAction('complete')}
                                             style={styles.actionSecondary}
@@ -301,6 +308,7 @@ export default function OpuSessionDetail({ navigation, route }) {
                                 <Pressable
                                     accessibilityRole="button"
                                     accessibilityLabel="Cancelar OPU"
+                                    accessibilityState={{ disabled: transitionMutation.isPending }}
                                     disabled={transitionMutation.isPending}
                                     onPress={() => requestAction('cancel')}
                                     style={styles.cancelButton}

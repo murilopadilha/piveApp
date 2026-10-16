@@ -448,6 +448,7 @@ export default function OpuCollectionBatch({ navigation, route }) {
                 ) : null}
                 <Pressable
                     accessibilityRole="button"
+                    accessibilityLabel="Validar lote de coletas"
                     accessibilityState={{ busy: dryRunMutation.isPending, disabled: draftLocked || dryRunMutation.isPending }}
                     disabled={draftLocked || dryRunMutation.isPending}
                     onPress={() => runDryRun()}
@@ -476,6 +477,7 @@ export default function OpuCollectionBatch({ navigation, route }) {
                 {isStaleCommandError(bulkMutation.error) ? (
                     <Pressable
                         accessibilityRole="button"
+                        accessibilityLabel="Recarregar sessão e revisar lote"
                         onPress={() => {
                             void sessionQuery.refetch().then((result) => {
                                 if (result.data) {

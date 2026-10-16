@@ -73,7 +73,7 @@ export default function DocumentList({ navigation }) {
         <SafeAreaView style={styles.screen}>
             <View style={styles.header}>
                 <Text accessibilityRole="header" style={styles.title}>
-                    Documents
+                    Documentos
                 </Text>
                 <Text style={styles.subtitle}>
                     Diretório e histórico imutável de versões
@@ -85,6 +85,11 @@ export default function DocumentList({ navigation }) {
                     <Pressable
                         accessibilityRole="button"
                         accessibilityLabel="Tentar carregar documentos novamente"
+                        accessibilityState={{
+                            busy: documentsQuery.isFetching,
+                            disabled: documentsQuery.isFetching,
+                        }}
+                        disabled={documentsQuery.isFetching}
                         onPress={() => void documentsQuery.refetch()}
                         style={styles.retry}
                     >

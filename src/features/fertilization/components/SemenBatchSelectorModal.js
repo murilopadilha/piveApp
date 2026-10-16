@@ -89,6 +89,12 @@ export default function SemenBatchSelectorModal({
                         <Text style={styles.message}>Não foi possível carregar os lotes.</Text>
                         <Pressable
                             accessibilityRole="button"
+                            accessibilityLabel="Tentar carregar lotes de sêmen novamente"
+                            accessibilityState={{
+                                busy: batchesQuery.isFetching,
+                                disabled: batchesQuery.isFetching,
+                            }}
+                            disabled={batchesQuery.isFetching}
                             onPress={() => void batchesQuery.refetch()}
                             style={styles.retryButton}
                         >

@@ -323,7 +323,17 @@ export default function MatingBatchCreate({ navigation, route }) {
             <SafeAreaView style={styles.screen}>
                 <View accessibilityRole="alert" style={styles.centered}>
                     <Text style={styles.message}>Não foi possível carregar a coleta de oócitos.</Text>
-                    <Pressable accessibilityRole="button" onPress={() => void collectionQuery.refetch()} style={styles.primaryButton}>
+                    <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel="Tentar carregar coleta de oócitos novamente"
+                        accessibilityState={{
+                            busy: collectionQuery.isFetching,
+                            disabled: collectionQuery.isFetching,
+                        }}
+                        disabled={collectionQuery.isFetching}
+                        onPress={() => void collectionQuery.refetch()}
+                        style={styles.primaryButton}
+                    >
                         <Text style={styles.primaryText}>Tentar novamente</Text>
                     </Pressable>
                 </View>

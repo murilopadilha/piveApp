@@ -86,7 +86,17 @@ export default function RecipientAnimalSelector({
                 ) : query.error ? (
                     <View accessibilityRole="alert" style={styles.centered}>
                         <Text style={styles.message}>Não foi possível carregar os animais.</Text>
-                        <Pressable accessibilityRole="button" onPress={() => void query.refetch()} style={styles.retry}>
+                        <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel="Tentar carregar animais novamente"
+                            accessibilityState={{
+                                busy: query.isFetching,
+                                disabled: query.isFetching,
+                            }}
+                            disabled={query.isFetching}
+                            onPress={() => void query.refetch()}
+                            style={styles.retry}
+                        >
                             <Text style={styles.retryText}>Tentar novamente</Text>
                         </Pressable>
                     </View>

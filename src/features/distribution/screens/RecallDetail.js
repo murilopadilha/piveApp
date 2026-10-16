@@ -163,7 +163,7 @@ export default function RecallDetail({ route }) {
                     {impactError ? (
                         <View accessibilityRole="alert">
                             <Text style={styles.error}>{impactError}</Text>
-                            <Pressable accessibilityRole="button" accessibilityLabel="Tentar calcular impacto novamente" onPress={() => void impactQuery.refetch()} style={styles.clearButton}>
+                            <Pressable accessibilityRole="button" accessibilityLabel="Tentar calcular impacto novamente" accessibilityState={{ busy: impactQuery.isFetching, disabled: impactQuery.isFetching }} disabled={impactQuery.isFetching} onPress={() => void impactQuery.refetch()} style={styles.clearButton}>
                                 <Text style={styles.clearText}>Tentar novamente</Text>
                             </Pressable>
                         </View>

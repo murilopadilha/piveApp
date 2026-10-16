@@ -343,6 +343,9 @@ export default function OocyteCollectionDetail({ navigation, route }) {
                             ) : null}
                             <Pressable
                                 accessibilityRole="button"
+                                accessibilityLabel={pendingIntent
+                                    ? 'Tentar salvar correção novamente'
+                                    : 'Salvar correção da coleta'}
                                 accessibilityState={{ busy: correctionMutation.isPending, disabled: correctionMutation.isPending }}
                                 disabled={correctionMutation.isPending}
                                 onPress={submitCorrection}
@@ -359,6 +362,7 @@ export default function OocyteCollectionDetail({ navigation, route }) {
                             {pendingIntent && correctionMutation.isError ? (
                                 <Pressable
                                     accessibilityRole="button"
+                                    accessibilityLabel="Editar correção como nova intenção"
                                     onPress={() => {
                                         setPendingIntent(null)
                                         correctionMutation.reset()

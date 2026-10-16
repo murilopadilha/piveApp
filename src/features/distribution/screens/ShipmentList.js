@@ -86,7 +86,7 @@ export default function ShipmentList({ navigation }) {
     return (
         <SafeAreaView style={styles.screen}>
             <View style={styles.header}>
-                <Text accessibilityRole="header" style={styles.title}>Distribution</Text>
+                <Text accessibilityRole="header" style={styles.title}>Distribuição</Text>
                 <Text style={styles.subtitle}>Shipments e readiness operacional atual</Text>
                 <View style={styles.searchRow}>
                     <TextInput
@@ -123,6 +123,11 @@ export default function ShipmentList({ navigation }) {
                         <Pressable
                             accessibilityRole="button"
                             accessibilityLabel="Tentar carregar Shipments novamente"
+                            accessibilityState={{
+                                busy: shipmentsQuery.isFetching,
+                                disabled: shipmentsQuery.isFetching,
+                            }}
+                            disabled={shipmentsQuery.isFetching}
                             onPress={() => void shipmentsQuery.refetch()}
                             style={styles.retry}
                         >

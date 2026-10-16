@@ -51,3 +51,48 @@ describe('M9A PIVE entry point', () => {
         expect(screen.queryByLabelText('Abrir qualidade de dados')).toBeNull()
     })
 })
+
+describe('M9B PIVE discovery hardening', () => {
+    test('groups target capabilities separately from the legacy FIV flow', () => {
+        const navigation = { navigate: jest.fn() }
+        const screen = render(
+            <Pive
+                navigation={navigation}
+                showTargetCorrections
+                showTargetDataQuality
+                showTargetDocuments
+                showTargetInventory
+                showTargetOpu
+                showTargetRecalls
+                showTargetShipments
+                showTargetTransfers
+            />
+        )
+
+        expect(screen.getByText('Operações PIVE').props.accessibilityRole)
+            .toBe('header')
+        expect(screen.getByText('Produção FIV').props.accessibilityRole)
+            .toBe('header')
+        expect(screen.getByText('Documentos')).toBeTruthy()
+        expect(screen.getByText('Distribuição')).toBeTruthy()
+        expect(screen.getByLabelText('Diretórios operacionais PIVE').props.horizontal)
+            .toBe(true)
+    })
+
+    test('keeps routes stable and exposes accessible legacy controls', () => {
+        const navigation = { navigate: jest.fn() }
+        const screen = render(
+            <Pive navigation={navigation} showTargetDocuments showTargetShipments />
+        )
+
+        fireEvent.press(screen.getByLabelText('Abrir diretório de documentos'))
+        fireEvent.press(screen.getByLabelText('Abrir distribuição'))
+        fireEvent.press(screen.getByLabelText('Criar nova FIV'))
+
+        expect(navigation.navigate.mock.calls).toEqual([
+            ['DocumentList'],
+            ['ShipmentList'],
+            ['Cabecalho'],
+        ])
+    })
+})

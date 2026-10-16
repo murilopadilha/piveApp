@@ -58,7 +58,7 @@ function ValidationResult({ query }) {
         return (
             <View accessibilityRole="alert">
                 <Text style={styles.error}>{errorMessage}</Text>
-                <Pressable accessibilityRole="button" accessibilityLabel="Tentar calcular readiness novamente" onPress={() => void query.refetch()} style={styles.inlineButton}>
+                <Pressable accessibilityRole="button" accessibilityLabel="Tentar calcular readiness novamente" accessibilityState={{ busy: query.isFetching, disabled: query.isFetching }} disabled={query.isFetching} onPress={() => void query.refetch()} style={styles.inlineButton}>
                     <Text style={styles.inlineButtonText}>Tentar novamente</Text>
                 </Pressable>
             </View>

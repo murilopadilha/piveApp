@@ -167,6 +167,11 @@ export default function DocumentDetail({ route }) {
                             <Pressable
                                 accessibilityRole="button"
                                 accessibilityLabel="Tentar carregar versões novamente"
+                                accessibilityState={{
+                                    busy: versionsQuery.isFetching,
+                                    disabled: versionsQuery.isFetching,
+                                }}
+                                disabled={versionsQuery.isFetching}
                                 onPress={() => void versionsQuery.refetch()}
                                 style={styles.linkButton}
                             >

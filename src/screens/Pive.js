@@ -38,6 +38,14 @@ export default ({
     const icon = getPiveFilterToggleIcon(filterCatalogMode)
     const secondaryCategory = getPiveSecondaryCategory(activeFilter)
     const secondaryPlaceholder = getPiveSecondaryPlaceholder(secondaryCategory)
+    const showTargetDirectories = showTargetOpu ||
+        showTargetTransfers ||
+        showTargetInventory ||
+        showTargetDocuments ||
+        showTargetCorrections ||
+        showTargetShipments ||
+        showTargetRecalls ||
+        showTargetDataQuality
     const handleLoadError = React.useCallback((message) => {
         Alert.alert('Erro', message)
     }, [])
@@ -105,102 +113,124 @@ export default ({
                 <Image source={require('../images/menu/logo.png')} style={styles.logo}/>
                 <Text style={style.titleTextMain}>BovInA</Text>
             </View>
-            {showTargetOpu ? (
-                <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityLabel="Abrir diretório de OPU"
-                    accessibilityHint="Consulta sessões de coleta de oócitos"
-                    style={styles.opuDirectoryButton}
-                    onPress={() => navigation.navigate(OPU_ROUTES.LIST)}
-                >
-                    <Text style={styles.opuDirectoryText}>OPU</Text>
-                </TouchableOpacity>
-            ) : null}
-            {showTargetTransfers ? (
-                <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityLabel="Abrir ciclos de receptoras"
-                    accessibilityHint="Consulta ciclos, transferências realizadas e outcomes gestacionais"
-                    style={styles.transferDirectoryButton}
-                    onPress={() => navigation.navigate(
-                        TRANSFER_ROUTES.RECIPIENT_CYCLE_LIST
-                    )}
-                >
-                    <Text style={styles.opuDirectoryText}>Ciclos de receptoras</Text>
-                </TouchableOpacity>
-            ) : null}
-            {showTargetInventory ? (
-                <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityLabel="Abrir inventário criogênico"
-                    accessibilityHint="Consulta packages, locais e movimentos físicos"
-                    style={styles.inventoryDirectoryButton}
-                    onPress={() => navigation.navigate(INVENTORY_ROUTES.LIST)}
-                >
-                    <Text style={styles.opuDirectoryText}>Inventário criogênico</Text>
-                </TouchableOpacity>
-            ) : null}
-            {showTargetDocuments ? (
-                <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityLabel="Abrir diretório de documentos"
-                    accessibilityHint="Consulta Documents e o histórico imutável de versões"
-                    style={styles.documentDirectoryButton}
-                    onPress={() => navigation.navigate(DOCUMENT_ROUTES.LIST)}
-                >
-                    <Text style={styles.opuDirectoryText}>Documents</Text>
-                </TouchableOpacity>
-            ) : null}
-            {showTargetCorrections ? (
-                <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityLabel="Abrir solicitações de correção histórica"
-                    accessibilityHint="Consulta solicitações registradas e seu impacto atual"
-                    style={styles.correctionDirectoryButton}
-                    onPress={() => navigation.navigate(CORRECTION_ROUTES.LIST)}
-                >
-                    <Text style={styles.opuDirectoryText}>
-                        Solicitações de correção histórica
+            {showTargetDirectories ? (
+                <View style={styles.targetSection}>
+                    <Text accessibilityRole="header" style={styles.sectionTitle}>
+                        Operações PIVE
                     </Text>
-                </TouchableOpacity>
+                    <ScrollView
+                        accessibilityLabel="Diretórios operacionais PIVE"
+                        horizontal
+                        showsHorizontalScrollIndicator
+                        contentContainerStyle={styles.targetDirectoryContent}
+                    >
+                        {showTargetOpu ? (
+                            <TouchableOpacity
+                                accessibilityRole="button"
+                                accessibilityLabel="Abrir diretório de OPU"
+                                accessibilityHint="Consulta sessões de coleta de oócitos"
+                                style={[styles.targetDirectoryButton, styles.opuDirectoryButton]}
+                                onPress={() => navigation.navigate(OPU_ROUTES.LIST)}
+                            >
+                                <Text style={styles.opuDirectoryText}>OPU</Text>
+                            </TouchableOpacity>
+                        ) : null}
+                        {showTargetTransfers ? (
+                            <TouchableOpacity
+                                accessibilityRole="button"
+                                accessibilityLabel="Abrir ciclos de receptoras"
+                                accessibilityHint="Consulta ciclos, transferências realizadas e resultados gestacionais"
+                                style={[styles.targetDirectoryButton, styles.transferDirectoryButton]}
+                                onPress={() => navigation.navigate(
+                                    TRANSFER_ROUTES.RECIPIENT_CYCLE_LIST
+                                )}
+                            >
+                                <Text style={styles.opuDirectoryText}>Ciclos de receptoras</Text>
+                            </TouchableOpacity>
+                        ) : null}
+                        {showTargetInventory ? (
+                            <TouchableOpacity
+                                accessibilityRole="button"
+                                accessibilityLabel="Abrir inventário criogênico"
+                                accessibilityHint="Consulta packages, locais e movimentos físicos"
+                                style={[styles.targetDirectoryButton, styles.inventoryDirectoryButton]}
+                                onPress={() => navigation.navigate(INVENTORY_ROUTES.LIST)}
+                            >
+                                <Text style={styles.opuDirectoryText}>Inventário criogênico</Text>
+                            </TouchableOpacity>
+                        ) : null}
+                        {showTargetDocuments ? (
+                            <TouchableOpacity
+                                accessibilityRole="button"
+                                accessibilityLabel="Abrir diretório de documentos"
+                                accessibilityHint="Consulta documentos e o histórico imutável de versões"
+                                style={[styles.targetDirectoryButton, styles.documentDirectoryButton]}
+                                onPress={() => navigation.navigate(DOCUMENT_ROUTES.LIST)}
+                            >
+                                <Text style={styles.opuDirectoryText}>Documentos</Text>
+                            </TouchableOpacity>
+                        ) : null}
+                        {showTargetCorrections ? (
+                            <TouchableOpacity
+                                accessibilityRole="button"
+                                accessibilityLabel="Abrir solicitações de correção histórica"
+                                accessibilityHint="Consulta solicitações registradas e seu impacto atual"
+                                style={[styles.targetDirectoryButton, styles.correctionDirectoryButton]}
+                                onPress={() => navigation.navigate(CORRECTION_ROUTES.LIST)}
+                            >
+                                <Text style={styles.opuDirectoryText}>
+                                    Solicitações de correção histórica
+                                </Text>
+                            </TouchableOpacity>
+                        ) : null}
+                        {showTargetShipments ? (
+                            <TouchableOpacity
+                                accessibilityRole="button"
+                                accessibilityLabel="Abrir distribuição"
+                                accessibilityHint="Consulta remessas e readiness operacional"
+                                style={[styles.targetDirectoryButton, styles.shipmentDirectoryButton]}
+                                onPress={() => navigation.navigate(
+                                    DISTRIBUTION_ROUTES.SHIPMENT_LIST
+                                )}
+                            >
+                                <Text style={styles.opuDirectoryText}>Distribuição</Text>
+                            </TouchableOpacity>
+                        ) : null}
+                        {showTargetRecalls ? (
+                            <TouchableOpacity
+                                accessibilityRole="button"
+                                accessibilityLabel="Abrir Recalls"
+                                accessibilityHint="Consulta casos de Recall e impacto recalculado"
+                                style={[styles.targetDirectoryButton, styles.recallDirectoryButton]}
+                                onPress={() => navigation.navigate(
+                                    DISTRIBUTION_ROUTES.RECALL_LIST
+                                )}
+                            >
+                                <Text style={styles.opuDirectoryText}>Recalls</Text>
+                            </TouchableOpacity>
+                        ) : null}
+                        {showTargetDataQuality ? (
+                            <TouchableOpacity
+                                accessibilityRole="button"
+                                accessibilityLabel="Abrir qualidade de dados"
+                                accessibilityHint="Consulta issues derivados de Embryos e Packages"
+                                style={[styles.targetDirectoryButton, styles.dataQualityDirectoryButton]}
+                                onPress={() => navigation.navigate(DATA_QUALITY_ROUTES.LIST)}
+                            >
+                                <Text style={styles.opuDirectoryText}>Qualidade de dados</Text>
+                            </TouchableOpacity>
+                        ) : null}
+                    </ScrollView>
+                </View>
             ) : null}
-            {showTargetShipments ? (
-                <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityLabel="Abrir Distribution"
-                    accessibilityHint="Consulta Shipments e readiness operacional"
-                    style={styles.shipmentDirectoryButton}
-                    onPress={() => navigation.navigate(
-                        DISTRIBUTION_ROUTES.SHIPMENT_LIST
-                    )}
-                >
-                    <Text style={styles.opuDirectoryText}>Distribution</Text>
-                </TouchableOpacity>
-            ) : null}
-            {showTargetRecalls ? (
-                <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityLabel="Abrir Recalls"
-                    accessibilityHint="Consulta casos de Recall e impacto recalculado"
-                    style={styles.recallDirectoryButton}
-                    onPress={() => navigation.navigate(
-                        DISTRIBUTION_ROUTES.RECALL_LIST
-                    )}
-                >
-                    <Text style={styles.opuDirectoryText}>Recalls</Text>
-                </TouchableOpacity>
-            ) : null}
-            {showTargetDataQuality ? (
-                <TouchableOpacity
-                    accessibilityRole="button"
-                    accessibilityLabel="Abrir qualidade de dados"
-                    accessibilityHint="Consulta issues derivados de Embryos e Packages"
-                    style={styles.dataQualityDirectoryButton}
-                    onPress={() => navigation.navigate(DATA_QUALITY_ROUTES.LIST)}
-                >
-                    <Text style={styles.opuDirectoryText}>Qualidade de dados</Text>
-                </TouchableOpacity>
-            ) : null}
+            <View style={styles.legacySection}>
+                <Text accessibilityRole="header" style={styles.sectionTitle}>
+                    Produção FIV
+                </Text>
+                <Text style={styles.sectionSubtitle}>
+                    Fluxo legado de produção e acompanhamento
+                </Text>
+            </View>
             <PiveFilterControls
                 primaryOptions={categoryData}
                 icon={icon}
@@ -272,6 +302,9 @@ export default ({
                     )}
             </ScrollView>
             <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Criar nova FIV"
+                accessibilityHint="Abre o fluxo legado de cadastro de FIV"
                 style={[style.listButtonSearch, styles.newFivButton]}
                 onPress={() => navigation.navigate('Cabecalho')}
             >
@@ -283,8 +316,8 @@ export default ({
 
 const styles = StyleSheet.create({
     screen: {
+        flex: 1,
         width: '100%',
-        height: '100%',
     },
     logo: {
         width: 40,
@@ -294,9 +327,7 @@ const styles = StyleSheet.create({
     list: {
         marginLeft: 20,
         width: '90%',
-        height: '85%',
-        display: 'flex',
-        flexDirection: 'column',
+        flex: 1,
     },
     listContent: {
         paddingBottom: 150,
@@ -311,13 +342,13 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     newFivButton: {
-        paddingTop: '2%',
-        marginTop: '175%',
-        width: '20%',
-        height: '5%',
-        marginLeft: '70%',
-        position: 'absolute',
-        zIndex: 5,
+        minHeight: 44,
+        width: 104,
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        justifyContent: 'center',
+        marginRight: 20,
+        marginBottom: 10,
     },
     newFivText: {
         fontSize: Platform.OS === 'ios' ? 13 : 10,
@@ -325,13 +356,39 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         paddingTop: 3,
     },
-    opuDirectoryButton: {
-        minHeight: 48,
+    targetSection: {
+        marginBottom: 8,
+    },
+    targetDirectoryContent: {
+        paddingHorizontal: 20,
+        paddingBottom: 6,
+    },
+    targetDirectoryButton: {
+        width: 210,
+        minHeight: 56,
         alignItems: 'center',
         justifyContent: 'center',
-        marginHorizontal: 20,
-        marginBottom: 10,
+        marginRight: 10,
+        paddingHorizontal: 12,
         borderRadius: 24,
+    },
+    sectionTitle: {
+        marginHorizontal: 20,
+        marginBottom: 6,
+        color: '#092955',
+        fontSize: 18,
+        fontWeight: '700',
+    },
+    sectionSubtitle: {
+        marginHorizontal: 20,
+        marginBottom: 6,
+        color: '#475569',
+        fontSize: 13,
+    },
+    legacySection: {
+        marginTop: 4,
+    },
+    opuDirectoryButton: {
         backgroundColor: '#092955',
     },
     opuDirectoryText: {
@@ -340,66 +397,24 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     transferDirectoryButton: {
-        minHeight: 48,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginHorizontal: 20,
-        marginBottom: 10,
-        borderRadius: 24,
         backgroundColor: '#164E63',
     },
     inventoryDirectoryButton: {
-        minHeight: 48,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginHorizontal: 20,
-        marginBottom: 10,
-        borderRadius: 24,
         backgroundColor: '#334155',
     },
     documentDirectoryButton: {
-        minHeight: 48,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginHorizontal: 20,
-        marginBottom: 10,
-        borderRadius: 24,
         backgroundColor: '#4338CA',
     },
     correctionDirectoryButton: {
-        minHeight: 48,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginHorizontal: 20,
-        marginBottom: 10,
-        borderRadius: 24,
         backgroundColor: '#7C2D12',
     },
     shipmentDirectoryButton: {
-        minHeight: 48,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginHorizontal: 20,
-        marginBottom: 10,
-        borderRadius: 24,
         backgroundColor: '#155E75',
     },
     recallDirectoryButton: {
-        minHeight: 48,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginHorizontal: 20,
-        marginBottom: 10,
-        borderRadius: 24,
         backgroundColor: '#9F1239',
     },
     dataQualityDirectoryButton: {
-        minHeight: 48,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginHorizontal: 20,
-        marginBottom: 10,
-        borderRadius: 24,
         backgroundColor: '#0F766E',
     },
 })

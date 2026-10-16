@@ -102,6 +102,7 @@ export default function PregnancyInvalidationModal({
                     <Pressable
                         accessibilityRole="button"
                         accessibilityLabel="Fechar invalidação"
+                        accessibilityState={{ disabled: mutation.isPending }}
                         disabled={mutation.isPending}
                         onPress={onClose}
                         style={styles.close}

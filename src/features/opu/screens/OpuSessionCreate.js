@@ -325,6 +325,7 @@ export default function OpuSessionCreate({ navigation }) {
                 {pendingIntent && mutation.isError ? (
                     <Pressable
                         accessibilityRole="button"
+                        accessibilityLabel="Editar OPU como nova intenção"
                         onPress={() => {
                             setPendingIntent(null)
                             mutation.reset()
