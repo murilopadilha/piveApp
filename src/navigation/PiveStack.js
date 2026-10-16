@@ -9,6 +9,9 @@ import {
 import { CORRECTION_ROUTES } from '../features/corrections/routes'
 import CorrectionDetail from '../features/corrections/screens/CorrectionDetail'
 import CorrectionList from '../features/corrections/screens/CorrectionList'
+import { canReadDataQuality } from '../features/dataQuality/dataQualityPermissions'
+import { DATA_QUALITY_ROUTES } from '../features/dataQuality/routes'
+import DataQualityList from '../features/dataQuality/screens/DataQualityList'
 import {
     DISTRIBUTION_PERMISSIONS,
     hasDistributionPermission,
@@ -122,10 +125,13 @@ export default function PiveStack() {
             effectiveContextQuery.data,
             DISTRIBUTION_PERMISSIONS.RECALL_READ
         )
+    const showTargetDataQuality = effectiveContextQuery.isSuccess &&
+        canReadDataQuality(effectiveContextQuery.data)
     const renderPive = React.useCallback(props => (
         <Pive
             {...props}
             showTargetCorrections={showTargetCorrections}
+            showTargetDataQuality={showTargetDataQuality}
             showTargetDocuments={showTargetDocuments}
             showTargetOpu={showTargetOpu}
             showTargetTransfers={showTargetTransfers}
@@ -135,6 +141,7 @@ export default function PiveStack() {
         />
     ), [
         showTargetCorrections,
+        showTargetDataQuality,
         showTargetDocuments,
         showTargetInventory,
         showTargetOpu,
@@ -313,6 +320,11 @@ export default function PiveStack() {
                 name={DISTRIBUTION_ROUTES.RECALL_DETAIL}
                 component={RecallDetail}
                 options={{ headerShown: true, title: 'Recall' }}
+            />
+            <Stack.Screen
+                name={DATA_QUALITY_ROUTES.LIST}
+                component={DataQualityList}
+                options={{ headerShown: true, title: 'Qualidade de dados' }}
             />
             <Stack.Screen name="Cabecalho" component={Cabecalho} />
             <Stack.Screen name="FivInfo" component={FivInfo} />

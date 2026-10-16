@@ -34,6 +34,19 @@ const createWrapper = queryClient => function Wrapper({ children }) {
     )
 }
 
+const createTestQueryClient = () => {
+    const queryClient = createTargetQueryClient()
+    queryClient.setDefaultOptions({
+        ...queryClient.getDefaultOptions(),
+        mutations: {
+            ...queryClient.getDefaultOptions().mutations,
+            gcTime: Infinity,
+        },
+    })
+
+    return queryClient
+}
+
 afterEach(() => {
     resetTargetRuntimeContext()
     jest.clearAllMocks()
@@ -41,7 +54,7 @@ afterEach(() => {
 
 describe('Embryo identification mutation', () => {
     test('disables automatic retry and forwards the same intention object', async () => {
-        const queryClient = createTargetQueryClient()
+        const queryClient = createTestQueryClient()
         identifyEmbryos.mockRejectedValueOnce({ kind: 'timeout' })
         const { result, unmount } = renderHook(
             () => useIdentifyEmbryosMutation({
@@ -68,7 +81,7 @@ describe('Embryo identification mutation', () => {
     })
 
     test('invalidates only tenant Embryo and Mating state after success', async () => {
-        const queryClient = createTargetQueryClient()
+        const queryClient = createTestQueryClient()
         const invalidate = jest.spyOn(queryClient, 'invalidateQueries')
         identifyEmbryos.mockResolvedValueOnce({ batchId: 'batch-a', items: [] })
         const { result, unmount } = renderHook(
@@ -119,7 +132,7 @@ describe('Embryo hold mutations', () => {
         useMutationHook,
         apiMutation
     ) => {
-        const queryClient = createTargetQueryClient()
+        const queryClient = createTestQueryClient()
         const invalidate = jest.spyOn(queryClient, 'invalidateQueries')
         const intent = { embryoId: 'embryo-a', idempotencyKey: 'key-a' }
         apiMutation.mockResolvedValueOnce({ id: 'hold-a' })

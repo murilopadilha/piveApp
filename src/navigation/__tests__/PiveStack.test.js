@@ -36,6 +36,7 @@ jest.mock('../../screens/Pive', () => function MockPive({
     showTargetInventory,
     showTargetDocuments,
     showTargetCorrections,
+    showTargetDataQuality,
     showTargetShipments,
     showTargetRecalls,
 }) {
@@ -48,6 +49,7 @@ jest.mock('../../screens/Pive', () => function MockPive({
             <Text>{showTargetInventory ? 'target-inventory-entry' : 'no-target-inventory'}</Text>
             <Text>{showTargetDocuments ? 'target-documents-entry' : 'no-target-documents'}</Text>
             <Text>{showTargetCorrections ? 'target-corrections-entry' : 'no-target-corrections'}</Text>
+            <Text>{showTargetDataQuality ? 'target-data-quality-entry' : 'no-target-data-quality'}</Text>
             <Text>{showTargetShipments ? 'target-shipments-entry' : 'no-target-shipments'}</Text>
             <Text>{showTargetRecalls ? 'target-recalls-entry' : 'no-target-recalls'}</Text>
         </>
@@ -66,6 +68,7 @@ describe('PiveStack target OPU coexistence', () => {
                     'opu:read',
                     'transfer:read',
                     'inventory:read',
+                    'embryology:read',
                     'documents:read',
                     'compliance:read',
                     'shipment:read',
@@ -112,6 +115,8 @@ describe('PiveStack target OPU coexistence', () => {
         expect(screen.getByText('target-corrections-entry')).toBeTruthy()
         expect(screen.getByText('CorrectionList')).toBeTruthy()
         expect(screen.getByText('CorrectionDetail')).toBeTruthy()
+        expect(screen.getByText('target-data-quality-entry')).toBeTruthy()
+        expect(screen.getByText('DataQualityList')).toBeTruthy()
         expect(screen.getByText('target-shipments-entry')).toBeTruthy()
         expect(screen.getByText('ShipmentList')).toBeTruthy()
         expect(screen.getByText('ShipmentDetail')).toBeTruthy()
@@ -131,6 +136,7 @@ describe('PiveStack target OPU coexistence', () => {
         expect(render(<PiveStack />).getByText('no-target-inventory')).toBeTruthy()
         expect(render(<PiveStack />).getByText('no-target-documents')).toBeTruthy()
         expect(render(<PiveStack />).getByText('no-target-corrections')).toBeTruthy()
+        expect(render(<PiveStack />).getByText('no-target-data-quality')).toBeTruthy()
         expect(render(<PiveStack />).getByText('no-target-shipments')).toBeTruthy()
         expect(render(<PiveStack />).getByText('no-target-recalls')).toBeTruthy()
     })
@@ -181,5 +187,30 @@ describe('PiveStack target OPU coexistence', () => {
         screen = render(<PiveStack />)
         expect(screen.getByText('no-target-shipments')).toBeTruthy()
         expect(screen.getByText('target-recalls-entry')).toBeTruthy()
+    })
+
+    test('gates Data Quality cumulatively without changing Inventory access', () => {
+        useEffectiveContextQuery.mockReturnValue({
+            data: { permissions: ['inventory:read'] },
+            isSuccess: true,
+        })
+        let screen = render(<PiveStack />)
+        expect(screen.getByText('target-inventory-entry')).toBeTruthy()
+        expect(screen.getByText('no-target-data-quality')).toBeTruthy()
+
+        useEffectiveContextQuery.mockReturnValue({
+            data: { permissions: ['embryology:read'] },
+            isSuccess: true,
+        })
+        screen = render(<PiveStack />)
+        expect(screen.getByText('no-target-inventory')).toBeTruthy()
+        expect(screen.getByText('no-target-data-quality')).toBeTruthy()
+
+        useEffectiveContextQuery.mockReturnValue({
+            data: { permissions: ['embryology:read', 'inventory:read'] },
+            isSuccess: true,
+        })
+        screen = render(<PiveStack />)
+        expect(screen.getByText('target-data-quality-entry')).toBeTruthy()
     })
 })

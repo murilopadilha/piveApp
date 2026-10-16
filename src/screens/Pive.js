@@ -18,6 +18,7 @@ import { INVENTORY_ROUTES } from '../features/inventory/routes';
 import { DOCUMENT_ROUTES } from '../features/documents/routes';
 import { CORRECTION_ROUTES } from '../features/corrections/routes';
 import { DISTRIBUTION_ROUTES } from '../features/distribution/routes';
+import { DATA_QUALITY_ROUTES } from '../features/dataQuality/routes';
 
 export default ({
     navigation,
@@ -26,6 +27,7 @@ export default ({
     showTargetInventory = false,
     showTargetDocuments = false,
     showTargetCorrections = false,
+    showTargetDataQuality = false,
     showTargetShipments = false,
     showTargetRecalls = false,
 }) => {
@@ -186,6 +188,17 @@ export default ({
                     )}
                 >
                     <Text style={styles.opuDirectoryText}>Recalls</Text>
+                </TouchableOpacity>
+            ) : null}
+            {showTargetDataQuality ? (
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Abrir qualidade de dados"
+                    accessibilityHint="Consulta issues derivados de Embryos e Packages"
+                    style={styles.dataQualityDirectoryButton}
+                    onPress={() => navigation.navigate(DATA_QUALITY_ROUTES.LIST)}
+                >
+                    <Text style={styles.opuDirectoryText}>Qualidade de dados</Text>
                 </TouchableOpacity>
             ) : null}
             <PiveFilterControls
@@ -379,5 +392,14 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderRadius: 24,
         backgroundColor: '#9F1239',
+    },
+    dataQualityDirectoryButton: {
+        minHeight: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginHorizontal: 20,
+        marginBottom: 10,
+        borderRadius: 24,
+        backgroundColor: '#0F766E',
     },
 })
