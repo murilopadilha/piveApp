@@ -1,5 +1,15 @@
+import React from 'react'
 import { createStackNavigator } from '@react-navigation/stack'
 
+import {
+    ANIMAL_PERMISSIONS,
+    hasAnimalPermission,
+} from '../features/animals/animalPermissions'
+import { useEffectiveContextQuery } from '../features/auth/hooks/useIdentityQueries'
+import { useOrganization } from '../features/organizations/OrganizationContext'
+import { ANIMAL_ROUTES } from '../features/animals/routes'
+import AnimalDetail from '../features/animals/screens/AnimalDetail'
+import AnimalSearch from '../features/animals/screens/AnimalSearch'
 import Menu from '../screens/Menu'
 import CadastrarReceptoras from '../screens/menu-sections/CadastrarReceptora'
 import CadastrarDoadora from '../screens/menu-sections/CadastrarDoadora'
@@ -14,11 +24,41 @@ import EditarTouro from '../screens/menu-sections/EditarTouro'
 const Stack = createStackNavigator()
 
 export default function AnimalsStack() {
+    const { activeOrganizationId } = useOrganization()
+    const effectiveContextQuery = useEffectiveContextQuery({
+        organizationId: activeOrganizationId,
+    })
+    const showCanonicalDirectory = effectiveContextQuery.isSuccess &&
+        hasAnimalPermission(
+            effectiveContextQuery.data,
+            ANIMAL_PERMISSIONS.READ
+        )
+    const renderMenu = React.useCallback(props => (
+        <Menu
+            {...props}
+            showCanonicalDirectory={showCanonicalDirectory}
+        />
+    ), [showCanonicalDirectory])
+
     return (
         <Stack.Navigator screenOptions={{
             headerShown: false,
         }}>
-            <Stack.Screen name='Menu' component={Menu}/>
+            <Stack.Screen name='Menu'>
+                {renderMenu}
+            </Stack.Screen>
+            <Stack.Screen
+                name={ANIMAL_ROUTES.SEARCH}
+                component={AnimalSearch}
+            />
+            <Stack.Screen
+                name={ANIMAL_ROUTES.DETAIL}
+                component={AnimalDetail}
+                options={{
+                    headerShown: true,
+                    title: 'Animal',
+                }}
+            />
             <Stack.Screen name='CadastrarReceptora' component={CadastrarReceptoras}/>
             <Stack.Screen name='CadastrarDoadora' component={CadastrarDoadora} />
             <Stack.Screen name='CadastrarTouro' component={CadastrarTouro} />

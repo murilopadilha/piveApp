@@ -5,6 +5,9 @@ import Feather from '@expo/vector-icons/Feather'
 export default function PiveListItem({ fiv, onPress }) {
     return (
         <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={`Abrir FIV ${fiv.id}`}
+            accessibilityHint="Abre o detalhe do fluxo legado de produção FIV"
             style={[styles.container, styles.shadow]}
             onPress={onPress}
         >

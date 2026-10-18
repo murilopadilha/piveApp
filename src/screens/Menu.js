@@ -1,16 +1,36 @@
-import { Text, View,  TouchableOpacity, StyleSheet, Image, Platform } from "react-native";
+import { Text, View, TouchableOpacity, StyleSheet, Image, Platform, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import style from "../components/style";
+import { ANIMAL_ROUTES } from '../features/animals/routes';
 
-export default ({ navigation }) => {
+export default ({ navigation, showCanonicalDirectory = false }) => {
     return (
         <SafeAreaView style={styles.screen}>
             <View style={[style.divTitleMain]} >
                 <Image source={require('../images/menu/logo.png')} style={styles.logo}/>
                 <Text style={style.titleTextMain}>BovInA</Text>
             </View>
-            <View style={styles.menuContent}>
+            <ScrollView contentContainerStyle={styles.menuContent}>
+                {showCanonicalDirectory ? (
+                    <View>
+                        <TouchableOpacity
+                            accessibilityRole="button"
+                            accessibilityLabel="Abrir diretório de animais"
+                            accessibilityHint="Consulta identidades e históricos de animais"
+                            style={styles.menuContentButton}
+                            onPress={() => navigation.navigate(ANIMAL_ROUTES.SEARCH)}
+                        >
+                            <MaterialCommunityIcons
+                                name="text-box-search-outline"
+                                size={76}
+                                color="#092955"
+                            />
+                        </TouchableOpacity>
+                        <Text style={styles.buttonText}>Diretório de Animais</Text>
+                    </View>
+                ) : null}
                 <View>
                     <TouchableOpacity style={styles.menuContentButton} onPress={() => {
                         navigation.navigate('CadastrarReceptora')
@@ -59,13 +79,14 @@ export default ({ navigation }) => {
                     </TouchableOpacity>
                     <Text style={styles.buttonText}>Touros Cadastrados</Text>
                 </View>
-            </View>
+            </ScrollView>
         </SafeAreaView>
     )
 }
 
 const styles = StyleSheet.create({
     screen: {
+        flex: 1,
         backgroundColor: '#F1F2F4',
     },
     logo: {
@@ -81,7 +102,7 @@ const styles = StyleSheet.create({
         marginTop: 0,
         alignItems: 'center',
         justifyContent: 'space-evenly',
-        height: '100%',
+        paddingBottom: 120,
     },
     menuContentButton: {
         backgroundColor: '#FFFFFF',

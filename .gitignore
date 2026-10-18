@@ -174,3 +174,6 @@ ehthumbs.db
 # Mobile specific
 android/app/src/main/assets/index.android.bundle
 ios/main.jsbundle
+
+# docs
+docs/

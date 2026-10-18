@@ -30,6 +30,9 @@ export default function DonorListItem({ data, isDeleting, onEdit, onRemove }) {
             </View>
             <View style={style.listButtons}>
                 <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={`Excluir doadora ${data?.name || ''}`.trim()}
+                    accessibilityState={{ disabled: isDeleting }}
                     disabled={isDeleting}
                     style={style.listButtonDelete}
                     onPress={() => onRemove(data.id)}
@@ -37,6 +40,8 @@ export default function DonorListItem({ data, isDeleting, onEdit, onRemove }) {
                     <Octicons name="trash" size={20} color="#908D8E" />
                 </TouchableOpacity>
                 <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={`Editar doadora ${data?.name || ''}`.trim()}
                     style={[style.listButtonDelete, styles.deleteButton]}
                     onPress={() => onEdit(data)}
                 >

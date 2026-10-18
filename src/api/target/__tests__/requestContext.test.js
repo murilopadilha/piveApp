@@ -1,0 +1,308 @@
+import {
+    TARGET_API_VERSION_PATH,
+    resolveTargetApiBaseUrl,
+} from '../../../config/targetApi'
+import {
+    TargetRequestContextError,
+    applyTargetRequestContext,
+    getTargetRuntimeContext,
+    resetTargetRuntimeContext,
+    setTargetAccessToken,
+    setTargetOrganizationId,
+} from '../requestContext'
+import {
+    TARGET_API_TIMEOUT_MS,
+    TARGET_CORRELATION_HEADER,
+    TARGET_ORGANIZATION_HEADER,
+    TargetApiConfigurationError,
+    createTargetApiClient,
+} from '../client'
+import legacyApiClient from '../../client'
+
+afterEach(() => {
+    resetTargetRuntimeContext()
+})
+
+describe('target API configuration', () => {
+    test('requires an explicit URL and appends the target version path once', () => {
+        expect(resolveTargetApiBaseUrl(undefined)).toBeNull()
+        expect(resolveTargetApiBaseUrl('  ')).toBeNull()
+        expect(resolveTargetApiBaseUrl('https://api.example.test/')).toBe(
+            `https://api.example.test${TARGET_API_VERSION_PATH}`
+        )
+        expect(resolveTargetApiBaseUrl('https://api.example.test/api/v1/')).toBe(
+            'https://api.example.test/api/v1'
+        )
+    })
+})
+
+describe('target request context', () => {
+    test('stores only normalized runtime auth and Organization context', () => {
+        setTargetAccessToken(' token-value ')
+        setTargetOrganizationId(' organization-a ')
+
+        expect(getTargetRuntimeContext()).toEqual({
+            accessToken: 'token-value',
+            organizationId: 'organization-a',
+        })
+    })
+
+    test('rejects an authenticated target request without a token', () => {
+        expect(() => applyTargetRequestContext({ headers: {} }, {
+            context: { accessToken: null, organizationId: 'organization-a' },
+        })).toThrow(TargetRequestContextError)
+    })
+
+    test('rejects an Organization-scoped request without an active Organization', () => {
+        expect(() => applyTargetRequestContext({ headers: {} }, {
+            context: { accessToken: 'token', organizationId: null },
+        })).toThrow(expect.objectContaining({ code: 'ORGANIZATION_REQUIRED' }))
+    })
+
+    test('allows bootstrap requests to opt out of Organization scope', () => {
+        const config = applyTargetRequestContext({
+            headers: {},
+            targetContext: { organizationScoped: false },
+        }, {
+            context: { accessToken: 'token', organizationId: null },
+        })
+
+        expect(config.headers).toMatchObject({
+            Authorization: 'Bearer token',
+        })
+        expect(config).not.toHaveProperty('targetContext')
+    })
+
+    test('adds standard command/version headers and configured context headers', () => {
+        const signal = new AbortController().signal
+        const config = applyTargetRequestContext({
+            headers: {},
+            signal,
+            targetContext: {
+                correlationId: 'trace-1',
+                idempotencyKey: 'command-1',
+                expectedVersion: '"version-3"',
+            },
+        }, {
+            context: {
+                accessToken: 'token',
+                organizationId: 'organization-a',
+            },
+            organizationHeaderName: 'Configured-Organization-Header',
+            correlationHeaderName: 'Configured-Correlation-Header',
+        })
+
+        expect(config.headers).toEqual({
+            Authorization: 'Bearer token',
+            'Configured-Organization-Header': 'organization-a',
+            'Configured-Correlation-Header': 'trace-1',
+            'Idempotency-Key': 'command-1',
+            'If-Match': '"version-3"',
+        })
+        expect(config.signal).toBe(signal)
+    })
+
+    test('uses the implemented Organization and correlation header names', () => {
+        const config = applyTargetRequestContext({
+            headers: {},
+            targetContext: { correlationId: 'trace-1' },
+        }, {
+            context: {
+                accessToken: 'token',
+                organizationId: 'organization-a',
+            },
+            organizationHeaderName: TARGET_ORGANIZATION_HEADER,
+            correlationHeaderName: TARGET_CORRELATION_HEADER,
+        })
+
+        expect(config.headers).toEqual({
+            Authorization: 'Bearer token',
+            'X-Organization-ID': 'organization-a',
+            'X-Correlation-ID': 'trace-1',
+        })
+    })
+
+    test('omits Organization from bootstrap requests after selection', () => {
+        const config = applyTargetRequestContext({
+            headers: {},
+            targetContext: { organizationScoped: false },
+        }, {
+            context: {
+                accessToken: 'token',
+                organizationId: 'organization-a',
+            },
+            organizationHeaderName: TARGET_ORGANIZATION_HEADER,
+        })
+
+        expect(config.headers).toEqual({ Authorization: 'Bearer token' })
+    })
+})
+
+describe('target Axios client', () => {
+    test('is a separate client from the legacy API boundary', () => {
+        const targetClient = createTargetApiClient({
+            baseURL: 'https://api.example.test/api/v1',
+        })
+
+        expect(targetClient).not.toBe(legacyApiClient)
+        expect(targetClient.defaults.baseURL).toBe(
+            'https://api.example.test/api/v1'
+        )
+        expect(legacyApiClient.defaults.baseURL).not.toBe(
+            targetClient.defaults.baseURL
+        )
+    })
+
+    test('injects context while preserving AbortSignal and timeout', async () => {
+        const signal = new AbortController().signal
+        const client = createTargetApiClient({
+            baseURL: 'https://api.example.test/api/v1',
+            getRequestContext: () => ({
+                accessToken: 'token',
+                organizationId: 'organization-a',
+            }),
+        })
+
+        const response = await client.get('/clients', {
+            signal,
+            targetContext: { idempotencyKey: 'command-1' },
+            adapter: async config => ({
+                data: null,
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            }),
+        })
+
+        expect(response.config.baseURL).toBe('https://api.example.test/api/v1')
+        expect(response.config.timeout).toBe(TARGET_API_TIMEOUT_MS)
+        expect(response.config.signal).toBe(signal)
+        expect(response.config.headers.get('Authorization')).toBe('Bearer token')
+        expect(response.config.headers.get('X-Organization-ID')).toBe(
+            'organization-a'
+        )
+        expect(response.config.headers.get('Idempotency-Key')).toBe('command-1')
+    })
+
+    test('does not add target headers to the legacy client', async () => {
+        setTargetAccessToken('target-token')
+        setTargetOrganizationId('organization-a')
+
+        const response = await legacyApiClient.get('/legacy-probe', {
+            adapter: async config => ({
+                data: null,
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            }),
+        })
+
+        expect(response.config.headers.get('Authorization')).toBeUndefined()
+        expect(response.config.headers.get('X-Organization-ID')).toBeUndefined()
+        expect(response.config.headers.get('X-Correlation-ID')).toBeUndefined()
+    })
+
+    test('fails before transport when the target URL is unresolved', async () => {
+        const client = createTargetApiClient({
+            baseURL: null,
+            getRequestContext: () => ({
+                accessToken: 'token',
+                organizationId: 'organization-a',
+            }),
+        })
+
+        await expect(client.get('/clients')).rejects.toBeInstanceOf(
+            TargetApiConfigurationError
+        )
+    })
+
+    test('refreshes once after 401 and preserves a command intention', async () => {
+        const attempts = []
+        const authRuntime = {
+            getValidAccessToken: jest.fn()
+                .mockResolvedValueOnce('expired-token')
+                .mockResolvedValue('fresh-token'),
+            recoverUnauthorized: jest.fn(async () => 'fresh-token'),
+            notifySessionExpired: jest.fn(async () => undefined),
+        }
+        const client = createTargetApiClient({
+            baseURL: 'https://api.example.test/api/v1',
+            getRequestContext: () => ({
+                accessToken: 'expired-token',
+                organizationId: 'organization-a',
+            }),
+            authRuntime,
+        })
+        const adapter = async (config) => {
+            attempts.push({
+                authorization: config.headers.get('Authorization'),
+                idempotencyKey: config.headers.get('Idempotency-Key'),
+                data: config.data,
+            })
+
+            if (!config.__targetAuthRetried) {
+                return Promise.reject({
+                    config,
+                    response: { status: 401 },
+                })
+            }
+
+            return {
+                data: { accepted: true },
+                status: 200,
+                statusText: 'OK',
+                headers: {},
+                config,
+            }
+        }
+
+        await expect(client.post('/matings:bulk', {
+            batchId: 'batch-1',
+            items: [{ itemId: 'item-1', matingId: 'mating-1' }],
+        }, {
+            targetContext: { idempotencyKey: 'batch-1' },
+            adapter,
+        })).resolves.toMatchObject({ data: { accepted: true } })
+
+        expect(attempts).toHaveLength(2)
+        expect(attempts[0]).toMatchObject({
+            authorization: 'Bearer expired-token',
+            idempotencyKey: 'batch-1',
+        })
+        expect(attempts[1]).toMatchObject({
+            authorization: 'Bearer fresh-token',
+            idempotencyKey: 'batch-1',
+            data: attempts[0].data,
+        })
+        expect(authRuntime.recoverUnauthorized).toHaveBeenCalledTimes(1)
+        expect(authRuntime.notifySessionExpired).not.toHaveBeenCalled()
+    })
+
+    test('expires the session after one failed authenticated retry', async () => {
+        const authRuntime = {
+            getValidAccessToken: jest.fn(async () => 'token'),
+            recoverUnauthorized: jest.fn(async () => 'refreshed-token'),
+            notifySessionExpired: jest.fn(async () => undefined),
+        }
+        const client = createTargetApiClient({
+            baseURL: 'https://api.example.test/api/v1',
+            getRequestContext: () => ({
+                accessToken: 'token',
+                organizationId: 'organization-a',
+            }),
+            authRuntime,
+        })
+
+        await expect(client.get('/clients', {
+            adapter: config => Promise.reject({
+                config,
+                response: { status: 401 },
+            }),
+        })).rejects.toMatchObject({ response: { status: 401 } })
+
+        expect(authRuntime.recoverUnauthorized).toHaveBeenCalledTimes(1)
+        expect(authRuntime.notifySessionExpired).toHaveBeenCalledTimes(1)
+    })
+})

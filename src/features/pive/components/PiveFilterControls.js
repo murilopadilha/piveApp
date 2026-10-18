@@ -29,7 +29,13 @@ export default function PiveFilterControls({
                     inputStyles={style.selectListInput}
                     dropdownStyles={styles.selectListDropdown}
                 />
-                <TouchableOpacity style={styles.toggleButton} onPress={onToggleCatalog}>
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Alternar catálogo de filtros da FIV"
+                    accessibilityHint="Alterna entre filtros por status e por animal"
+                    style={styles.toggleButton}
+                    onPress={onToggleCatalog}
+                >
                     <MaterialCommunityIcons name={icon} size={30} color="#092955" />
                 </TouchableOpacity>
             </View>
